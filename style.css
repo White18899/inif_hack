@@ -233,7 +233,9 @@ body.timeline-unlocked .showcase-layout {
   position: relative;
   inset: auto;
   width: 100%;
+  height: 100vh;
   min-height: 100vh;
+  box-sizing: border-box;
 }
 
 /* --------------------------------------------------------------------------
@@ -477,6 +479,8 @@ body.timeline-unlocked .showcase-layout {
 .stone-stage-overlay {
   flex: 1;
   height: 100%;
+  min-height: 100%;
+  align-self: stretch;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -564,6 +568,8 @@ body.timeline-unlocked .showcase-layout {
   width: 495px;
   max-width: 43vw;
   height: 100%;
+  min-height: 100%;
+  align-self: stretch;
   display: flex;
   align-items: center;
   justify-content: flex-end;

@@ -601,7 +601,11 @@ class InfinityScrollShowcase {
         if (this.isConvergenceActive) {
           this.endConvergence();
         }
-        this.stepStone(1);
+        if (this.currentIndex === STONES.length - 1) {
+          this.unlockTimeline(true);
+        } else {
+          this.stepStone(1);
+        }
       });
     }
   }
@@ -611,12 +615,6 @@ class InfinityScrollShowcase {
       this.endConvergence();
     }
     const total = STONES.length;
-
-    // After the 6th stone (index 5) is scrolled, reveal and unlock the timeline div!
-    if (this.currentIndex === total - 1 && direction > 0) {
-      this.unlockTimeline(true);
-      return;
-    }
 
     let nextIndex = this.currentIndex + direction;
     if (nextIndex >= total) nextIndex = 0;
