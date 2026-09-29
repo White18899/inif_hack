@@ -11,8 +11,14 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
   
-  <script type="module" crossorigin src="/assets/index-DLu6Uujq.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-BidA5N-k.css">
+  <script>
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+    window.scrollTo(0, 0);
+  </script>
+  <script type="module" crossorigin src="/assets/index-JXzd4f8E.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-D06xzBji.css">
 </head>
 <body class="theme-obsidian">
   <!-- 3D Canvas Viewport (Untouched, Pristine Three.js WebGL Engine) -->
@@ -44,27 +50,6 @@
     </nav>
 
     <div class="header-right">
-      <button id="btn-audio" class="hud-btn" title="Toggle Cosmic Synthesizer (Mute/Unmute)" aria-label="Audio">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-          <path class="audio-wave" d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-          <path class="audio-wave-outer" d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
-          <line class="audio-muted-slash" x1="23" y1="1" x2="1" y2="23"></line>
-        </svg>
-        <span class="btn-text">AUDIO</span>
-      </button>
-
-      <button id="btn-wireframe" class="hud-btn" title="Toggle Crystal Wireframe Diagnostics" aria-label="Wireframe">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
-        </svg>
-        <span class="btn-text">WIREFRAME</span>
-      </button>
-
-      <button id="btn-convergence" class="hud-btn hud-btn-convergence" title="Trigger Hexagonal Convergence" aria-label="Convergence">
-        <span class="btn-text">✦ CONVERGENCE</span>
-      </button>
-
       <!-- Portals Dropdown Trigger -->
       <div class="portals-dropdown-container">
         <button id="btn-portals" class="hud-btn hud-btn-portals" title="Access Role Portals">
@@ -121,6 +106,20 @@
     
     <!-- LEFT: Minimalist Vertical Pager -->
     <nav class="vertical-pager" id="vertical-pager" aria-label="Stone Navigation">
+      <!-- Top Action Controls (Top: Convergence, Down: Wireframe) -->
+      <div class="pager-controls-top" id="pager-controls-top">
+        <button id="btn-convergence" class="hud-btn hud-btn-convergence" title="Trigger Hexagonal Convergence" aria-label="Convergence">
+          <span class="btn-text">✦ CONVERGENCE</span>
+        </button>
+
+        <button id="btn-wireframe" class="hud-btn" title="Toggle Crystal Wireframe Diagnostics" aria-label="Wireframe">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+          </svg>
+          <span class="btn-text">WIREFRAME</span>
+        </button>
+      </div>
+
       <div class="pager-items-list" id="pager-list">
         <!-- Rendered dynamically with integrated SVG precision nodes -->
       </div>

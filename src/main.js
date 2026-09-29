@@ -47,6 +47,9 @@ class InfinityScrollShowcase {
 
     // Initial Presentation of Specimen 1 (Mind Stone // Intelligence)
     this.displayStone(0, false);
+
+    // Auto-play convergence animation when site opened or loaded
+    this.triggerConvergence();
   }
 
   /* --------------------------------------------------------------------------
@@ -837,6 +840,8 @@ class InfinityScrollShowcase {
     const hexRadius = 3.6;
     this.stones.forEach((stone, i) => {
       stone.group.visible = true;
+      stone.group.position.set(0, 0, 0);
+      stone.group.scale.set(0.1, 0.1, 0.1);
       const angle = (i / this.stones.length) * Math.PI * 2;
       const targetX = Math.cos(angle) * hexRadius;
       const targetY = Math.sin(angle) * hexRadius;
@@ -1064,15 +1069,17 @@ class InfinityScrollShowcase {
       this.controls.target.set(this.stoneStageX, this.stoneStageY, 0);
     });
 
-    // Audio Button Toggle
+    // Audio Button Toggle (Safely guarded if element is present)
     const btnAudio = document.getElementById('btn-audio');
-    btnAudio.addEventListener('click', () => {
-      const isUnmuted = audioEngine.toggleMute();
-      btnAudio.classList.toggle('audio-unmuted', isUnmuted);
-      btnAudio.classList.toggle('audio-muted', !isUnmuted);
-      btnAudio.classList.toggle('active', isUnmuted);
-    });
-    btnAudio.classList.add('audio-muted');
+    if (btnAudio) {
+      btnAudio.addEventListener('click', () => {
+        const isUnmuted = audioEngine.toggleMute();
+        btnAudio.classList.toggle('audio-unmuted', isUnmuted);
+        btnAudio.classList.toggle('audio-muted', !isUnmuted);
+        btnAudio.classList.toggle('active', isUnmuted);
+      });
+      btnAudio.classList.add('audio-muted');
+    }
 
     // Wireframe Toggle
     document.getElementById('btn-wireframe').addEventListener('click', () => {
@@ -1129,7 +1136,7 @@ class InfinityScrollShowcase {
       } else if (key === 'W') {
         this.toggleWireframe();
       } else if (key === 'M') {
-        btnAudio.click();
+        if (btnAudio) btnAudio.click();
       }
     });
 
