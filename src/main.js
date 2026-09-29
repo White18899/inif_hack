@@ -439,15 +439,6 @@ class InfinityScrollShowcase {
         this.unlockTimeline(true);
       });
     }
-
-    // Back to Stones Button
-    const btnBack = document.getElementById('btn-back-to-stones');
-    if (btnBack) {
-      btnBack.addEventListener('click', () => {
-        audioEngine.playClick();
-        this.lockTimeline();
-      });
-    }
   }
 
   unlockTimeline(scroll = true, targetId = 'sponsors-section') {
