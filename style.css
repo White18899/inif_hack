@@ -1569,72 +1569,84 @@ body.timeline-unlocked .timeline-section {
   background: transparent;
 }
 
+/* Minimal Luxury Wield Stone CTA */
+.card-wield-section {
+  padding: 12px 0 0 0;
+  background: transparent;
+}
+
 .btn-wield-stone {
   width: 100%;
+  height: 48px;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 16px 24px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.03) 100%), rgba(10, 12, 20, 0.8);
-  border: 1px solid var(--btn-glow, rgba(255, 255, 255, 0.3));
+  gap: 12px;
+  padding: 0 24px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: 1px solid rgba(255, 255, 255, 0.22);
   color: #ffffff;
   cursor: pointer;
   position: relative;
-  overflow: hidden;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  transition: all 0.3s var(--transition-smooth);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 24px rgba(var(--active-stone-rgb), 0.22);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  outline: none;
+}
+
+.btn-wield-stone .wield-icon {
+  font-size: 0.95rem;
+  color: var(--btn-glow, #ffd000);
+  transition: transform 0.28s ease, color 0.28s ease;
+}
+
+.btn-wield-stone .wield-title {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #ffffff;
+  transition: color 0.28s ease;
+}
+
+.btn-wield-stone .wield-arrow {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2.2;
+  color: rgba(255, 255, 255, 0.5);
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), color 0.28s ease, opacity 0.28s ease;
+  margin-left: 2px;
 }
 
 .btn-wield-stone:hover {
-  background: var(--btn-glow, #ffffff);
+  background: #ffffff;
+  border-color: #ffffff;
   color: #030305;
-  border-color: var(--btn-glow, #ffffff);
-  box-shadow: 0 12px 35px var(--btn-glow, rgba(255, 255, 255, 0.65)), 0 0 50px var(--active-stone-glow);
   transform: translateY(-2px);
+  box-shadow: 0 0 28px rgba(255, 255, 255, 0.35), 0 10px 25px rgba(0, 0, 0, 0.6);
 }
 
-.btn-wield-stone:hover .wield-title,
-.btn-wield-stone:hover .wield-icon,
-.btn-wield-stone:hover .wield-sub {
+.btn-wield-stone:hover .wield-title {
   color: #030305 !important;
 }
 
-.wield-btn-content {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.wield-icon {
-  font-size: 1.15rem;
-  color: var(--btn-glow, #ffd000);
-  transition: transform 0.3s ease;
-}
-
 .btn-wield-stone:hover .wield-icon {
-  transform: scale(1.15) rotate(15deg);
+  color: #030305 !important;
+  transform: rotate(20deg) scale(1.15);
 }
 
-.wield-title {
-  font-family: var(--font-display);
-  font-size: 1.02rem;
-  font-weight: 800;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+.btn-wield-stone:hover .wield-arrow {
+  color: #030305 !important;
+  transform: translateX(4px);
+  opacity: 1;
 }
 
-.wield-sub {
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  color: rgba(255, 255, 255, 0.6);
-  text-transform: uppercase;
+.btn-wield-stone:active {
+  transform: translateY(0);
 }
 
 /* Tech Stack Badges in Card */
