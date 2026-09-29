@@ -1860,11 +1860,11 @@ body.timeline-unlocked #sponsors-section {
   filter: contrast(1.08) saturate(1.15);
 }
 
-/* Avengers Sticker - Significantly Bigger, Static Without Hover */
+/* Avengers Sticker - Significantly Bigger, Moved Higher Up */
 .sticker-avengers {
-  top: -45px;
-  right: -25px;
-  width: 220px;
+  top: -125px;
+  right: -30px;
+  width: 300px;
   transform: rotate(8deg);
 }
 
@@ -2192,9 +2192,9 @@ body.timeline-unlocked #sponsors-section {
     grid-template-columns: repeat(3, 1fr);
   }
   .sticker-avengers {
-    width: 170px;
-    top: -30px;
-    right: -10px;
+    width: 220px;
+    top: -85px;
+    right: -15px;
   }
 }
 
@@ -2208,8 +2208,8 @@ body.timeline-unlocked #sponsors-section {
     grid-template-columns: repeat(2, 1fr);
   }
   .sticker-avengers {
-    width: 120px;
-    top: -20px;
+    width: 150px;
+    top: -55px;
     right: 0;
   }
 }
@@ -2219,8 +2219,8 @@ body.timeline-unlocked #sponsors-section {
     grid-template-columns: 1fr;
   }
   .sticker-avengers {
-    width: 85px;
-    top: -15px;
+    width: 100px;
+    top: -35px;
     right: 0;
   }
 }
