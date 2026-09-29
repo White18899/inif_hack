@@ -507,16 +507,16 @@ class InfinityScrollShowcase {
     }
   }
 
-  unlockTimeline(scroll = true) {
+  unlockTimeline(scroll = true, targetId = 'sponsors-section') {
     if (!document.body.classList.contains('timeline-unlocked')) {
       document.body.classList.add('timeline-unlocked');
       audioEngine.playChime(660);
     }
     if (scroll) {
       setTimeout(() => {
-        const timelineSec = document.getElementById('timeline-section');
-        if (timelineSec) {
-          const targetY = timelineSec.offsetTop || window.innerHeight;
+        const targetSec = document.getElementById(targetId) || document.getElementById('sponsors-section') || document.getElementById('timeline-section');
+        if (targetSec) {
+          const targetY = targetSec.offsetTop || window.innerHeight;
           window.scrollTo({ top: targetY, behavior: 'smooth' });
         }
       }, 50);
@@ -672,7 +672,7 @@ class InfinityScrollShowcase {
     // Update Scroll Chevrons Label
     const scrollLabel = document.getElementById('scroll-label');
     if (scrollLabel) {
-      scrollLabel.textContent = index === STONES.length - 1 ? 'EXPLORE COSMIC TIMELINE ↓' : 'SCROLL TO DISCOVER';
+      scrollLabel.textContent = index === STONES.length - 1 ? 'EXPLORE SPONSORS & TIMELINE ↓' : 'SCROLL TO DISCOVER';
     }
 
     // Fade & Slide Update of Right Info Card
