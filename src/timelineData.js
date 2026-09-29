@@ -49,11 +49,11 @@ export const TIMELINE_EVENTS = [
     stoneRgb: '176, 38, 255',
     date: 'DAY 1 // 10:00 AM',
     era: 'Hacking Begins',
-    title: 'Opening Ceremony & 36H Clock Ignition',
+    title: 'Opening Ceremony & 24H Clock Ignition',
     location: 'Grand Central Auditorium',
     vessel: 'Infinity Timer & Cloud Gateways',
     wielders: 'Patrons, Mentors & All Hackers',
-    desc: 'Keynote address by industry CTOs from Cloudflare and AWS. The 36-hour countdown clock initiates on the main arena monitors. Hacking commences across all 6 specialized lab domains.'
+    desc: 'Keynote address by industry CTOs and visionary technology leaders. The 24-hour countdown clock initiates on the main arena monitors. Hacking commences across all 6 specialized lab domains.'
   },
   {
     id: 'mentoring-hightea',

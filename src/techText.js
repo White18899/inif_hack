@@ -379,6 +379,7 @@ export class TechText {
   }
 
   drawFrame(s) {
+    if (!s?.selection) return;
     const glyph = this.glyphs[this.frame.index];
     if (!glyph || this.frame.alpha < 0.01) return;
     const a = this.frame.alpha;

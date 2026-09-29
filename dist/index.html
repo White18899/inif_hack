@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>INFINITY HACKATHON 2026 // Forge the Universe Across 6 Singularities</title>
-  <meta name="description" content="Join India's premier 36-hour hackathon. 6 Infinity Domains, 3D WebGL showcase, ₹390/member registration fee, Cloudflare R2 verified portals for Leaders, Coordinators, Judges, and Admins.">
+  <meta name="description" content="Join India's premier 24-hour hackathon. 6 Infinity Domains, 3D WebGL showcase, ₹390/member registration fee, Cloudflare R2 verified portals for Leaders, Coordinators, Judges, and Admins.">
   
   <!-- Typography: Syne, Space Grotesk, Inter, JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,8 +17,8 @@
     }
     window.scrollTo(0, 0);
   </script>
-  <script type="module" crossorigin src="/assets/index-BX1G8Q_X.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-CjzqhG2M.css">
+  <script type="module" crossorigin src="/assets/index-CWjbgqFk.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-TK2p5mN4.css">
 </head>
 <body class="theme-obsidian">
   <!-- 3D Canvas Viewport (Untouched, Pristine Three.js WebGL Engine) -->
@@ -98,6 +98,15 @@
       <button id="btn-nav-register" class="hud-btn hud-btn-register" title="Register Your Squad">
         <span class="btn-text">✦ REGISTER SQUAD</span>
       </button>
+
+      <!-- Mobile Hamburger Menu Button (Matches Mobile Sketch) -->
+      <button id="btn-mobile-menu" class="hud-btn hud-btn-hamburger" title="Toggle Navigation Menu" aria-label="Open Navigation Menu">
+        <svg class="hamburger-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <line x1="3" y1="12" x2="21" y2="12" />
+          <line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
     </div>
   </header>
 
@@ -149,7 +158,39 @@
     <!-- RIGHT: Minimalist Premium Specimen HUD -->
     <aside class="info-card-container" id="info-container">
       <div class="info-card" id="info-card">
-        
+        <!-- Precision Cosmic Countdown Timer (Target: 31 OCT) -->
+        <div class="hud-countdown-bar" id="hud-countdown-bar" title="Time Remaining Until 31 Oct Hackathon">
+          <div class="countdown-eyebrow">
+            <span class="countdown-title">ARENA COUNTDOWN • 31 OCT</span>
+          </div>
+          <div class="countdown-digits-wrapper" id="countdown-digits">
+            <div class="cd-unit">
+              <span class="cd-num" id="cd-days">00</span>
+              <span class="cd-lbl">DAYS</span>
+            </div>
+            <span class="cd-sep">:</span>
+            <div class="cd-unit">
+              <span class="cd-num" id="cd-hours">00</span>
+              <span class="cd-lbl">HRS</span>
+            </div>
+            <span class="cd-sep">:</span>
+            <div class="cd-unit">
+              <span class="cd-num" id="cd-mins">00</span>
+              <span class="cd-lbl">MIN</span>
+            </div>
+            <span class="cd-sep">:</span>
+            <div class="cd-unit">
+              <span class="cd-num" id="cd-secs">00</span>
+              <span class="cd-lbl">SEC</span>
+            </div>
+            <span class="cd-sep cd-sep-ms">.</span>
+            <div class="cd-unit cd-unit-ms">
+              <span class="cd-num cd-num-ms" id="cd-msecs">000</span>
+              <span class="cd-lbl">MS</span>
+            </div>
+          </div>
+        </div>
+
         <!-- Info Card Top Header -->
         <div class="card-header">
           <div class="card-badge-row">
@@ -205,9 +246,9 @@
         <div class="sponsors-mini-eyebrow">
           <span class="eyebrow-accent">//</span> PARTNERS &amp; VENUE ALLIANCE
         </div>
-        <h2 class="sponsors-clean-title">Host Institution &amp; Global Sponsors</h2>
+        <h2 class="sponsors-clean-title">Host Institution &amp; Official Partners</h2>
         <p class="sponsors-clean-sub">
-          Backed by frontier cloud infrastructures, developer platforms, and academic excellence.
+          Presented in collaboration with leading technology platforms and academic excellence.
         </p>
       </div>
 
@@ -234,7 +275,7 @@
         <div class="host-strip-right">
           <span class="host-chip-clean">
             <span class="status-live-dot"></span>
-            36H On-Site Arena
+            24H On-Site Arena
           </span>
           <span class="host-chip-clean host-chip-loc" title="Venue Campus Location">
             <svg class="loc-pin-svg" viewBox="0 0 16 16" fill="currentColor">
@@ -245,110 +286,43 @@
         </div>
       </div>
 
-      <!-- 5 Sponsors Clean Minimalist Row -->
+      <!-- 5 Sponsors Clean Minimalist Row (Empty Space for Future Partners) -->
       <div class="sponsors-mini-grid">
 
-        <!-- 1. Cloudflare -->
-        <div class="sponsor-mini-card cf-mini-card" style="--brand-glow: rgba(243, 128, 32, 0.15);">
+        <!-- 1. Title Partner -->
+        <div class="sponsor-mini-card">
           <div class="mini-card-top">
-            <span class="mini-tier-tag">Title Cloud &amp; R2</span>
-            <span class="mini-status-dot cf-dot"></span>
+            <span class="mini-tier-tag">Title Partner</span>
           </div>
-          <div class="mini-logo-wrap">
-            <svg class="mini-brand-svg" viewBox="0 0 130 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M24 23H12c-3.3 0-6-2.7-6-6 0-3 2.2-5.5 5.2-5.9.5-3.8 3.8-6.7 7.8-6.7 2.9 0 5.4 1.5 6.8 3.9 1.1-.8 2.5-1.2 4-1.2 4 0 7.3 3.3 7.3 7.3 0 .4 0 .9-.1 1.3 2.4.8 4 3.1 4 5.8 0 3.3-2.7 6-6 6h-2z" stroke="#F38020" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="rgba(243,128,32,0.12)"/>
-              <path d="M15 18l4-5 5 5h-9z" fill="#F38020" opacity="0.85"/>
-              <text x="42" y="21" fill="#ffffff" font-family="'Inter', sans-serif" font-weight="600" font-size="14.5" letter-spacing="-0.01em">Cloudflare</text>
-            </svg>
-          </div>
-          <div class="mini-perks-clean">
-            <span class="perk-bullet">Zero-Egress R2 Database</span>
-            <span class="perk-bullet">Workers Serverless Edge</span>
-          </div>
-          <div class="mini-card-foot">Global Edge &amp; CDN</div>
+          <!-- Empty space reserved for sponsor logo & name (to be provided later) -->
+          <div class="sponsor-empty-slot" title="Title Partner slot"></div>
         </div>
 
-        <!-- 2. GitHub -->
-        <div class="sponsor-mini-card gh-mini-card" style="--brand-glow: rgba(255, 255, 255, 0.12);">
+        <!-- 2. Developer Tools -->
+        <div class="sponsor-mini-card">
           <div class="mini-card-top">
             <span class="mini-tier-tag">Developer Tools</span>
           </div>
-          <div class="mini-logo-wrap">
-            <svg class="mini-brand-svg" viewBox="0 0 110 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path fill-rule="evenodd" clip-rule="evenodd" d="M14 3C7.9 3 3 7.9 3 14c0 4.9 3.2 9 7.6 10.5.6.1.8-.3.8-.5v-1.9c-3.1.7-3.7-1.5-3.7-1.5-.5-1.3-1.2-1.6-1.2-1.6-1-.7.1-.7.1-.7 1.1.1 1.7 1.1 1.7 1.1 1 1.7 2.6 1.2 3.2 1 .1-.7.4-1.2.7-1.5-2.5-.3-5.1-1.2-5.1-5.5 0-1.2.4-2.2 1.2-3-.1-.3-.5-1.4.1-3 0 0 1-.3 3.1 1.1.9-.3 1.9-.4 2.8-.4s1.9.1 2.8.4c2.1-1.4 3.1-1.1 3.1-1.1.6 1.6.2 2.7.1 3 .7.8 1.2 1.8 1.2 3 0 4.3-2.6 5.2-5.1 5.5.4.3.8 1 .8 2.1v3.1c0 .3.2.6.8.5C24.8 23 28 18.9 28 14c0-6.1-4.9-11-14-11z" fill="#ffffff"/>
-              <text x="34" y="21" fill="#ffffff" font-family="'Inter', sans-serif" font-weight="600" font-size="14.5" letter-spacing="-0.01em">GitHub</text>
-            </svg>
-          </div>
-          <div class="mini-perks-clean">
-            <span class="perk-bullet">Copilot Enterprise</span>
-            <span class="perk-bullet">Codespaces Cloud VMs</span>
-          </div>
-          <div class="mini-card-foot">Dev Ecosystem Partner</div>
+          <!-- Empty space reserved for sponsor logo & name (to be provided later) -->
+          <div class="sponsor-empty-slot" title="Developer Tools Partner slot"></div>
         </div>
 
-        <!-- 3. Devfolio -->
-        <div class="sponsor-mini-card devfolio-mini-card" style="--brand-glow: rgba(55, 112, 255, 0.15);">
+        <!-- 3. Platform Partner -->
+        <div class="sponsor-mini-card">
           <div class="mini-card-top">
-            <span class="mini-tier-tag">Community Platform</span>
+            <span class="mini-tier-tag">Platform Partner</span>
           </div>
-          <div class="mini-logo-wrap">
-            <svg class="mini-brand-svg" viewBox="0 0 115 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M5 7l9-5 9 5v12l-9 5-9-5V7z" fill="url(#devfolio-clean-grad)"/>
-              <path d="M14 2v22M5 7l18 12M23 7L5 19" stroke="#ffffff" stroke-width="1" stroke-opacity="0.35"/>
-              <circle cx="14" cy="13" r="2.8" fill="#ffffff"/>
-              <defs>
-                <linearGradient id="devfolio-clean-grad" x1="5" y1="2" x2="23" y2="24" gradientUnits="userSpaceOnUse">
-                  <stop stop-color="#4E88FF"/>
-                  <stop offset="1" stop-color="#2050E0"/>
-                </linearGradient>
-              </defs>
-              <text x="32" y="21" fill="#ffffff" font-family="'Inter', sans-serif" font-weight="600" font-size="14.5" letter-spacing="-0.01em">Devfolio</text>
-            </svg>
-          </div>
-          <div class="mini-perks-clean">
-            <span class="perk-bullet">Frictionless Check-in</span>
-            <span class="perk-bullet">Verified Circuit Rank</span>
-          </div>
-          <div class="mini-card-foot">Hackathon Operations</div>
+          <!-- Empty space reserved for sponsor logo & name (to be provided later) -->
+          <div class="sponsor-empty-slot" title="Platform Partner slot"></div>
         </div>
 
-        <!-- 4. AWS Startups -->
-        <div class="sponsor-mini-card aws-mini-card" style="--brand-glow: rgba(255, 153, 0, 0.15);">
+        <!-- 4. Cloud Infrastructure -->
+        <div class="sponsor-mini-card">
           <div class="mini-card-top">
-            <span class="mini-tier-tag">Infrastructure</span>
+            <span class="mini-tier-tag">Cloud Infrastructure</span>
           </div>
-          <div class="mini-logo-wrap">
-            <svg class="mini-brand-svg" viewBox="0 0 135 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <text x="2" y="20" fill="#ffffff" font-family="'Inter', sans-serif" font-weight="700" font-size="16" letter-spacing="-0.02em">aws</text>
-              <path d="M3 24c8 2.5 19 2.5 25-1" stroke="#FF9900" stroke-width="2" stroke-linecap="round"/>
-              <path d="M26 21l3 2-2.5 3" fill="#FF9900"/>
-              <text x="36" y="19" fill="#FF9900" font-family="'Space Grotesk', monospace" font-weight="700" font-size="10.5" letter-spacing="0.08em">STARTUPS</text>
-            </svg>
-          </div>
-          <div class="mini-perks-clean">
-            <span class="perk-bullet">Up to $10k Cloud Credits</span>
-            <span class="perk-bullet">Bedrock AI Compute</span>
-          </div>
-          <div class="mini-card-foot">Cloud Credits &amp; GPUs</div>
-        </div>
-
-        <!-- 5. Polygon -->
-        <div class="sponsor-mini-card polygon-mini-card" style="--brand-glow: rgba(130, 71, 229, 0.15);">
-          <div class="mini-card-top">
-            <span class="mini-tier-tag">Decentralized</span>
-          </div>
-          <div class="mini-logo-wrap">
-            <svg class="mini-brand-svg" viewBox="0 0 115 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M14 4l8 4.6v9.2L14 22.4 6 17.8V8.6L14 4z" stroke="#8247E5" stroke-width="1.8" fill="rgba(130,71,229,0.15)"/>
-              <path d="M14 9.5l4 2.3v4.6l-4 2.3-4-2.3v-4.6l4-2.3z" fill="#8247E5"/>
-              <text x="30" y="21" fill="#ffffff" font-family="'Inter', sans-serif" font-weight="600" font-size="14.5" letter-spacing="-0.01em">Polygon</text>
-            </svg>
-          </div>
-          <div class="mini-perks-clean">
-            <span class="perk-bullet">Dedicated ZK Bounties</span>
-            <span class="perk-bullet">zkEVM Testnet Faucets</span>
-          </div>
-          <div class="mini-card-foot">Web3 &amp; ZK Ecosystem</div>
+          <!-- Empty space reserved for sponsor logo & name (to be provided later) -->
+          <div class="sponsor-empty-slot" title="Cloud Infrastructure Partner slot"></div>
         </div>
 
       </div>
@@ -358,15 +332,100 @@
 
   <!-- SECTION 3: Hackathon Event Timeline & Schedule (Dossier Comic/Hackathon Aesthetic) -->
   <section class="timeline-section" id="timeline-section">
-    <!-- Animated Moving Background Elements -->
+    <!-- Animated Moving Background Elements (Architectural Blueprint & Prismatic Caustics for White Canvas) -->
     <div class="timeline-bg-decor" aria-hidden="true">
-      <div class="t-bg-grid"></div>
-      <div class="t-glow-orb orb-1"></div>
-      <div class="t-glow-orb orb-2"></div>
-      <div class="t-glow-orb orb-3"></div>
-      <div class="t-floating-shape shape-1"></div>
-      <div class="t-floating-shape shape-2"></div>
-      <div class="t-floating-shape shape-3"></div>
+      <!-- 1. Drafting Micro-Grid Matrix -->
+      <div class="t-blueprint-grid"></div>
+
+      <!-- 2. High-Key Prismatic Caustic Halos (Sunlight Crystal Dispersion) -->
+      <div class="t-caustic-glow caustic-gold"></div>
+      <div class="t-caustic-glow caustic-cyan"></div>
+      <div class="t-caustic-glow caustic-emerald"></div>
+
+      <!-- 3. Giant Architectural Watermark Typography -->
+      <div class="t-watermark-text">24-HOUR RUNNING ORDER // MULTIVERSE SPRINT</div>
+
+      <!-- 4. Architectural Vitruvian Eldritch Mandala (Da Vinci / Stark Technical Drafting) -->
+      <div class="t-eldritch-mandala light-mode-mandala">
+        <svg class="mandala-svg" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Outer Technical Drafting Rune Ring -->
+          <g class="mandala-outer-ring">
+            <circle cx="250" cy="250" r="238" stroke="#09090b" stroke-width="1.2" stroke-dasharray="8 6" opacity="0.10" />
+            <circle cx="250" cy="250" r="224" stroke="#b45309" stroke-width="1" opacity="0.14" />
+            <circle cx="250" cy="250" r="210" stroke="#09090b" stroke-width="1.6" stroke-dasharray="24 12 4 12" opacity="0.12" />
+            <!-- Drafting Cardinal Ticks -->
+            <line x1="250" y1="8" x2="250" y2="40" stroke="#09090b" stroke-width="1.5" opacity="0.15" />
+            <line x1="250" y1="460" x2="250" y2="492" stroke="#09090b" stroke-width="1.5" opacity="0.15" />
+            <line x1="8" y1="250" x2="40" y2="250" stroke="#09090b" stroke-width="1.5" opacity="0.15" />
+            <line x1="460" y1="250" x2="492" y2="250" stroke="#09090b" stroke-width="1.5" opacity="0.15" />
+            <!-- Diagonal Drafting Ticks -->
+            <line x1="82" y1="82" x2="104" y2="104" stroke="#b45309" stroke-width="1.4" opacity="0.18" />
+            <line x1="418" y1="82" x2="396" y2="104" stroke="#b45309" stroke-width="1.4" opacity="0.18" />
+            <line x1="82" y1="418" x2="104" y2="396" stroke="#b45309" stroke-width="1.4" opacity="0.18" />
+            <line x1="418" y1="418" x2="396" y2="396" stroke="#b45309" stroke-width="1.4" opacity="0.18" />
+          </g>
+          <!-- Middle Rotating Sacred Octagram (Dual Squares) -->
+          <g class="mandala-octagram">
+            <rect x="135" y="135" width="230" height="230" stroke="#b45309" stroke-width="1.2" opacity="0.12" fill="none" />
+            <rect x="135" y="135" width="230" height="230" stroke="#09090b" stroke-width="1.2" opacity="0.10" fill="none" transform="rotate(45 250 250)" />
+            <circle cx="250" cy="250" r="162" stroke="#09090b" stroke-width="1" stroke-dasharray="16 8" opacity="0.10" />
+          </g>
+          <!-- Inner Core Mystic Eye Sigil -->
+          <g class="mandala-inner-eye">
+            <circle cx="250" cy="250" r="110" stroke="#b45309" stroke-width="1.5" stroke-dasharray="6 4" opacity="0.16" />
+            <circle cx="250" cy="250" r="65" stroke="#09090b" stroke-width="1.2" opacity="0.14" />
+            <polygon points="250,195 298,277 202,277" stroke="#b45309" stroke-width="1.2" fill="none" opacity="0.18" />
+            <polygon points="250,305 298,223 202,223" stroke="#09090b" stroke-width="1.2" fill="none" opacity="0.14" />
+            <circle cx="250" cy="250" r="12" fill="#09090b" opacity="0.15" />
+          </g>
+        </svg>
+      </div>
+
+      <!-- 5. Tesseract 4D Blueprint Line Art (Space Stone / PEGASUS Laboratory) -->
+      <div class="t-tesseract-4d light-mode-tesseract" title="Project PEGASUS // Drafting Vector">
+        <svg class="tesseract-svg" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Outer Cube -->
+          <polygon points="100,20 170,60 170,140 100,180 30,140 30,60" stroke="#0284c7" stroke-width="1.4" opacity="0.22" fill="rgba(2,132,199,0.015)" />
+          <line x1="100" y1="20" x2="100" y2="100" stroke="#0284c7" stroke-width="1" opacity="0.18" />
+          <line x1="170" y1="60" x2="100" y2="100" stroke="#0284c7" stroke-width="1" opacity="0.18" />
+          <line x1="30" y1="60" x2="100" y2="100" stroke="#0284c7" stroke-width="1" opacity="0.18" />
+          <line x1="100" y1="100" x2="100" y2="180" stroke="#0284c7" stroke-width="1" opacity="0.18" />
+          <!-- Inner Suspended Hypercube -->
+          <polygon points="100,55 140,78 140,122 100,145 60,122 60,78" stroke="#09090b" stroke-width="1.2" opacity="0.25" fill="rgba(2,132,199,0.03)" />
+          <line x1="100" y1="55" x2="100" y2="100" stroke="#09090b" stroke-width="1" opacity="0.20" />
+          <line x1="140" y1="78" x2="100" y2="100" stroke="#09090b" stroke-width="1" opacity="0.20" />
+          <line x1="60" y1="78" x2="100" y2="100" stroke="#09090b" stroke-width="1" opacity="0.20" />
+          <line x1="100" y1="100" x2="100" y2="145" stroke="#09090b" stroke-width="1" opacity="0.20" />
+          <!-- 4D Hyper-Ray Connectors -->
+          <line x1="100" y1="20" x2="100" y2="55" stroke="#0284c7" stroke-dasharray="3 3" stroke-width="1.2" opacity="0.22" />
+          <line x1="170" y1="60" x2="140" y2="78" stroke="#0284c7" stroke-dasharray="3 3" stroke-width="1.2" opacity="0.22" />
+          <line x1="170" y1="140" x2="140" y2="122" stroke="#0284c7" stroke-dasharray="3 3" stroke-width="1.2" opacity="0.22" />
+          <line x1="100" y1="180" x2="100" y2="145" stroke="#0284c7" stroke-dasharray="3 3" stroke-width="1.2" opacity="0.22" />
+          <line x1="30" y1="140" x2="60" y2="122" stroke="#0284c7" stroke-dasharray="3 3" stroke-width="1.2" opacity="0.22" />
+          <line x1="30" y1="60" x2="60" y2="78" stroke="#0284c7" stroke-dasharray="3 3" stroke-width="1.2" opacity="0.22" />
+          <!-- Vertex Nodes -->
+          <circle cx="100" cy="55" r="2.5" fill="#0284c7" opacity="0.5" />
+          <circle cx="140" cy="78" r="2.5" fill="#0284c7" opacity="0.5" />
+          <circle cx="140" cy="122" r="2.5" fill="#0284c7" opacity="0.5" />
+          <circle cx="100" cy="145" r="2.5" fill="#0284c7" opacity="0.5" />
+          <circle cx="60" cy="122" r="2.5" fill="#0284c7" opacity="0.5" />
+          <circle cx="60" cy="78" r="2.5" fill="#0284c7" opacity="0.5" />
+        </svg>
+      </div>
+
+      <!-- 6. Connective Chrono-Conduit Rail (Architectural Guide Line) -->
+      <div class="t-chrono-conduit light-mode-conduit">
+        <div class="chrono-beam-track"></div>
+        <div class="chrono-energy-pulse"></div>
+      </div>
+
+      <!-- 7. S.H.I.E.L.D. Technical Blueprint Stamps & GPS Coordinates -->
+      <div class="t-blueprint-stamps">
+        <span class="stamp stamp-tl">LAT: 17.7288° N // LON: 83.3186° E [GVP CAMPUS ARENA]</span>
+        <span class="stamp stamp-tr">CHRONO-RUNNER V2.6 // LEVEL 1 REGISTRATION</span>
+        <span class="stamp stamp-bl">ARCHIVAL SPRINT SPECIFICATION: 24H CONTINUOUS</span>
+        <span class="stamp stamp-br">CLEARANCE: MULTIVERSE S.H.I.E.L.D. PROTOCOL</span>
+      </div>
     </div>
 
     <div class="timeline-inner">
@@ -379,7 +438,7 @@
         </div>
         <h2 class="timeline-title">EVENT TIMELINE &amp; SCHEDULE</h2>
         <p class="timeline-subtitle">
-          36 continuous hours of architecture, implementation, evaluation rounds, and gourmet culinary fuel across the multiverse.
+          24 continuous hours of architecture, implementation, evaluation rounds, and gourmet culinary fuel across the multiverse.
         </p>
       </div>
 
@@ -520,33 +579,33 @@
         </div>
         <h2 class="section-title">CODE OF CONDUCT</h2>
         <p class="section-subtitle">
-          Infinity Hackathon is an inclusive, respectful space dedicated to intellectual exploration, safety, and original engineering.
+          Failure to adhere will result in immediate disqualification and total erasure from the leaderboards.
         </p>
       </div>
 
       <div class="conduct-grid">
         <div class="conduct-card">
           <div class="conduct-num">01</div>
-          <h3 class="conduct-card-title">Universal Inclusivity & Respect</h3>
-          <p class="conduct-card-desc">Every participant, mentor, judge, and coordinator is treated with supreme respect. Harassment based on gender, sexual orientation, disability, physical appearance, race, or religion is strictly prohibited with zero tolerance.</p>
+          <h3 class="conduct-card-title">FRESH CODE ONLY</h3>
+          <p class="conduct-card-desc">All code repositories must be initiated during the 24-hour sprint window. Pre-built apps or templates will be detected by git audit scripts.</p>
         </div>
 
         <div class="conduct-card">
           <div class="conduct-num">02</div>
-          <h3 class="conduct-card-title">Original Engineering & Attribution</h3>
-          <p class="conduct-card-desc">All code and prototypes must be crafted during the 36-hour hackathon window. Open-source libraries, APIs, and starter templates are welcome provided they are disclosed in the project README. Pre-built entire solutions are strictly disqualified.</p>
+          <h3 class="conduct-card-title">SQUAD INTEGRITY</h3>
+          <p class="conduct-card-desc">Teams strictly range between 3 to 4 members. Inter-college and multi-disciplinary teams are heavily encouraged.</p>
         </div>
 
         <div class="conduct-card">
           <div class="conduct-num">03</div>
-          <h3 class="conduct-card-title">Collaboration & Fair Evaluation</h3>
-          <p class="conduct-card-desc">Teams must adhere to fair play. Any attempt to sabotage other squads, tamper with coordinator meal registers, or influence judges outside formal evaluation channels results in immediate expulsion from the campus.</p>
+          <h3 class="conduct-card-title">HARD PS LOCK-IN</h3>
+          <p class="conduct-card-desc">Each squad claims exactly 1 problem statement within their chosen Infinity Stone. Domain switching locks once coding begins.</p>
         </div>
 
         <div class="conduct-card">
           <div class="conduct-num">04</div>
-          <h3 class="conduct-card-title">Campus & Resource Safety</h3>
-          <p class="conduct-card-desc">Participants must take care of college hardware labs, Wi-Fi access points, and dining facilities. Keep noise levels courteous during midnight hours and wear your participant RFID badge at all times.</p>
+          <h3 class="conduct-card-title">VERIFIED PROOF</h3>
+          <p class="conduct-card-desc">Every registration requires a valid payment UTR number verified in real-time. Duplicate or fabricated UTRs are rejected automatically.</p>
         </div>
       </div>
     </div>
@@ -620,7 +679,7 @@
             <span class="faq-icon">+</span>
           </button>
           <div class="faq-answer">
-            <p>Dedicated air-conditioned rest halls with mattresses, sleeping zones, shower facilities, and gaming lounges are provided inside the campus for all 36 hours. External travel reimbursements are reserved for top finalist teams traveling over 500km.</p>
+            <p>Dedicated air-conditioned rest halls with mattresses, sleeping zones, shower facilities, and gaming lounges are provided inside the campus for all 24 hours. External travel reimbursements are reserved for top finalist teams traveling over 500km.</p>
           </div>
         </div>
 
@@ -1009,6 +1068,43 @@
       <div class="modal-actions-row">
         <a href="/leader.html" class="btn-modal-primary" id="btn-go-leader">PROCEED TO LEADER DASHBOARD →</a>
         <button class="btn-modal-secondary" id="btn-close-success">CLOSE</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Navigation Drawer (Matches Mobile Sketch Menu) -->
+  <div class="mobile-nav-drawer" id="mobile-nav-drawer" aria-hidden="true">
+    <div class="mobile-drawer-backdrop" id="mobile-drawer-backdrop"></div>
+    <div class="mobile-drawer-content">
+      <div class="mobile-drawer-header">
+        <span class="mono-label">// INFINITY NAVIGATION</span>
+        <button id="btn-close-mobile-menu" class="mobile-drawer-close" aria-label="Close Navigation Menu">✕</button>
+      </div>
+      <div class="mobile-drawer-links">
+        <a href="#showcase-section" class="mobile-nav-link">✦ 6 DOMAINS &amp; STONES</a>
+        <a href="#sponsors-section" class="mobile-nav-link">✦ SPONSORS &amp; HOST</a>
+        <a href="#timeline-section" class="mobile-nav-link">✦ 24H SCHEDULE</a>
+        <a href="#conduct-section" class="mobile-nav-link">✦ CODE OF CONDUCT</a>
+        <a href="#faq-section" class="mobile-nav-link">✦ FAQS</a>
+        <a href="#contact-section" class="mobile-nav-link">✦ CONTACT</a>
+      </div>
+      <div class="mobile-drawer-portals">
+        <span class="mono-label">// ACCESS ROLE PORTALS</span>
+        <div class="mobile-portals-grid">
+          <a href="/leader.html" class="m-portal-item">LEADER PORTAL</a>
+          <a href="/coordinator.html" class="m-portal-item">COORDINATOR</a>
+          <a href="/judges.html" class="m-portal-item">JUDGES EVAL</a>
+          <a href="/admin.html" class="m-portal-item">ADMIN CONSOLE</a>
+        </div>
+      </div>
+      <div class="mobile-drawer-audio">
+        <button id="btn-mobile-audio" class="mobile-audio-btn" type="button">
+          <span class="m-audio-icon">🔊</span>
+          <span class="m-audio-text">AMBIENT AUDIO: <strong id="m-audio-status" style="color: #a1a1aa;">MUTED</strong></span>
+        </button>
+      </div>
+      <div class="mobile-drawer-cta">
+        <button id="btn-mobile-drawer-reg" class="btn-modal-primary" style="width: 100%;">✦ REGISTER SQUAD NOW</button>
       </div>
     </div>
   </div>

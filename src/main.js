@@ -33,24 +33,33 @@ class InfinityScrollShowcase {
     this.initPostProcessing();
     this.initControls();
     this.initUI();
+    this.initCountdownTimer();
     this.initTimeline();
     this.initScrollAndGestures();
     this.initEventListeners();
     initRegistrationModule();
     this.animate();
 
-    // Reset window scroll to top and ensure clean showcase lock on load
+    // Reset window scroll to top
     if ('scrollRestoration' in history) {
       history.scrollRestoration = 'manual';
     }
     window.scrollTo(0, 0);
+
+    // Initial state: locked to 6-stone showcase until all 6 stones are scrolled or nav clicked
     document.body.classList.remove('timeline-unlocked');
 
     // Initial Presentation of Specimen 1 (Mind Stone // Intelligence)
     this.displayStone(0, false);
 
-    // Auto-play convergence animation when site opened or loaded
-    this.triggerConvergence();
+    // Auto-play convergence animation on desktop only
+    if (!this.isMobile()) {
+      this.triggerConvergence();
+    }
+  }
+
+  isMobile() {
+    return window.innerWidth <= 820;
   }
 
   /* --------------------------------------------------------------------------
@@ -167,7 +176,8 @@ class InfinityScrollShowcase {
 
     this.stoneStageX = 0;
     this.stoneStageY = 0;
-    this.camera.position.set(0, 0, 9.8);
+    const targetZ = this.isMobile() ? 12.0 : 9.8;
+    this.camera.position.set(0, 0, targetZ);
     if (this.controls) {
       this.controls.target.set(0, 0, 0);
     }
@@ -246,6 +256,7 @@ class InfinityScrollShowcase {
     this.stonesContainer = new THREE.Group();
     this.scene.add(this.stonesContainer);
 
+    const targetScale = this.isMobile() ? 0.52 : 1.0;
     STONES.forEach((stoneData, i) => {
       const stoneObj = createStoneMesh(stoneData);
       
@@ -257,7 +268,7 @@ class InfinityScrollShowcase {
         stoneObj.group.scale.set(0.001, 0.001, 0.001);
         stoneObj.group.visible = false;
       } else {
-        stoneObj.group.scale.set(1, 1, 1);
+        stoneObj.group.scale.set(targetScale, targetScale, targetScale);
         stoneObj.group.visible = true;
       }
 
@@ -299,16 +310,25 @@ class InfinityScrollShowcase {
     this.controls.minPolarAngle = Math.PI / 2 - 0.25;
     this.controls.target.set(0, 0, 0);
 
-    // Click on 3D stone mesh directly to shine it!
+    // Disable touch rotation completely so touch is strictly reserved for page scrolling
+    this.controls.touches = { ONE: null, TWO: null };
+
+    if (this.renderer.domElement) {
+      this.renderer.domElement.style.touchAction = 'pan-y';
+    }
+
+    // Click on 3D stone mesh directly to shine it! (Mouse click only, ignore touch)
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
     let pointerDownPos = { x: 0, y: 0 };
 
     this.renderer.domElement.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'touch') return;
       pointerDownPos = { x: e.clientX, y: e.clientY };
     });
 
     this.renderer.domElement.addEventListener('pointerup', (e) => {
+      if (e.pointerType === 'touch') return;
       const dist = Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y);
       if (dist < 6 && !this.isConvergenceActive) {
         mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
@@ -323,6 +343,58 @@ class InfinityScrollShowcase {
         }
       }
     });
+  }
+
+  /* --------------------------------------------------------------------------
+     5B. PRECISION COUNTDOWN TIMER (TARGET: 31 OCT WITH LIVE MILLISECONDS)
+     -------------------------------------------------------------------------- */
+  initCountdownTimer() {
+    // Target: October 31, 2026 09:00:00 AM IST
+    const targetDate = new Date('2026-10-31T09:00:00+05:30').getTime();
+
+    const daysEl = document.getElementById('cd-days');
+    const hoursEl = document.getElementById('cd-hours');
+    const minsEl = document.getElementById('cd-mins');
+    const secsEl = document.getElementById('cd-secs');
+    const msecsEl = document.getElementById('cd-msecs');
+
+    if (!daysEl || !hoursEl || !minsEl || !secsEl || !msecsEl) return;
+
+    let lastSec = -1;
+
+    const tick = () => {
+      const now = Date.now();
+      const diff = targetDate - now;
+
+      if (diff <= 0) {
+        daysEl.textContent = '00';
+        hoursEl.textContent = '00';
+        minsEl.textContent = '00';
+        secsEl.textContent = '00';
+        msecsEl.textContent = '000';
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const mins = Math.floor((diff / (1000 * 60)) % 60);
+      const secs = Math.floor((diff / 1000) % 60);
+      const msecs = Math.floor(diff % 1000);
+
+      if (secs !== lastSec) {
+        lastSec = secs;
+        daysEl.textContent = String(days).padStart(2, '0');
+        hoursEl.textContent = String(hours).padStart(2, '0');
+        minsEl.textContent = String(mins).padStart(2, '0');
+        secsEl.textContent = String(secs).padStart(2, '0');
+      }
+
+      msecsEl.textContent = String(msecs).padStart(3, '0');
+
+      requestAnimationFrame(tick);
+    };
+
+    requestAnimationFrame(tick);
   }
 
   /* --------------------------------------------------------------------------
@@ -383,6 +455,55 @@ class InfinityScrollShowcase {
       pagerList.appendChild(item);
     });
 
+    // Mobile Navigation Drawer Toggle & Links
+    const btnMobileMenu = document.getElementById('btn-mobile-menu');
+    const mobileDrawer = document.getElementById('mobile-nav-drawer');
+    const btnCloseMobileMenu = document.getElementById('btn-close-mobile-menu');
+    const mobileBackdrop = document.getElementById('mobile-drawer-backdrop');
+    const mobileDrawerLinks = document.querySelectorAll('.mobile-nav-link, .m-portal-item');
+    const btnMobileDrawerReg = document.getElementById('btn-mobile-drawer-reg');
+
+    if (btnMobileMenu && mobileDrawer) {
+      btnMobileMenu.addEventListener('click', () => {
+        mobileDrawer.classList.add('is-open');
+        audioEngine.playClick();
+      });
+    }
+
+    const closeMobileMenu = () => {
+      if (mobileDrawer) mobileDrawer.classList.remove('is-open');
+    };
+
+    if (btnCloseMobileMenu) btnCloseMobileMenu.addEventListener('click', closeMobileMenu);
+    if (mobileBackdrop) mobileBackdrop.addEventListener('click', closeMobileMenu);
+
+    mobileDrawerLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        closeMobileMenu();
+        this.unlockTimeline(true);
+      });
+    });
+
+    if (btnMobileDrawerReg) {
+      btnMobileDrawerReg.addEventListener('click', () => {
+        closeMobileMenu();
+        const regBtn = document.getElementById('btn-nav-register');
+        if (regBtn) regBtn.click();
+      });
+    }
+
+    const btnMobileAudio = document.getElementById('btn-mobile-audio');
+    const mAudioStatus = document.getElementById('m-audio-status');
+    if (btnMobileAudio) {
+      btnMobileAudio.addEventListener('click', () => {
+        const isUnmuted = audioEngine.toggleMute();
+        if (mAudioStatus) {
+          mAudioStatus.textContent = isUnmuted ? 'ACTIVE' : 'MUTED';
+          mAudioStatus.style.color = isUnmuted ? '#00d2ff' : '#a1a1aa';
+        }
+      });
+    }
+
     this.initTechText();
   }
 
@@ -408,9 +529,9 @@ class InfinityScrollShowcase {
       dashGap: 2,
       strokeWidth: 1.5,
       specks: 12,
-      selection: true,
-      labels: true,
-      draggable: true,
+      selection: false,
+      labels: false,
+      draggable: false,
       sweep: true,
       speed: 0.9
     });
@@ -496,29 +617,49 @@ class InfinityScrollShowcase {
       }
     }, { passive: true });
 
-    // Touch Swipe Gestures for Mobile & Tablets
+    // Touch Gestures: On mobile, vertical touch MUST ONLY SCROLL the page naturally!
+    // Touch Gestures:
+    // When locked on 6-stone showcase: swiping up/down (or left/right) advances or reverses stones!
+    // When unlocked and scrolled down into the timeline/sponsors: allow normal page scrolling!
+    let touchStartX = 0;
     let touchStartY = 0;
     window.addEventListener('touchstart', (e) => {
+      if (!e.touches || !e.touches[0]) return;
+      touchStartX = e.touches[0].clientX;
       touchStartY = e.touches[0].clientY;
     }, { passive: true });
 
     window.addEventListener('touchend', (e) => {
+      if (!e.changedTouches || !e.changedTouches[0]) return;
+
+      // If unlocked and user has scrolled down into lower sections, do not intercept - let natural page scrolling happen!
       if (document.body.classList.contains('timeline-unlocked') && window.scrollY > 40) return;
 
-      const touchEndY = e.changedTouches[0].clientY;
-      const diffY = touchStartY - touchEndY;
+      const diffX = touchStartX - e.changedTouches[0].clientX;
+      const diffY = touchStartY - e.changedTouches[0].clientY;
+      const absX = Math.abs(diffX);
+      const absY = Math.abs(diffY);
 
+      // Check cooldown
       const now = Date.now();
       if (now - this.lastScrollTime < this.scrollCooldown) return;
 
-      if (Math.abs(diffY) > 40) {
+      // Minimum swipe distance threshold (35px)
+      if (absY > 35 || absX > 40) {
         this.lastScrollTime = now;
         if (this.isConvergenceActive) {
           this.endConvergence();
         }
-        if (diffY > 0) {
+
+        // Determine if movement is primarily forward (scroll down / swipe up or swipe left)
+        // or backward (scroll up / swipe down or swipe right)
+        const isForward = (absY >= absX && diffY > 0) || (absX > absY && diffX > 0);
+        const isBackward = (absY >= absX && diffY < 0) || (absX > absY && diffX < 0);
+
+        if (isForward) {
+          // If at stone 6 (index 5), stepStone(1) will automatically call unlockTimeline(true)!
           this.stepStone(1);
-        } else if (diffY < 0) {
+        } else if (isBackward) {
           if (document.body.classList.contains('timeline-unlocked') && window.scrollY <= 10) {
             this.lockTimeline();
           } else {
@@ -623,10 +764,11 @@ class InfinityScrollShowcase {
     }, animate ? 150 : 0);
 
     // Smoothly restore optimal camera distance to prevent any over-zooming
+    const targetZ = this.isMobile() ? 12.0 : 9.8;
     gsap.to(this.camera.position, {
       x: 0,
       y: 0,
-      z: 9.8,
+      z: targetZ,
       duration: 0.7,
       ease: 'power2.out'
     });
@@ -643,6 +785,7 @@ class InfinityScrollShowcase {
     }
 
     // 3D Stone Swap Animation
+    const targetScale = this.isMobile() ? 0.52 : 1.0;
     if (animate) {
       const prevStone = this.stones[prevIndex];
       const nextStone = this.stones[index];
@@ -688,11 +831,11 @@ class InfinityScrollShowcase {
 
       gsap.fromTo(
         nextStone.group.scale,
-        { x: 0.1, y: 0.1, z: 0.1 },
+        { x: 0.1 * targetScale, y: 0.1 * targetScale, z: 0.1 * targetScale },
         {
-          x: 1,
-          y: 1,
-          z: 1,
+          x: targetScale,
+          y: targetScale,
+          z: targetScale,
           duration: 0.85,
           ease: 'elastic.out(1, 0.75)',
           delay: 0.2,
@@ -712,7 +855,7 @@ class InfinityScrollShowcase {
       this.stones.forEach((st, i) => {
         st.group.visible = (i === index);
         st.group.position.set(0, 0, 0);
-        st.group.scale.set(i === index ? 1 : 0.001, i === index ? 1 : 0.001, i === index ? 1 : 0.001);
+        st.group.scale.set(i === index ? targetScale : 0.001, i === index ? targetScale : 0.001, i === index ? targetScale : 0.001);
       });
       this.isTransitioning = false;
     }
@@ -763,10 +906,11 @@ class InfinityScrollShowcase {
     audioEngine.playConvergenceChord();
 
     // Pull camera out smoothly to showcase all 6 stones in orbit
+    const convZ = this.isMobile() ? 20.0 : 14.0;
     gsap.to(this.camera.position, {
       x: 0,
       y: 0.5,
-      z: 14.0,
+      z: convZ,
       duration: 1.8,
       ease: 'power2.inOut'
     });
@@ -781,7 +925,8 @@ class InfinityScrollShowcase {
     });
 
     // Make all stones visible and arrange in concentric spinning hexagram
-    const hexRadius = 3.6;
+    const hexRadius = this.isMobile() ? 2.4 : 3.6;
+    const convScale = this.isMobile() ? 0.42 : 0.75;
     this.stones.forEach((stone, i) => {
       stone.group.visible = true;
       stone.group.position.set(0, 0, 0);
@@ -799,9 +944,9 @@ class InfinityScrollShowcase {
       });
 
       gsap.to(stone.group.scale, {
-        x: 0.75,
-        y: 0.75,
-        z: 0.75,
+        x: convScale,
+        y: convScale,
+        z: convScale,
         duration: 1.2
       });
 
@@ -842,11 +987,13 @@ class InfinityScrollShowcase {
       ease: 'power2.out'
     });
 
-    // Smooth camera glide from wide convergence view (z: 14.0) into hero inspection view (z: 9.8)
+    // Smooth camera glide from wide convergence view into hero inspection view
+    const targetZ = this.isMobile() ? 12.0 : 9.8;
+    const targetScale = this.isMobile() ? 0.52 : 1.0;
     gsap.to(this.camera.position, {
       x: 0,
       y: 0,
-      z: 9.8,
+      z: targetZ,
       duration: 1.3,
       ease: 'power3.out'
     });
@@ -879,9 +1026,9 @@ class InfinityScrollShowcase {
         });
 
         gsap.to(stone.group.scale, {
-          x: 1,
-          y: 1,
-          z: 1,
+          x: targetScale,
+          y: targetScale,
+          z: targetScale,
           duration: 1.0,
           ease: 'power3.out'
         });
@@ -1011,6 +1158,12 @@ class InfinityScrollShowcase {
 
       this.updateCameraForViewport();
       this.controls.target.set(this.stoneStageX, this.stoneStageY, 0);
+
+      const targetScale = this.isMobile() ? 0.52 : 1.0;
+      const cur = this.stones[this.currentIndex];
+      if (cur && !this.isConvergenceActive) {
+        cur.group.scale.set(targetScale, targetScale, targetScale);
+      }
     });
 
     // Audio Button Toggle (Safely guarded if element is present)
