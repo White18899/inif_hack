@@ -1860,9 +1860,9 @@ body.timeline-unlocked #sponsors-section {
   filter: contrast(1.08) saturate(1.15);
 }
 
-/* Avengers Sticker - Significantly Bigger, Moved Higher Up */
+/* Avengers Sticker - Perfectly Positioned Sweet Spot */
 .sticker-avengers {
-  top: -165px;
+  top: -145px;
   right: -30px;
   width: 300px;
   transform: rotate(8deg);
@@ -2193,7 +2193,7 @@ body.timeline-unlocked #sponsors-section {
   }
   .sticker-avengers {
     width: 220px;
-    top: -115px;
+    top: -100px;
     right: -15px;
   }
 }
@@ -2209,7 +2209,7 @@ body.timeline-unlocked #sponsors-section {
   }
   .sticker-avengers {
     width: 150px;
-    top: -75px;
+    top: -65px;
     right: 0;
   }
 }
@@ -2220,7 +2220,7 @@ body.timeline-unlocked #sponsors-section {
   }
   .sticker-avengers {
     width: 100px;
-    top: -50px;
+    top: -42px;
     right: 0;
   }
 }
