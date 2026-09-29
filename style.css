@@ -1842,7 +1842,7 @@ body.timeline-unlocked #sponsors-section {
 }
 
 /* --------------------------------------------------------------------------
-   Physical Hacker Laptop Swag Stickers (Vinyl Die-Cut Feel)
+   Physical Hacker Laptop Swag Stickers (Vinyl Die-Cut Feel - Bold & Juicy)
    -------------------------------------------------------------------------- */
 .swag-sticker {
   position: absolute;
@@ -1851,7 +1851,7 @@ body.timeline-unlocked #sponsors-section {
   pointer-events: auto;
   cursor: pointer;
   transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.3s ease;
-  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.75)) drop-shadow(0 1px 3px rgba(0, 0, 0, 0.5));
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.8)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
 }
 
 .swag-sticker img {
@@ -1859,19 +1859,19 @@ body.timeline-unlocked #sponsors-section {
   width: 100%;
   height: auto;
   pointer-events: none;
-  filter: contrast(1.05) saturate(1.1);
+  filter: contrast(1.06) saturate(1.12);
 }
 
 .swag-sticker:hover {
-  transform: scale(1.18) rotate(0deg) !important;
-  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.9)) drop-shadow(0 0 14px rgba(255, 255, 255, 0.2));
+  transform: scale(1.15) rotate(0deg) !important;
+  filter: drop-shadow(0 16px 32px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 20px rgba(255, 255, 255, 0.25));
   z-index: 35;
 }
 
 @keyframes stickerPop {
   0% { transform: scale(1) rotate(0deg); }
-  35% { transform: scale(1.26) rotate(-5deg); }
-  70% { transform: scale(0.94) rotate(3deg); }
+  35% { transform: scale(1.22) rotate(-5deg); }
+  70% { transform: scale(0.96) rotate(3deg); }
   100% { transform: scale(1.12) rotate(0deg); }
 }
 
@@ -1879,46 +1879,46 @@ body.timeline-unlocked #sponsors-section {
   animation: stickerPop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* Individual Sticker Positions & Angles */
+/* Individual Sticker Positions & Angles - Prominently Scaled */
 .sticker-assemble {
-  top: -12px;
-  left: 10px;
-  width: 72px;
+  top: -26px;
+  left: -20px;
+  width: 145px;
   transform: rotate(-9deg);
 }
 
 .sticker-avengers {
-  top: -10px;
-  right: 18px;
-  width: 58px;
+  top: -24px;
+  right: -15px;
+  width: 125px;
   transform: rotate(8deg);
 }
 
 .sticker-ironman {
-  top: 140px;
-  left: -20px;
-  width: 58px;
+  top: 130px;
+  left: -42px;
+  width: 120px;
   transform: rotate(-12deg);
 }
 
 .sticker-spiderman {
-  bottom: -12px;
-  left: 50%;
+  bottom: -22px;
+  left: 49%;
   transform: translateX(-50%) rotate(10deg);
-  width: 54px;
+  width: 110px;
 }
 
 .sticker-gauntlet {
-  top: 145px;
-  right: -18px;
-  width: 58px;
+  top: 135px;
+  right: -38px;
+  width: 120px;
   transform: rotate(-7deg);
 }
 
 .sticker-hammer {
-  bottom: -16px;
-  right: 28px;
-  width: 62px;
+  bottom: -24px;
+  right: 10px;
+  width: 125px;
   transform: rotate(14deg);
 }
 
@@ -1927,17 +1927,17 @@ body.timeline-unlocked #sponsors-section {
    -------------------------------------------------------------------------- */
 .sponsors-mini-header {
   text-align: center;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
 }
 
 .sponsors-mini-eyebrow {
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.18em;
   color: #71717a;
   text-transform: uppercase;
-  margin-bottom: 5px;
+  margin-bottom: 6px;
 }
 
 .sponsors-mini-eyebrow .eyebrow-accent {
@@ -1948,7 +1948,7 @@ body.timeline-unlocked #sponsors-section {
 
 .sponsors-clean-title {
   font-family: var(--font-body);
-  font-size: clamp(1.4rem, 2.3vw, 1.85rem);
+  font-size: clamp(1.55rem, 2.5vw, 2.05rem);
   font-weight: 600;
   letter-spacing: -0.02em;
   color: #ffffff;
@@ -1958,10 +1958,10 @@ body.timeline-unlocked #sponsors-section {
 
 .sponsors-clean-sub {
   font-family: var(--font-body);
-  font-size: 0.82rem;
+  font-size: 0.86rem;
   color: #8b8b96;
   line-height: 1.45;
-  max-width: 600px;
+  max-width: 620px;
   margin: 0 auto;
   font-weight: 400;
 }
