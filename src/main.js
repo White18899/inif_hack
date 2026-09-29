@@ -754,8 +754,7 @@ class InfinityScrollShowcase {
     const cardTitle = document.getElementById('card-title');
     if (cardTitle) cardTitle.textContent = stone.name;
     const cardDomain = document.getElementById('card-domain');
-    const domainTitle = stone.domain ? (stone.domain.charAt(0).toUpperCase() + stone.domain.slice(1).toLowerCase()) : '';
-    if (cardDomain) cardDomain.textContent = `${domainTitle} // ${stone.domainTagline || ''}`;
+    if (cardDomain) cardDomain.textContent = `${stone.domain} // ${stone.domainTagline || ''}`;
     const cardDesc = document.getElementById('card-desc');
     if (cardDesc) cardDesc.textContent = stone.description;
 
