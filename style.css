@@ -1842,16 +1842,14 @@ body.timeline-unlocked #sponsors-section {
 }
 
 /* --------------------------------------------------------------------------
-   Physical Hacker Laptop Swag Stickers (Vinyl Die-Cut Feel - Bold & Juicy)
+   Physical Hacker Laptop Swag Sticker (Avengers Emblem - Clean & Prominent)
    -------------------------------------------------------------------------- */
 .swag-sticker {
   position: absolute;
   z-index: 9;
   user-select: none;
-  pointer-events: auto;
-  cursor: pointer;
-  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.3s ease;
-  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.8)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+  pointer-events: none; /* remove hover effect & clicks */
+  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.9)) drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
 }
 
 .swag-sticker img {
@@ -1859,67 +1857,15 @@ body.timeline-unlocked #sponsors-section {
   width: 100%;
   height: auto;
   pointer-events: none;
-  filter: contrast(1.06) saturate(1.12);
+  filter: contrast(1.08) saturate(1.15);
 }
 
-.swag-sticker:hover {
-  transform: scale(1.15) rotate(0deg) !important;
-  filter: drop-shadow(0 16px 32px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 20px rgba(255, 255, 255, 0.25));
-  z-index: 35;
-}
-
-@keyframes stickerPop {
-  0% { transform: scale(1) rotate(0deg); }
-  35% { transform: scale(1.22) rotate(-5deg); }
-  70% { transform: scale(0.96) rotate(3deg); }
-  100% { transform: scale(1.12) rotate(0deg); }
-}
-
-.swag-sticker:active {
-  animation: stickerPop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-/* Individual Sticker Positions & Angles - Prominently Scaled */
-.sticker-assemble {
-  top: -26px;
-  left: -20px;
-  width: 145px;
-  transform: rotate(-9deg);
-}
-
+/* Avengers Sticker - Significantly Bigger, Static Without Hover */
 .sticker-avengers {
-  top: -24px;
-  right: -15px;
-  width: 125px;
+  top: -45px;
+  right: -25px;
+  width: 220px;
   transform: rotate(8deg);
-}
-
-.sticker-ironman {
-  top: 130px;
-  left: -42px;
-  width: 120px;
-  transform: rotate(-12deg);
-}
-
-.sticker-spiderman {
-  bottom: -22px;
-  left: 49%;
-  transform: translateX(-50%) rotate(10deg);
-  width: 110px;
-}
-
-.sticker-gauntlet {
-  top: 135px;
-  right: -38px;
-  width: 120px;
-  transform: rotate(-7deg);
-}
-
-.sticker-hammer {
-  bottom: -24px;
-  right: 10px;
-  width: 125px;
-  transform: rotate(14deg);
 }
 
 /* --------------------------------------------------------------------------
@@ -2244,9 +2190,10 @@ body.timeline-unlocked #sponsors-section {
   .sponsors-mini-grid {
     grid-template-columns: repeat(3, 1fr);
   }
-  .sticker-ironman,
-  .sticker-gauntlet {
-    display: none;
+  .sticker-avengers {
+    width: 170px;
+    top: -30px;
+    right: -10px;
   }
 }
 
@@ -2259,8 +2206,10 @@ body.timeline-unlocked #sponsors-section {
   .sponsors-mini-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  .swag-sticker {
-    transform: scale(0.8) !important;
+  .sticker-avengers {
+    width: 120px;
+    top: -20px;
+    right: 0;
   }
 }
 
@@ -2268,8 +2217,10 @@ body.timeline-unlocked #sponsors-section {
   .sponsors-mini-grid {
     grid-template-columns: 1fr;
   }
-  .swag-sticker {
-    display: none;
+  .sticker-avengers {
+    width: 85px;
+    top: -15px;
+    right: 0;
   }
 }
 
