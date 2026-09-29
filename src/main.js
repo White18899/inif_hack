@@ -485,6 +485,51 @@ class InfinityScrollShowcase {
       });
     });
 
+    // Switcher between 4-Phase Dossier and 36-Hour Running Order Stream
+    const btnShowDossier = document.getElementById('btn-show-dossier');
+    const btnShowStream = document.getElementById('btn-show-stream');
+    const dossierGrid = document.getElementById('dossier-timeline-grid');
+    const streamWrap = document.getElementById('timeline-stream-wrap');
+    const filtersWrap = document.getElementById('timeline-filters-wrap');
+
+    if (btnShowDossier && btnShowStream) {
+      btnShowDossier.addEventListener('click', () => {
+        audioEngine.playClick();
+        btnShowDossier.classList.add('active');
+        btnShowStream.classList.remove('active');
+        if (dossierGrid) {
+          dossierGrid.style.display = 'grid';
+          gsap.fromTo(dossierGrid, { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.35, ease: 'power2.out' });
+        }
+        if (streamWrap) streamWrap.style.display = 'none';
+        if (filtersWrap) filtersWrap.style.display = 'none';
+      });
+
+      btnShowStream.addEventListener('click', () => {
+        audioEngine.playClick();
+        btnShowStream.classList.add('active');
+        btnShowDossier.classList.remove('active');
+        if (dossierGrid) dossierGrid.style.display = 'none';
+        if (streamWrap) {
+          streamWrap.style.display = 'block';
+          gsap.fromTo(streamWrap, { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.35, ease: 'power2.out' });
+        }
+        if (filtersWrap) filtersWrap.style.display = 'block';
+        renderTimeline('all');
+      });
+    }
+
+    // Interactive sounds on Dossier Cards
+    const dossierCards = document.querySelectorAll('.dossier-card');
+    const phaseStones = ['mind', 'space', 'reality', 'time'];
+    dossierCards.forEach((card, idx) => {
+      card.addEventListener('click', () => {
+        const stone = phaseStones[idx] || 'all';
+        audioEngine.playStoneChime(stone);
+        gsap.fromTo(card, { scale: 0.985 }, { scale: 1, duration: 0.35, ease: 'back.out(2)' });
+      });
+    });
+
     // Initial render
     renderTimeline('all');
 

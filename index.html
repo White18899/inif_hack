@@ -355,7 +355,7 @@
     </div>
   </section>
 
-  <!-- SECTION 3: Hackathon Event Timeline & Schedule -->
+  <!-- SECTION 3: Hackathon Event Timeline & Schedule (Dossier Comic/Hackathon Aesthetic) -->
   <section class="timeline-section" id="timeline-section">
     <div class="timeline-inner">
       
@@ -363,15 +363,25 @@
       <div class="timeline-header">
         <div class="timeline-tag">
           <span class="pulse-dot"></span>
-          <span class="mono-label">// CHRONOLOGY & RUNNING ORDER</span>
+          <span class="mono-label">// CHRONOLOGY &amp; RUNNING ORDER</span>
         </div>
-        <h2 class="timeline-title">EVENT TIMELINE & SCHEDULE</h2>
+        <h2 class="timeline-title">EVENT TIMELINE &amp; SCHEDULE</h2>
         <p class="timeline-subtitle">
           36 continuous hours of architecture, implementation, evaluation rounds, and gourmet culinary fuel across the multiverse.
         </p>
 
-        <!-- Interactive Domain Filter Bar -->
-        <div class="timeline-filters">
+        <!-- View Switcher -->
+        <div class="timeline-view-switch-row">
+          <button class="t-switch-btn active" id="btn-show-dossier" type="button">
+            <span class="switch-icon">❖</span> 4-PHASE DOSSIER
+          </button>
+          <button class="t-switch-btn" id="btn-show-stream" type="button">
+            <span class="switch-icon">◷</span> 36-HOUR RUNNING ORDER (12 MILESTONES)
+          </button>
+        </div>
+
+        <!-- Interactive Domain Filter Bar (for Stream View) -->
+        <div class="timeline-filters-wrap" id="timeline-filters-wrap" style="display: none;">
           <div class="stone-filter-pills" id="timeline-filters">
             <button class="filter-pill active" data-stone="all">
               <span class="filter-dot" style="background: #ffffff;"></span>
@@ -405,11 +415,202 @@
         </div>
       </div>
 
-      <!-- Timeline Stream with Laser Spine -->
-      <div class="timeline-stream">
-        <div class="timeline-spine"></div>
-        <div class="timeline-cards-list" id="timeline-cards-list">
-          <!-- Rendered dynamically via JavaScript -->
+      <!-- 4-Phase Dossier Cards (Exact Aesthetic Matching Design) -->
+      <div class="dossier-timeline-grid" id="dossier-timeline-grid">
+
+        <!-- Card 1: Phase 01 -->
+        <article class="dossier-card phase-01" style="--phase-color: #ffd000; --phase-glow: rgba(255, 208, 0, 0.35);">
+          <!-- Washi Tape Yellow -->
+          <div class="washi-tape tape-yellow tape-top-left"></div>
+          <!-- Sticker: Captain America Assemble Shield -->
+          <div class="dossier-sticker sticker-cap" title="Phase 01 Swag: Assemble Shield">
+            <img src="/sticker/CS.png" alt="Assemble Shield Sticker" />
+          </div>
+
+          <!-- Colored Header Banner -->
+          <div class="dossier-banner" style="background-color: #ffd000;">
+            <span class="dossier-phase-tag">PHASE 01</span>
+            <span class="dossier-time-tag">T-00:00 NOW</span>
+          </div>
+
+          <!-- Card Body -->
+          <div class="dossier-body">
+            <div class="dossier-num" style="color: #ffd000;">01</div>
+            <h3 class="dossier-title">SQUAD ASSEMBLY &amp; UTR OCR CLEARANCE</h3>
+            <p class="dossier-desc">
+              Form squads of 3 to 4 hackers. Submit payment screenshot for instant in-browser Tesseract AI OCR verification and lock your initial Infinity Stone.
+            </p>
+
+            <!-- Integrated Schedule Milestones Data -->
+            <div class="dossier-milestones">
+              <div class="d-milestone-item">
+                <span class="d-mile-time">OCT 01 - 10</span>
+                <span class="d-mile-name">Squad Commissioning &amp; Domain Lock</span>
+              </div>
+              <div class="d-milestone-item">
+                <span class="d-mile-time">DAY -2 • 09:00</span>
+                <span class="d-mile-name">Classified Problem Statements Unlocked</span>
+              </div>
+              <div class="d-milestone-item">
+                <span class="d-mile-time">DAY 1 • 08:00</span>
+                <span class="d-mile-name">GVP Campus Ingress &amp; Breakfast Drop</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div class="dossier-footer">
+            <span class="d-foot-status">STATUS: ACTIVE REGISTRATION</span>
+            <span class="d-foot-meta">CLEARANCE: LEVEL 1</span>
+          </div>
+        </article>
+
+        <!-- Card 2: Phase 02 -->
+        <article class="dossier-card phase-02" style="--phase-color: #00e5ff; --phase-glow: rgba(0, 229, 255, 0.35);">
+          <!-- Sticker: Doctor Strange Mandala -->
+          <div class="dossier-sticker sticker-strange" title="Phase 02 Swag: Mystic Shield">
+            <img src="/sticker/DR.png" alt="Doctor Strange Mystic Shield Sticker" />
+          </div>
+
+          <!-- Colored Header Banner -->
+          <div class="dossier-banner" style="background-color: #00e5ff;">
+            <span class="dossier-phase-tag">PHASE 02</span>
+            <span class="dossier-time-tag">T-48:00 REVEAL</span>
+          </div>
+
+          <!-- Card Body -->
+          <div class="dossier-body">
+            <div class="dossier-num" style="color: #00e5ff;">02</div>
+            <h3 class="dossier-title">COSMIC DECRYPTION &amp; LAB ASSIGNMENTS</h3>
+            <p class="dossier-desc">
+              Official problem statements decrypt live! Assigned physical Lab Rooms unlock in your Leader Portal. Leaders may switch domain or claim their 1 statement.
+            </p>
+
+            <!-- Integrated Schedule Milestones Data -->
+            <div class="dossier-milestones">
+              <div class="d-milestone-item">
+                <span class="d-mile-time">DAY 1 • 10:00</span>
+                <span class="d-mile-name">Opening Ceremony &amp; 36H Clock Ignition</span>
+              </div>
+              <div class="d-milestone-item">
+                <span class="d-mile-time">DAY 1 • 04:00</span>
+                <span class="d-mile-name">Domain Mentor Clinic &amp; High Tea Fuel</span>
+              </div>
+              <div class="d-milestone-item">
+                <span class="d-mile-time">DAY 1 • 07:30</span>
+                <span class="d-mile-name">Review 1: Architecture &amp; Idea Feasibility</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div class="dossier-footer">
+            <span class="d-foot-status">STATUS: UPCOMING</span>
+            <span class="d-foot-meta">PORTAL REVEAL</span>
+          </div>
+        </article>
+
+        <!-- Card 3: Phase 03 -->
+        <article class="dossier-card phase-03" style="--phase-color: #ff0055; --phase-glow: rgba(255, 0, 85, 0.35);">
+          <!-- Sticker: Iron Man Flying (IM4.png) -->
+          <div class="dossier-sticker sticker-ironman-fly" title="Phase 03 Swag: Iron Man Sprint">
+            <img src="/sticker/IM4.png" alt="Iron Man Flying Sticker" />
+          </div>
+
+          <!-- Colored Header Banner -->
+          <div class="dossier-banner" style="background-color: #ff0055;">
+            <span class="dossier-phase-tag">PHASE 03</span>
+            <span class="dossier-time-tag">T+00:00 SPRINT</span>
+          </div>
+
+          <!-- Card Body -->
+          <div class="dossier-body">
+            <div class="dossier-num" style="color: #ff0055;">03</div>
+            <h3 class="dossier-title">THE SNAP: 24-HOUR MARATHON</h3>
+            <p class="dossier-desc">
+              Non-stop coding across campus high-performance labs. Midnight food rations, technical mentors from S.H.I.E.L.D. engineering, and sanity checks.
+            </p>
+
+            <!-- Integrated Schedule Milestones Data -->
+            <div class="dossier-milestones">
+              <div class="d-milestone-item">
+                <span class="d-mile-time">DAY 1 • 09:30</span>
+                <span class="d-mile-name">Feast of Vormir: Hot Dinner Buffet</span>
+              </div>
+              <div class="d-milestone-item">
+                <span class="d-mile-time">DAY 2 • 01:30</span>
+                <span class="d-mile-name">Midnight Fuel, Energy Drinks &amp; VR Jam</span>
+              </div>
+              <div class="d-milestone-item">
+                <span class="d-mile-time">DAY 2 • 09:30</span>
+                <span class="d-mile-name">Review 2: Mid-way Logic &amp; Live APIs</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div class="dossier-footer">
+            <span class="d-foot-status">STATUS: 24H RUNTIME</span>
+            <span class="d-foot-meta">BUILD OR BE SNAPPED</span>
+          </div>
+        </article>
+
+        <!-- Card 4: Phase 04 -->
+        <article class="dossier-card phase-04" style="--phase-color: #00f59b; --phase-glow: rgba(0, 245, 155, 0.35);">
+          <!-- Washi Tape White -->
+          <div class="washi-tape tape-white tape-mid-left"></div>
+          <!-- Sticker: Dum-E Robot Arm (DU.png) -->
+          <div class="dossier-sticker sticker-dume" title="Phase 04 Swag: Dum-E Robot Assistant">
+            <img src="/sticker/DU.png" alt="Dum-E Robot Arm Sticker" />
+          </div>
+
+          <!-- Colored Header Banner -->
+          <div class="dossier-banner" style="background-color: #00f59b;">
+            <span class="dossier-phase-tag">PHASE 04</span>
+            <span class="dossier-time-tag">T+24:00 ENDGAME</span>
+          </div>
+
+          <!-- Card Body -->
+          <div class="dossier-body">
+            <div class="dossier-num" style="color: #00f59b;">04</div>
+            <h3 class="dossier-title">ENDGAME DEMOS &amp; GAUNTLET AWARDS</h3>
+            <p class="dossier-desc">
+              Live battle demonstrations before the Grand Jury. Cash bounties, hiring allocations, and machined Infinity Gauntlet trophies awarded.
+            </p>
+
+            <!-- Integrated Schedule Milestones Data -->
+            <div class="dossier-milestones">
+              <div class="d-milestone-item">
+                <span class="d-mile-time">DAY 2 • 01:30</span>
+                <span class="d-mile-name">Lunch Drop &amp; Final Code Freeze</span>
+              </div>
+              <div class="d-milestone-item">
+                <span class="d-mile-time">DAY 2 • 04:30</span>
+                <span class="d-mile-name">Review 3: Grand Pitch &amp; Live Product Demo</span>
+              </div>
+              <div class="d-milestone-item">
+                <span class="d-mile-time">DAY 2 • 07:00</span>
+                <span class="d-mile-name">Valedictory &amp; ₹5,00,000 Prize Pool</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div class="dossier-footer">
+            <span class="d-foot-status">STATUS: GRAND JURY</span>
+            <span class="d-foot-meta">TROPHY</span>
+          </div>
+        </article>
+
+      </div>
+
+      <!-- Timeline Stream with Laser Spine (Available via Switcher) -->
+      <div class="timeline-stream-wrap" id="timeline-stream-wrap" style="display: none; width: 100%;">
+        <div class="timeline-stream">
+          <div class="timeline-spine"></div>
+          <div class="timeline-cards-list" id="timeline-cards-list">
+            <!-- Rendered dynamically via JavaScript -->
+          </div>
         </div>
       </div>
 
