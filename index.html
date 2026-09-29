@@ -188,88 +188,185 @@
   </main>
 
   <!-- SECTION 2: Host College & Corporate Sponsors -->
-  <section class="content-section" id="sponsors-section">
+  <section class="content-section sponsors-section-refined" id="sponsors-section">
+    <!-- Ambient aura background light -->
+    <div class="sponsors-ambient-glow"></div>
+
     <div class="section-container">
-      <div class="section-header">
+      <div class="section-header sponsors-header-refined">
         <div class="section-tag">
           <span class="pulse-dot"></span>
           <span class="mono-label">// PATRONS & HOST ALLIANCE</span>
         </div>
-        <h2 class="section-title">HOST INSTITUTION & GLOBAL SPONSORS</h2>
-        <p class="section-subtitle">
-          Supported by leading frontier technology platforms, cloud infrastructures, and academic centers of excellence.
+        <h2 class="section-title sponsors-title-refined">HOST INSTITUTION & GLOBAL SPONSORS</h2>
+        <p class="section-subtitle sponsors-subtitle-refined">
+          Backed by frontier cloud runtimes, developer tooling giants, and premier academic computing infrastructure.
         </p>
       </div>
 
-      <!-- Host College Banner -->
-      <div class="host-college-card">
-        <div class="college-logo-container">
-          <div class="college-crest-symbol">🏛️</div>
-          <div>
-            <span class="mono-label" style="color: #ffd000;">OFFICIAL HOST CAMPUS</span>
-            <h3 class="college-name">Infinity Institute of Technology & Engineering (IITE)</h3>
-            <p class="college-sub">Autonomous Campus • Department of Computer Science & Information Technology • Accredited Grade A++</p>
+      <!-- TIER 1: Dual Flagship Anchors (Host Campus & Title Cloud Partner) -->
+      <div class="flagship-anchors-grid">
+        
+        <!-- Flagship 1: Host Institution & Venue -->
+        <div class="anchor-card host-anchor-card">
+          <div class="anchor-glow-bg host-glow"></div>
+          <div class="anchor-header">
+            <div class="anchor-crest-wrap">
+              <svg class="crest-svg-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M24 4L7 12V22C7 32.5 14.3 42.3 24 45C33.7 42.3 41 32.5 41 22V12L24 4Z" stroke="#ffd000" stroke-width="2" stroke-linejoin="round" fill="rgba(255,208,0,0.08)"/>
+                <path d="M17 22V32M24 18V32M31 22V32" stroke="#ffd000" stroke-width="2" stroke-linecap="round"/>
+                <path d="M13 34H35" stroke="#ffd000" stroke-width="2" stroke-linecap="round"/>
+                <path d="M24 10L14 15H34L24 10Z" fill="#ffd000"/>
+              </svg>
+            </div>
+            <div class="anchor-meta">
+              <div class="anchor-tier-label">
+                <span class="tier-pill tier-pill-gold">OFFICIAL HOST CAMPUS</span>
+                <span class="venue-verified-badge">
+                  <svg class="badge-check-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm3.78 6.22l-4.5 4.5a.75.75 0 01-1.06 0l-2-2a.75.75 0 011.06-1.06L6.75 9.14l3.97-3.97a.75.75 0 111.06 1.06z"/></svg>
+                  VERIFIED VENUE
+                </span>
+              </div>
+              <h3 class="anchor-name">Infinity Institute of Technology & Engineering</h3>
+              <p class="anchor-sub">Autonomous Campus • Department of Computer Science & Engineering • NAAC Grade A++</p>
+            </div>
+          </div>
+          
+          <div class="anchor-perks-row">
+            <div class="perk-chip"><span class="perk-bullet">◈</span> 36H On-Site Access</div>
+            <div class="perk-chip"><span class="perk-bullet">◈</span> Gigabit Hardware Labs</div>
+            <div class="perk-chip"><span class="perk-bullet">◈</span> 5 Gourmet Meal Drops</div>
           </div>
         </div>
-        <div class="college-badge-chip">ON-SITE HACKATHON VENUE</div>
+
+        <!-- Flagship 2: Title Cloud Partner (Cloudflare) -->
+        <div class="anchor-card cloudflare-anchor-card">
+          <div class="anchor-glow-bg cf-glow"></div>
+          <div class="anchor-header">
+            <div class="anchor-brand-wrap">
+              <svg class="brand-vector-svg cf-logo" viewBox="0 0 160 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M30 28.5H16c-4.4 0-8-3.6-8-8 0-4 3-7.3 7-7.9.7-5.1 5.1-9.1 10.5-9.1 3.9 0 7.3 2.1 9.2 5.2 1.5-1 3.3-1.6 5.3-1.6 5.3 0 9.7 4.3 9.7 9.7 0 .6-.1 1.1-.1 1.7 3.2 1.1 5.4 4.2 5.4 7.8 0 4.5-3.7 8.2-8.2 8.2H30z" stroke="#F38020" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="rgba(243,128,32,0.14)"/>
+                <path d="M20 22.5L25 15.5L31 22.5H20Z" fill="#F38020" opacity="0.75"/>
+                <text x="54" y="25" fill="#ffffff" font-family="'Space Grotesk', sans-serif" font-weight="700" font-size="17" letter-spacing="0.3">Cloudflare</text>
+              </svg>
+            </div>
+            <div class="anchor-meta">
+              <div class="anchor-tier-label">
+                <span class="tier-pill tier-pill-orange">TITLE CLOUD & R2 PARTNER</span>
+                <span class="edge-live-badge"><span class="pulse-dot-orange"></span> 330+ CITIES EDGE</span>
+              </div>
+              <h3 class="anchor-name">Cloudflare Developer Platform</h3>
+              <p class="anchor-sub">Powering serverless edge compute, high-throughput microservices, and zero-egress database storage.</p>
+            </div>
+          </div>
+
+          <div class="anchor-perks-row">
+            <div class="perk-chip"><span class="perk-bullet">◈</span> Zero-Egress Cloudflare R2</div>
+            <div class="perk-chip"><span class="perk-bullet">◈</span> Workers AI Inference API</div>
+            <div class="perk-chip"><span class="perk-bullet">◈</span> Pages & Edge Serverless</div>
+          </div>
+        </div>
+
       </div>
 
-      <!-- 5 Sponsors Grid -->
-      <div class="sponsors-grid">
-        <!-- Sponsor 1: Cloudflare -->
-        <div class="sponsor-card sponsor-title">
-          <div class="sponsor-tier">TITLE CLOUD & R2 PARTNER</div>
-          <div class="sponsor-brand">
-            <span class="sponsor-logo-icon">⚡</span>
-            <h4 class="sponsor-name">Cloudflare</h4>
+      <!-- TIER 2: Strategic Ecosystem Partners (4-Column Refined Grid) -->
+      <div class="partners-grid-refined">
+
+        <!-- Partner 1: GitHub -->
+        <div class="partner-card-refined github-card" style="--brand-color: #ffffff; --brand-glow: rgba(255, 255, 255, 0.14);">
+          <div class="partner-card-header">
+            <div class="partner-tier-tag">DEVELOPER ECOSYSTEM</div>
+            <div class="partner-logo-box">
+              <svg class="partner-svg" viewBox="0 0 120 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M16 3C8.82 3 3 8.82 3 16c0 5.74 3.72 10.61 8.89 12.33.65.12.89-.28.89-.63v-2.2c-3.62.79-4.38-1.74-4.38-1.74-.59-1.5-1.45-1.9-1.45-1.9-1.18-.81.09-.79.09-.79 1.31.09 2 .1.35 2 .1.35 1.29 2.21 3.38 1.57 4.2.1.2.12-.94.54-1.57-.86-.1-1.77-.43-1.77-1.92 0-.42.15-.77.4-1.04-.04-.1-.17-.49.04-1.03 0 0 .32-.1 1.05.39.31-.09.64-.13.97-.13.33 0 .66.04.97.13.73-.49 1.05-.39 1.05-.39.21.54.08.93.04 1.03.25.27.4.62.4 1.04 0 1.49-.91 1.82-1.78 1.91.43.37.81 1.1.81 2.22v3.29c0 .35.23.76.89.63C25.28 26.61 29 21.74 29 16c0-7.18-5.82-13-13-13z" fill="#ffffff"/>
+                <text x="38" y="22" fill="#ffffff" font-family="'Space Grotesk', sans-serif" font-weight="700" font-size="16" letter-spacing="0.3">GitHub</text>
+              </svg>
+            </div>
           </div>
-          <p class="sponsor-desc">Powering the hackathon's global edge network, Workers serverless runtime, and zero-egress Cloudflare R2 object storage database.</p>
-          <div class="sponsor-tag">R2 Object Storage & CDN</div>
+          <div class="partner-perks-list">
+            <span class="partner-perk-pill">Copilot Enterprise</span>
+            <span class="partner-perk-pill">Codespaces Cloud VMs</span>
+            <span class="partner-perk-pill">Student Developer Pack</span>
+          </div>
+          <div class="partner-card-footer">
+            <span class="partner-role-note">Official Tooling & Environment Sponsor</span>
+          </div>
         </div>
 
-        <!-- Sponsor 2: GitHub -->
-        <div class="sponsor-card">
-          <div class="sponsor-tier">DEVELOPER ECOSYSTEM PARTNER</div>
-          <div class="sponsor-brand">
-            <span class="sponsor-logo-icon">🐙</span>
-            <h4 class="sponsor-name">GitHub</h4>
+        <!-- Partner 2: Devfolio -->
+        <div class="partner-card-refined devfolio-card" style="--brand-color: #3770FF; --brand-glow: rgba(55, 112, 255, 0.2);">
+          <div class="partner-card-header">
+            <div class="partner-tier-tag devfolio-tier">COMMUNITY & PLATFORM</div>
+            <div class="partner-logo-box">
+              <svg class="partner-svg" viewBox="0 0 130 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 8L17 2L28 8V22L17 28L6 22V8Z" fill="url(#devfolio-grad)"/>
+                <path d="M17 2V28M6 8L28 22M28 8L6 22" stroke="#ffffff" stroke-width="1.2" stroke-opacity="0.35"/>
+                <circle cx="17" cy="15" r="3.5" fill="#ffffff"/>
+                <defs>
+                  <linearGradient id="devfolio-grad" x1="6" y1="2" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#4E88FF"/>
+                    <stop offset="1" stop-color="#2050E0"/>
+                  </linearGradient>
+                </defs>
+                <text x="38" y="22" fill="#ffffff" font-family="'Space Grotesk', sans-serif" font-weight="700" font-size="16" letter-spacing="0.3">Devfolio</text>
+              </svg>
+            </div>
           </div>
-          <p class="sponsor-desc">Supplying GitHub Copilot enterprise subscriptions, Codespaces cloud developer environments, and student developer packs.</p>
-          <div class="sponsor-tag">Copilot & Codespaces</div>
+          <div class="partner-perks-list">
+            <span class="partner-perk-pill">Frictionless Check-in</span>
+            <span class="partner-perk-pill">Mentor Matchmaking</span>
+            <span class="partner-perk-pill">Collegiate Circuit Rank</span>
+          </div>
+          <div class="partner-card-footer">
+            <span class="partner-role-note">Official Hackathon Platform</span>
+          </div>
         </div>
 
-        <!-- Sponsor 3: Devfolio -->
-        <div class="sponsor-card">
-          <div class="sponsor-tier">COMMUNITY & PLATFORM PARTNER</div>
-          <div class="sponsor-brand">
-            <span class="sponsor-logo-icon">🚀</span>
-            <h4 class="sponsor-name">Devfolio</h4>
+        <!-- Partner 3: AWS Startups -->
+        <div class="partner-card-refined aws-card" style="--brand-color: #FF9900; --brand-glow: rgba(255, 153, 0, 0.2);">
+          <div class="partner-card-header">
+            <div class="partner-tier-tag aws-tier">INFRASTRUCTURE & COMPUTE</div>
+            <div class="partner-logo-box">
+              <svg class="partner-svg" viewBox="0 0 150 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <text x="3" y="21" fill="#ffffff" font-family="'Space Grotesk', sans-serif" font-weight="800" font-size="18" letter-spacing="1">aws</text>
+                <path d="M4 25.5C13 28.5 26 28.5 34 24.5" stroke="#FF9900" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M32 22L36 24.5L33 28" fill="#FF9900"/>
+                <text x="44" y="20.5" fill="#FF9900" font-family="'Space Grotesk', sans-serif" font-weight="700" font-size="12" letter-spacing="0.8">STARTUPS</text>
+              </svg>
+            </div>
           </div>
-          <p class="sponsor-desc">Empowering frictionless hacker registrations, mentor matchmaking, and verified project submissions across collegiate circuits.</p>
-          <div class="sponsor-tag">Hackathon Operations</div>
+          <div class="partner-perks-list">
+            <span class="partner-perk-pill">Up to $10,000 Credits</span>
+            <span class="partner-perk-pill">Bedrock AI Compute</span>
+            <span class="partner-perk-pill">Founder Cloud Grants</span>
+          </div>
+          <div class="partner-card-footer">
+            <span class="partner-role-note">Cloud Credits & GPU Sponsor</span>
+          </div>
         </div>
 
-        <!-- Sponsor 4: AWS Startups -->
-        <div class="sponsor-card">
-          <div class="sponsor-tier">INFRASTRUCTURE PARTNER</div>
-          <div class="sponsor-brand">
-            <span class="sponsor-logo-icon">☁️</span>
-            <h4 class="sponsor-name">AWS Startups</h4>
+        <!-- Partner 4: Polygon -->
+        <div class="partner-card-refined polygon-card" style="--brand-color: #8247E5; --brand-glow: rgba(130, 71, 229, 0.22);">
+          <div class="partner-card-header">
+            <div class="partner-tier-tag polygon-tier">DECENTRALIZED ECOSYSTEM</div>
+            <div class="partner-logo-box">
+              <svg class="partner-svg" viewBox="0 0 130 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M16 4L26 9.8V21.4L16 27.2L6 21.4V9.8L16 4Z" stroke="#8247E5" stroke-width="2.2" fill="rgba(130,71,229,0.18)"/>
+                <path d="M16 10.5L21 13.4V19.2L16 22.1L11 19.2V13.4L16 10.5Z" fill="#8247E5"/>
+                <text x="36" y="22" fill="#ffffff" font-family="'Space Grotesk', sans-serif" font-weight="700" font-size="16" letter-spacing="0.3">Polygon</text>
+              </svg>
+            </div>
           </div>
-          <p class="sponsor-desc">Granting up to $10,000 in promotional AWS cloud computing and GPU credits for winning prototypes in AI and Analytics.</p>
-          <div class="sponsor-tag">Cloud Credits & GPUs</div>
+          <div class="partner-perks-list">
+            <span class="partner-perk-pill">Exclusive ZK Bounties</span>
+            <span class="partner-perk-pill">zkEVM Testnet Faucets</span>
+            <span class="partner-perk-pill">Web3 Developer SDKs</span>
+          </div>
+          <div class="partner-card-footer">
+            <span class="partner-role-note">Web3 & Cryptographic Bounty Partner</span>
+          </div>
         </div>
 
-        <!-- Sponsor 5: Polygon -->
-        <div class="sponsor-card">
-          <div class="sponsor-tier">DECENTRALIZED ECOSYSTEM</div>
-          <div class="sponsor-brand">
-            <span class="sponsor-logo-icon">💎</span>
-            <h4 class="sponsor-name">Polygon</h4>
-          </div>
-          <p class="sponsor-desc">Providing Web3 developer tooling, testnet faucets, and dedicated bounty pools for zero-knowledge and decentralized applications.</p>
-          <div class="sponsor-tag">Web3 & ZK Bounties</div>
-        </div>
       </div>
     </div>
   </section>
