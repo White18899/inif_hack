@@ -52,10 +52,8 @@ class InfinityScrollShowcase {
     // Initial Presentation of Specimen 1 (Mind Stone // Intelligence)
     this.displayStone(0, false);
 
-    // Auto-play convergence animation on desktop only
-    if (!this.isMobile()) {
-      this.triggerConvergence();
-    }
+    // Auto-play convergence animation on all devices (mobile and desktop)
+    this.triggerConvergence();
   }
 
   isMobile() {
@@ -160,8 +158,13 @@ class InfinityScrollShowcase {
       const stageCenterY = rect.top + rect.height / 2;
 
       // Precise pixel offset to lock the 3D model into the exact center of the stage overlay
-      const offsetX = (window.innerWidth / 2) - stageCenterX;
-      const offsetY = (window.innerHeight / 2) - stageCenterY;
+      let offsetX = (window.innerWidth / 2) - stageCenterX;
+      let offsetY = (window.innerHeight / 2) - stageCenterY;
+
+      if (this.isMobile()) {
+        // Balanced offset on mobile: perfectly centered between 28px rail and info card
+        offsetX += 16;
+      }
 
       this.camera.setViewOffset(
         window.innerWidth,
@@ -256,7 +259,7 @@ class InfinityScrollShowcase {
     this.stonesContainer = new THREE.Group();
     this.scene.add(this.stonesContainer);
 
-    const targetScale = this.isMobile() ? 0.52 : 1.0;
+    const targetScale = this.isMobile() ? 0.48 : 1.0;
     STONES.forEach((stoneData, i) => {
       const stoneObj = createStoneMesh(stoneData);
       
@@ -433,10 +436,9 @@ class InfinityScrollShowcase {
             <!-- Active laser beam segments -->
             ${i > 0 ? `<line class="svg-laser-top" x1="12" y1="0" x2="12" y2="21" />` : ''}
             ${i < STONES.length - 1 ? `<line class="svg-laser-bot" x1="12" y1="21" x2="12" y2="42" />` : ''}
-            <!-- Concentric rings: identically centered at (12, 21) -->
-            <circle class="svg-pip-halo" cx="12" cy="21" r="8.5" />
-            <circle class="svg-pip-ring" cx="12" cy="21" r="4.5" />
-            <circle class="svg-pip-core" cx="12" cy="21" r="1.8" />
+            <!-- Precision Single Dot: centered at (12, 21) -->
+            <circle class="svg-pip-halo" cx="12" cy="21" r="8" />
+            <circle class="svg-pip-core" cx="12" cy="21" r="3.5" />
           </svg>
         </span>
         <span class="pager-name-tag">${shortName}</span>
@@ -785,7 +787,7 @@ class InfinityScrollShowcase {
     }
 
     // 3D Stone Swap Animation
-    const targetScale = this.isMobile() ? 0.52 : 1.0;
+    const targetScale = this.isMobile() ? 0.48 : 1.0;
     if (animate) {
       const prevStone = this.stones[prevIndex];
       const nextStone = this.stones[index];
@@ -906,10 +908,15 @@ class InfinityScrollShowcase {
     audioEngine.playConvergenceChord();
 
     // Pull camera out smoothly to showcase all 6 stones in orbit
-    const convZ = this.isMobile() ? 20.0 : 14.0;
+    if (this.camera.view && this.camera.view.enabled) {
+      this.camera.clearViewOffset();
+      this.camera.updateProjectionMatrix();
+    }
+
+    const convZ = this.isMobile() ? 17.0 : 14.0;
     gsap.to(this.camera.position, {
       x: 0,
-      y: 0.5,
+      y: this.isMobile() ? 0.2 : 0.5,
       z: convZ,
       duration: 1.8,
       ease: 'power2.inOut'
@@ -921,12 +928,14 @@ class InfinityScrollShowcase {
       z: 0,
       duration: 1.8,
       ease: 'power2.inOut',
-      onUpdate: () => this.controls.update()
+      onUpdate: () => {
+        if (this.controls) this.controls.update();
+      }
     });
 
     // Make all stones visible and arrange in concentric spinning hexagram
-    const hexRadius = this.isMobile() ? 2.4 : 3.6;
-    const convScale = this.isMobile() ? 0.42 : 0.75;
+    const hexRadius = this.isMobile() ? 2.1 : 3.6;
+    const convScale = this.isMobile() ? 0.38 : 0.75;
     this.stones.forEach((stone, i) => {
       stone.group.visible = true;
       stone.group.position.set(0, 0, 0);
@@ -978,6 +987,9 @@ class InfinityScrollShowcase {
     const btnConv = document.getElementById('btn-convergence');
     if (btnConv) btnConv.classList.remove('active');
 
+    // Restore single stone viewport camera offset
+    this.updateCameraForViewport();
+
     // Reset container rotation smoothly to level
     gsap.to(this.stonesContainer.rotation, {
       x: 0,
@@ -989,7 +1001,7 @@ class InfinityScrollShowcase {
 
     // Smooth camera glide from wide convergence view into hero inspection view
     const targetZ = this.isMobile() ? 12.0 : 9.8;
-    const targetScale = this.isMobile() ? 0.52 : 1.0;
+    const targetScale = this.isMobile() ? 0.48 : 1.0;
     gsap.to(this.camera.position, {
       x: 0,
       y: 0,
@@ -1004,7 +1016,9 @@ class InfinityScrollShowcase {
       z: 0,
       duration: 1.3,
       ease: 'power3.out',
-      onUpdate: () => this.controls.update()
+      onUpdate: () => {
+        if (this.controls) this.controls.update();
+      }
     });
 
     // Collapse all stones back to center: focus ONLY currentIndex
@@ -1159,7 +1173,7 @@ class InfinityScrollShowcase {
       this.updateCameraForViewport();
       this.controls.target.set(this.stoneStageX, this.stoneStageY, 0);
 
-      const targetScale = this.isMobile() ? 0.52 : 1.0;
+      const targetScale = this.isMobile() ? 0.48 : 1.0;
       const cur = this.stones[this.currentIndex];
       if (cur && !this.isConvergenceActive) {
         cur.group.scale.set(targetScale, targetScale, targetScale);

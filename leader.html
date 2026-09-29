@@ -71,12 +71,48 @@
       color: var(--gold); border: 1px solid rgba(255, 208, 0, 0.3);
     }
 
-    .nav-actions { display: flex; align-items: center; gap: 14px; }
+    .nav-actions { display: flex; align-items: center; gap: 12px; }
     .btn-return {
       color: var(--text-muted); text-decoration: none; font-size: 0.8rem;
       font-family: 'JetBrains Mono', monospace; transition: color 0.2s;
     }
     .btn-return:hover { color: #fff; }
+
+    .btn-refresh {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      letter-spacing: 0.04em;
+    }
+    .btn-refresh:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 208, 0, 0.4);
+      color: var(--gold);
+      transform: translateY(-1px);
+    }
+    .btn-refresh:active {
+      transform: translateY(0);
+    }
+    .btn-refresh .refresh-icon {
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .btn-refresh.spinning .refresh-icon {
+      animation: spinAnim 0.7s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    @keyframes spinAnim {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
 
     /* Login Screen */
     .login-container {
@@ -223,6 +259,122 @@
     @media (max-width: 860px) {
       .dash-grid { grid-template-columns: 1fr; }
     }
+
+    @media (max-width: 768px) {
+      .portal-nav {
+        padding: 12px 16px;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .brand-group {
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .brand-title {
+        font-size: 0.95rem;
+        letter-spacing: 0.05em;
+      }
+      .portal-badge {
+        font-size: 0.6rem;
+        padding: 2px 6px;
+        white-space: nowrap;
+      }
+      .nav-actions {
+        gap: 10px;
+      }
+      .btn-return {
+        font-size: 0.72rem;
+      }
+      .login-container {
+        margin: 40px 14px;
+        padding: 26px 18px;
+      }
+      .dashboard-layout {
+        margin: 18px auto;
+        padding: 0 12px;
+      }
+      .team-hero-card {
+        padding: 18px 16px;
+        gap: 14px;
+      }
+      .hero-meta {
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .team-title {
+        font-size: 1.35rem;
+        word-break: break-word;
+      }
+      .sec-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        padding-bottom: 10px;
+        margin-bottom: 16px;
+      }
+      .sec-title {
+        font-size: 0.92rem;
+      }
+      #ps-status-pill {
+        white-space: nowrap;
+        align-self: flex-start;
+      }
+      .dash-section {
+        padding: 16px 14px;
+        margin-bottom: 16px;
+        border-radius: 12px;
+      }
+      .ps-card {
+        padding: 14px;
+      }
+      .ps-meta-row {
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .ps-locked-box {
+        padding: 26px 14px;
+      }
+      .lock-title {
+        font-size: 1rem;
+      }
+      .lock-sub {
+        font-size: 0.76rem;
+      }
+      .milestone-item {
+        padding: 10px 12px;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .food-card {
+        padding: 10px 12px;
+      }
+      .member-row {
+        padding: 8px 12px;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .portal-nav {
+        padding: 10px 12px;
+      }
+      .brand-title {
+        font-size: 0.86rem;
+      }
+      .btn-return {
+        font-size: 0.68rem;
+      }
+      .team-hero-card {
+        padding: 14px 12px;
+      }
+      .team-title {
+        font-size: 1.2rem;
+      }
+      .dash-section {
+        padding: 14px 12px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -235,6 +387,14 @@
       <span class="portal-badge">TEAM LEADER DESK</span>
     </a>
     <div class="nav-actions">
+      <button id="btn-refresh" class="btn-refresh" title="Refresh Live Status & Telemetry">
+        <svg class="refresh-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <polyline points="1 20 1 14 7 14"></polyline>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+        </svg>
+        <span>REFRESH</span>
+      </button>
       <a href="/" class="btn-return">← 3D GEMSTONE ENGINE</a>
       <button id="btn-logout" class="btn-return" style="background:none; border:none; cursor:pointer; display:none;">LOGOUT</button>
     </div>
@@ -249,12 +409,12 @@
     <form id="form-leader-login">
       <div class="form-group">
         <label class="form-label" for="txt-email">LEADER EMAIL ADDRESS</label>
-        <input type="email" id="txt-email" class="form-input" placeholder="tony@stark.io" required>
+        <input type="email" id="txt-email" class="form-input" placeholder="aarav.sharma@iitm.ac.in" required>
       </div>
 
       <div class="form-group">
         <label class="form-label" for="txt-password">TEAM PASSWORD</label>
-        <input type="password" id="txt-password" class="form-input" placeholder="••••••••" required>
+        <input type="password" id="txt-password" class="form-input" placeholder="Password (Default: mind2026)" required>
       </div>
 
       <button type="submit" class="btn-login" id="btn-do-login">AUTHENTICATE & ENTER PORTAL</button>
@@ -398,13 +558,10 @@
     const formLogin = document.getElementById('form-leader-login');
     const loginErr = document.getElementById('login-err');
     const btnLogout = document.getElementById('btn-logout');
+    const btnRefresh = document.getElementById('btn-refresh');
 
-    formLogin.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      loginErr.style.display = 'none';
-
-      const email = document.getElementById('txt-email').value.trim();
-      const password = document.getElementById('txt-password').value;
+    async function doLeaderLogin(email, password, isSilent = false) {
+      if (!isSilent) loginErr.style.display = 'none';
 
       try {
         const res = await fetch('/api/teams/login', {
@@ -422,19 +579,88 @@
         currentDomain = data.domainInfo;
         authCredentials = { email, password };
 
+        try {
+          const authStr = JSON.stringify({ email, password });
+          sessionStorage.setItem('infinity_leader_auth', authStr);
+          localStorage.setItem('infinity_leader_auth', authStr);
+        } catch (e) {}
+
         renderDashboard();
+        return true;
       } catch (err) {
-        loginErr.textContent = err.message;
-        loginErr.style.display = 'block';
+        if (!isSilent) {
+          loginErr.textContent = err.message;
+          loginErr.style.display = 'block';
+        } else {
+          try {
+            sessionStorage.removeItem('infinity_leader_auth');
+            localStorage.removeItem('infinity_leader_auth');
+          } catch (e) {}
+        }
+        return false;
+      }
+    }
+
+    btnRefresh.addEventListener('click', async () => {
+      btnRefresh.classList.add('spinning');
+      try {
+        let creds = authCredentials;
+        if (!creds.email || !creds.password) {
+          try {
+            const raw = sessionStorage.getItem('infinity_leader_auth') || localStorage.getItem('infinity_leader_auth');
+            if (raw) creds = JSON.parse(raw);
+          } catch (e) {}
+        }
+
+        if (creds.email && creds.password) {
+          await doLeaderLogin(creds.email, creds.password, true);
+        } else {
+          window.location.reload();
+        }
+      } catch (err) {
+        console.error('Leader portal refresh failed:', err);
+      } finally {
+        setTimeout(() => {
+          btnRefresh.classList.remove('spinning');
+        }, 500);
       }
     });
 
+    formLogin.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('txt-email').value.trim();
+      const password = document.getElementById('txt-password').value;
+      await doLeaderLogin(email, password, false);
+    });
+
     btnLogout.addEventListener('click', () => {
+      try {
+        sessionStorage.removeItem('infinity_leader_auth');
+        localStorage.removeItem('infinity_leader_auth');
+      } catch (e) {}
       currentTeam = null;
+      currentDomain = null;
+      authCredentials = { email: '', password: '' };
       secDash.style.display = 'none';
       secLogin.style.display = 'block';
       btnLogout.style.display = 'none';
     });
+
+    // Auto-restore leader session if browser is refreshed (F5 / reload)
+    try {
+      const savedLeader = sessionStorage.getItem('infinity_leader_auth') || localStorage.getItem('infinity_leader_auth');
+      if (savedLeader) {
+        const creds = JSON.parse(savedLeader);
+        if (creds.email && creds.password) {
+          secLogin.style.display = 'none';
+          doLeaderLogin(creds.email, creds.password, true).then(ok => {
+            if (!ok) secLogin.style.display = 'block';
+          });
+        }
+      }
+    } catch (e) {
+      secLogin.style.display = 'block';
+    }
 
     function renderDashboard() {
       secLogin.style.display = 'none';

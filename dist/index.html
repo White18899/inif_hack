@@ -17,8 +17,8 @@
     }
     window.scrollTo(0, 0);
   </script>
-  <script type="module" crossorigin src="/assets/index-DTzrVeew.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-BXqNDdNO.css">
+  <script type="module" crossorigin src="/assets/index-Cc4aaOay.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-DNKSOykY.css">
 </head>
 <body class="theme-obsidian">
   <!-- 3D Canvas Viewport (Untouched, Pristine Three.js WebGL Engine) -->
@@ -118,11 +118,12 @@
       <!-- Top Action Controls (Top: Convergence, Down: Wireframe) -->
       <div class="pager-controls-top" id="pager-controls-top">
         <button id="btn-convergence" class="hud-btn hud-btn-convergence" title="Trigger Hexagonal Convergence" aria-label="Convergence">
-          <span class="btn-text">✦ CONVERGENCE</span>
+          <span class="btn-icon">✦</span>
+          <span class="btn-text">CONVERGENCE</span>
         </button>
 
         <button id="btn-wireframe" class="hud-btn" title="Toggle Crystal Wireframe Diagnostics" aria-label="Wireframe">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <svg class="icon btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
           </svg>
           <span class="btn-text">WIREFRAME</span>
@@ -872,26 +873,19 @@
             </div>
           </div>
 
-          <div class="form-grid-2">
-            <div class="form-group">
-              <label class="form-label" for="reg-tech-stack">CORE TECH STACK <span class="req">*</span></label>
-              <input type="text" id="reg-tech-stack" class="form-input" placeholder="e.g. Python, PyTorch, FastAPI, React" required>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">SQUAD SIZE (3–4 MEMBERS) <span class="req">*</span></label>
-              <div class="size-toggle-group">
-                <label class="size-pill">
-                  <input type="radio" name="teamSize" value="3" checked id="size-3">
-                  <span class="size-text">3 Members</span>
-                  <span class="size-fee-badge">₹1,170 (₹390 × 3)</span>
-                </label>
-                <label class="size-pill">
-                  <input type="radio" name="teamSize" value="4" id="size-4">
-                  <span class="size-text">4 Members</span>
-                  <span class="size-fee-badge">₹1,560 (₹390 × 4)</span>
-                </label>
-              </div>
+          <div class="form-group" style="margin-top: 16px;">
+            <label class="form-label">SQUAD SIZE (3–4 MEMBERS) <span class="req">*</span></label>
+            <div class="size-toggle-group">
+              <label class="size-pill">
+                <input type="radio" name="teamSize" value="3" checked id="size-3">
+                <span class="size-text">3 Members</span>
+                <span class="size-fee-badge">₹1,170 (₹390 × 3)</span>
+              </label>
+              <label class="size-pill">
+                <input type="radio" name="teamSize" value="4" id="size-4">
+                <span class="size-text">4 Members</span>
+                <span class="size-fee-badge">₹1,560 (₹390 × 4)</span>
+              </label>
             </div>
           </div>
         </div>
@@ -983,18 +977,12 @@
             <!-- Left: Dynamic UPI QR Box -->
             <div class="qr-code-box">
               <div class="qr-placeholder" id="qr-display">
-                <svg class="qr-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <rect x="3" y="3" width="7" height="7"></rect>
-                  <rect x="14" y="3" width="7" height="7"></rect>
-                  <rect x="14" y="14" width="7" height="7"></rect>
-                  <rect x="3" y="14" width="7" height="7"></rect>
-                  <rect x="9" y="9" width="6" height="6"></rect>
-                </svg>
+                <img src="/payment-qr.jpeg" alt="PhonePe UPI QR Code" class="qr-real-image" id="qr-img">
                 <div class="qr-amount-text" id="qr-amount-text">PAY ₹1,170</div>
               </div>
               <div class="upi-id-tag">
-                <span>UPI:</span>
-                <code>infinityhack@okaxis</code>
+                <span>SCAN VIA:</span>
+                <code>PhonePe / GPay / Paytm</code>
               </div>
               <div class="qr-fee-note">₹390 per member • All meals & access included</div>
             </div>

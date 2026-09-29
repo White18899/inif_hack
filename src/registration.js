@@ -240,7 +240,7 @@ export function initRegistrationModule() {
       const teamName = document.getElementById('reg-team-name')?.value.trim();
       const college = document.getElementById('reg-college')?.value.trim();
       const preferredDomain = document.querySelector('input[name="domain"]:checked')?.value || 'mind';
-      const techStack = document.getElementById('reg-tech-stack')?.value.trim();
+      const techStack = document.getElementById('reg-tech-stack')?.value?.trim() || '';
       const teamSize = document.querySelector('input[name="teamSize"]:checked')?.value || '3';
       const leaderName = document.getElementById('reg-leader-name')?.value.trim();
       const leaderPhone = document.getElementById('reg-leader-phone')?.value.trim();
