@@ -398,7 +398,7 @@ class InfinityScrollShowcase {
       text: initialStone.name,
       fontFamily: "'Syne', sans-serif",
       fontWeight: 800,
-      fontSize: 48,
+      fontSize: 42,
       letterSpacing: 0.04,
       color: '#ffffff',
       accentColor: initialStone.colorHex,

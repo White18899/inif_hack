@@ -673,26 +673,33 @@ body.timeline-unlocked .showcase-layout {
 .card-stone-name-container {
   position: relative;
   width: 100%;
-  height: 58px;
+  height: 50px !important;
+  max-height: 50px !important;
   margin-top: 4px;
-  margin-bottom: 2px;
+  margin-bottom: 0px;
   pointer-events: auto;
   user-select: none;
   overflow: visible;
 }
 
+.card-stone-name-container.tech-text {
+  height: 50px !important;
+  max-height: 50px !important;
+}
+
 .tech-text {
   position: relative;
   width: 100%;
-  height: 100%;
   touch-action: pan-y;
   user-select: none;
 }
 
+.card-stone-name-container .tech-text-canvas,
 .tech-text-canvas {
   display: block;
   width: 100%;
-  height: 100%;
+  height: 50px !important;
+  max-height: 50px !important;
 }
 
 .visually-hidden {
@@ -727,7 +734,7 @@ body.timeline-unlocked .showcase-layout {
   font-weight: 700;
   letter-spacing: 0.18em;
   color: var(--active-stone-color);
-  margin-top: 8px;
+  margin-top: 4px;
   text-transform: uppercase;
   display: flex;
   align-items: center;
@@ -981,8 +988,11 @@ body.timeline-unlocked .showcase-layout {
   .card-stone-name {
     font-size: 1.75rem;
   }
-  .card-stone-name-container {
-    height: 50px;
+  .card-stone-name-container,
+  .card-stone-name-container.tech-text,
+  .card-stone-name-container .tech-text-canvas {
+    height: 44px !important;
+    max-height: 44px !important;
   }
 }
 
@@ -1029,8 +1039,11 @@ body.timeline-unlocked .showcase-layout {
   .card-meta-grid, .card-stats-grid {
     grid-template-columns: 1fr;
   }
-  .card-stone-name-container {
-    height: 44px;
+  .card-stone-name-container,
+  .card-stone-name-container.tech-text,
+  .card-stone-name-container .tech-text-canvas {
+    height: 38px !important;
+    max-height: 38px !important;
   }
 }
 

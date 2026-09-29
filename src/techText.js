@@ -178,7 +178,7 @@ export class TechText {
     const fit = Math.min(
       1,
       (this.width - paddingLeft * 2) / Math.max(m.actualBoundingBoxLeft + m.actualBoundingBoxRight, 1),
-      (this.height * 0.82) / Math.max(m.actualBoundingBoxAscent + m.actualBoundingBoxDescent, 1)
+      (this.height * 0.90) / Math.max(m.actualBoundingBoxAscent + m.actualBoundingBoxDescent, 1)
     );
     const size = s.fontSize * fit;
     this.setFont(probe, s, size);
@@ -438,7 +438,8 @@ export class TechText {
       moved > 1
         ? `${signed(Math.round(glyph.offset.x))}, ${signed(Math.round(-glyph.offset.y))}`
         : `${glyph.char}  ${Math.round(glyph.box.x2 - glyph.box.x1)} × ${Math.round(glyph.box.y2 - glyph.box.y1)}`;
-    this.ctx.fillText(label, Math.round(this.frame.x1), Math.round(this.frame.y1) - 7);
+    const labelY = Math.max(9, Math.round(this.frame.y1) - 4);
+    this.ctx.fillText(label, Math.round(this.frame.x1), labelY);
   }
 
   tick = now => {
