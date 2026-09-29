@@ -1,0 +1,28 @@
+name = "infinity-hackathon-2026"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-09-24"
+compatibility_flags = [ "nodejs_compat" ]
+
+[[r2_buckets]]
+bucket_name = "infinity-hackathon-bucket"
+binding = "BUCKET"
+
+[vars]
+ADMIN_SECRET = "admin123"
+COORDINATOR_PASS = "coord2026"
+JUDGES_PASS = "judge2026"
+CLOUDFLARE_R2_PUBLIC_DOMAIN = "https://pub-aa1b426e7ec64c31a70bdd49676fdec1.r2.dev"
+
+[env.production]
+compatibility_date = "2026-09-24"
+compatibility_flags = [ "nodejs_compat" ]
+
+[[env.production.r2_buckets]]
+bucket_name = "infinity-hackathon-bucket"
+binding = "BUCKET"
+
+[env.production.vars]
+ADMIN_SECRET = "admin123"
+COORDINATOR_PASS = "coord2026"
+JUDGES_PASS = "judge2026"
+CLOUDFLARE_R2_PUBLIC_DOMAIN = "https://pub-aa1b426e7ec64c31a70bdd49676fdec1.r2.dev"

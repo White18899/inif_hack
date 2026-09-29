@@ -487,49 +487,47 @@ body.timeline-unlocked .showcase-layout {
   filter: drop-shadow(0 0 6px var(--item-color));
 }
 
+/* Single Precision Solid Dot - Identically centered at (12, 21) */
 .svg-pip-ring {
-  fill: #090d16;
-  stroke: rgba(255, 255, 255, 0.30);
-  stroke-width: 1.5;
-  transition: all 0.28s var(--transition-smooth);
+  display: none !important;
 }
 
-.pager-item:hover .svg-pip-ring {
-  stroke: var(--item-color);
-  stroke-width: 2;
-  filter: drop-shadow(0 0 5px var(--item-color));
-}
-
-.pager-item.passed .svg-pip-ring {
-  stroke: var(--active-stone-color);
-  stroke-width: 1.5;
-  opacity: 0.85;
-}
-
-.pager-item.active .svg-pip-ring {
-  fill: #060912;
-  stroke: var(--item-color);
-  stroke-width: 2.2;
-  filter: drop-shadow(0 0 8px var(--item-color));
-}
-
-/* Inner Core - Identically centered at (12, 21) */
 .svg-pip-core {
+  r: 3.5;
   fill: var(--item-color);
-  opacity: 0.65;
+  opacity: 0.85;
+  filter: drop-shadow(0 0 3px var(--item-color));
   transition: all 0.28s var(--transition-smooth);
 }
 
 .pager-item:hover .svg-pip-core {
-  r: 2.2;
+  r: 4.5;
   opacity: 1;
+  filter: drop-shadow(0 0 6px var(--item-color));
+}
+
+.pager-item.passed .svg-pip-core {
+  r: 3.8;
+  fill: var(--active-stone-color);
+  opacity: 1;
+  filter: drop-shadow(0 0 5px var(--active-stone-color));
+}
+
+.pager-item.passed:hover .svg-pip-core {
+  r: 4.5;
+  fill: var(--active-stone-color);
+  filter: drop-shadow(0 0 8px var(--active-stone-color));
+}
+
+.pager-item.passed .svg-pip-halo {
+  fill: var(--active-stone-color);
 }
 
 .pager-item.active .svg-pip-core {
-  r: 2.6;
+  r: 5.2;
   fill: #ffffff;
   opacity: 1;
-  filter: drop-shadow(0 0 5px #ffffff);
+  filter: drop-shadow(0 0 5px #ffffff) drop-shadow(0 0 12px var(--item-color));
 }
 
 /* Col 3: Clean Floating Specimen Name */
