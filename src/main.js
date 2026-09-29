@@ -11,6 +11,7 @@ import { createStoneMesh } from './stoneBuilder.js';
 import { audioEngine } from './audio.js';
 import { TIMELINE_EVENTS } from './timelineData.js';
 import { initRegistrationModule } from './registration.js';
+import { TechText } from './techText.js';
 
 class InfinityScrollShowcase {
   constructor() {
@@ -380,6 +381,38 @@ class InfinityScrollShowcase {
       });
 
       pagerList.appendChild(item);
+    });
+
+    this.initTechText();
+  }
+
+  /* --------------------------------------------------------------------------
+     6A. INTERACTIVE TECHTEXT WORDMARK (REACT BITS ENGINE)
+     -------------------------------------------------------------------------- */
+  initTechText() {
+    const container = document.getElementById('stone-tech-text-container');
+    if (!container) return;
+
+    const initialStone = STONES[this.currentIndex] || STONES[0];
+    this.techText = new TechText(container, {
+      text: initialStone.name,
+      fontFamily: "'Syne', sans-serif",
+      fontWeight: 800,
+      fontSize: 48,
+      letterSpacing: 0.04,
+      color: '#ffffff',
+      accentColor: initialStone.colorHex,
+      reveal: 'letter',
+      lineStyle: 'dashed',
+      dashLength: 4,
+      dashGap: 2,
+      strokeWidth: 1.5,
+      specks: 12,
+      selection: true,
+      labels: true,
+      draggable: true,
+      sweep: true,
+      speed: 0.9
     });
   }
 
@@ -753,6 +786,17 @@ class InfinityScrollShowcase {
     if (cardTheme) cardTheme.textContent = (stone.marvelTheme || 'SINGULARITY').toUpperCase();
     const cardTitle = document.getElementById('card-title');
     if (cardTitle) cardTitle.textContent = stone.name;
+
+    // Update Interactive TechText Wordmark (React Bits Engine)
+    if (this.techText) {
+      this.techText.update({
+        text: stone.name,
+        accentColor: stone.colorHex
+      });
+    }
+    const container = document.getElementById('stone-tech-text-container');
+    if (container) container.setAttribute('aria-label', stone.name);
+
     const cardDomain = document.getElementById('card-domain');
     if (cardDomain) cardDomain.textContent = `${stone.domain} // ${stone.domainTagline || ''}`;
     const cardDesc = document.getElementById('card-desc');
