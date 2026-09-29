@@ -417,109 +417,10 @@ class InfinityScrollShowcase {
   }
 
   /* --------------------------------------------------------------------------
-     6B. COSMIC TIMELINE INITIALIZATION & FILTERING
+     6B. COSMIC TIMELINE INITIALIZATION (4-PHASE DOSSIER CARDS)
      -------------------------------------------------------------------------- */
   initTimeline() {
-    const cardsContainer = document.getElementById('timeline-cards-list');
-    const filterPills = document.querySelectorAll('.filter-pill');
-    if (!cardsContainer) return;
-
-    const renderTimeline = (filterStone = 'all') => {
-      cardsContainer.innerHTML = '';
-      const filtered = TIMELINE_EVENTS.filter(e => filterStone === 'all' || e.stone === filterStone || e.stone === 'all');
-
-      filtered.forEach((event, idx) => {
-        const row = document.createElement('div');
-        const isLeft = idx % 2 === 0;
-        row.className = `timeline-row ${isLeft ? 'left' : 'right'}`;
-        row.setAttribute('style', `
-          --card-color: ${event.stoneColor};
-          --card-rgb: ${event.stoneRgb};
-        `);
-
-        row.innerHTML = `
-          <!-- Center Pin on Spine -->
-          <div class="timeline-node-pin">
-            <div class="timeline-pin-circle"></div>
-          </div>
-
-          <!-- Card Content -->
-          <article class="t-card" tabindex="0" role="button" aria-label="${event.title}">
-            <div class="t-card-header">
-              <span class="t-card-date">${event.date} // ${event.era}</span>
-              <span class="t-card-badge">${event.stoneName}</span>
-            </div>
-            <h3 class="t-card-title">${event.title}</h3>
-            <div class="t-card-meta">
-              <span class="t-meta-chip"><strong>LOCUS:</strong> ${event.location}</span>
-              <span class="t-meta-chip"><strong>VESSEL:</strong> ${event.vessel}</span>
-              <span class="t-meta-chip"><strong>WIELDER:</strong> ${event.wielders}</span>
-            </div>
-            <p class="t-card-desc">${event.desc}</p>
-          </article>
-        `;
-
-        // Interactive Card Click -> Sound & Harmonic Resonance
-        const cardElem = row.querySelector('.t-card');
-        cardElem.addEventListener('click', () => {
-          if (event.stone !== 'all') {
-            audioEngine.playStoneChime(event.stone);
-          } else {
-            audioEngine.playChime(528);
-          }
-          gsap.fromTo(cardElem, { scale: 0.98 }, { scale: 1, duration: 0.35, ease: 'back.out(2)' });
-        });
-
-        cardsContainer.appendChild(row);
-      });
-    };
-
-    // Filter Buttons Listener
-    filterPills.forEach(pill => {
-      pill.addEventListener('click', () => {
-        audioEngine.playClick();
-        filterPills.forEach(p => p.classList.remove('active'));
-        pill.classList.add('active');
-        const stone = pill.getAttribute('data-stone');
-        renderTimeline(stone);
-      });
-    });
-
-    // Switcher between 4-Phase Dossier and 36-Hour Running Order Stream
-    const btnShowDossier = document.getElementById('btn-show-dossier');
-    const btnShowStream = document.getElementById('btn-show-stream');
-    const dossierGrid = document.getElementById('dossier-timeline-grid');
-    const streamWrap = document.getElementById('timeline-stream-wrap');
-    const filtersWrap = document.getElementById('timeline-filters-wrap');
-
-    if (btnShowDossier && btnShowStream) {
-      btnShowDossier.addEventListener('click', () => {
-        audioEngine.playClick();
-        btnShowDossier.classList.add('active');
-        btnShowStream.classList.remove('active');
-        if (dossierGrid) {
-          dossierGrid.style.display = 'grid';
-          gsap.fromTo(dossierGrid, { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.35, ease: 'power2.out' });
-        }
-        if (streamWrap) streamWrap.style.display = 'none';
-        if (filtersWrap) filtersWrap.style.display = 'none';
-      });
-
-      btnShowStream.addEventListener('click', () => {
-        audioEngine.playClick();
-        btnShowStream.classList.add('active');
-        btnShowDossier.classList.remove('active');
-        if (dossierGrid) dossierGrid.style.display = 'none';
-        if (streamWrap) {
-          streamWrap.style.display = 'block';
-          gsap.fromTo(streamWrap, { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.35, ease: 'power2.out' });
-        }
-        if (filtersWrap) filtersWrap.style.display = 'block';
-        renderTimeline('all');
-      });
-    }
-
-    // Interactive sounds on Dossier Cards
+    // Interactive sounds and bounce animations on Dossier Cards
     const dossierCards = document.querySelectorAll('.dossier-card');
     const phaseStones = ['mind', 'space', 'reality', 'time'];
     dossierCards.forEach((card, idx) => {
@@ -529,9 +430,6 @@ class InfinityScrollShowcase {
         gsap.fromTo(card, { scale: 0.985 }, { scale: 1, duration: 0.35, ease: 'back.out(2)' });
       });
     });
-
-    // Initial render
-    renderTimeline('all');
 
     // Header Timeline Jump Button
     const btnTimeline = document.getElementById('btn-timeline');

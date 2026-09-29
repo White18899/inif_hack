@@ -1173,57 +1173,17 @@ body.timeline-unlocked #sponsors-section {
 /* ==========================================================================
    4-PHASE DOSSIER CARDS (NEO-BRUTALIST COMIC/HACKATHON AESTHETIC)
    ========================================================================== */
-.timeline-view-switch-row {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  padding: 5px;
-  border-radius: 30px;
-  margin-top: 24px;
-}
-
-.t-switch-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 18px;
-  border-radius: 24px;
-  background: transparent;
-  border: none;
-  color: #a1a1aa;
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  cursor: pointer;
-  transition: all 0.22s ease;
-  outline: none;
-}
-
-.t-switch-btn:hover {
-  color: #ffffff;
-}
-
-.t-switch-btn.active {
-  background: #ffffff;
-  color: #030305;
-  box-shadow: 0 2px 10px rgba(255, 255, 255, 0.3);
-}
-
-.switch-icon {
-  font-size: 0.8rem;
-}
 
 /* 4-Cards Grid */
 .dossier-timeline-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 22px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
   width: 100%;
-  max-width: 1360px;
-  margin: 36px auto 50px;
+  max-width: 1260px;
+  margin: 32px auto 50px;
+  padding: 0 16px;
+  box-sizing: border-box;
 }
 
 /* Base Dossier Card */
@@ -1231,19 +1191,20 @@ body.timeline-unlocked #sponsors-section {
   position: relative;
   background: #ffffff;
   border: 3px solid #000000;
-  border-radius: 6px;
-  box-shadow: 8px 8px 0px #000000, 0 16px 36px rgba(0, 0, 0, 0.6);
+  border-radius: 4px;
+  box-shadow: 6px 6px 0px #000000;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   overflow: visible;
+  min-width: 0;
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
 }
 
 .dossier-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 12px 12px 0px #000000, 0 0 35px var(--phase-glow);
+  transform: translateY(-6px);
+  box-shadow: 10px 10px 0px #000000, 0 0 25px var(--phase-glow);
 }
 
 /* Washi Tapes */
@@ -1251,33 +1212,33 @@ body.timeline-unlocked #sponsors-section {
   position: absolute;
   z-index: 12;
   pointer-events: none;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
   opacity: 0.96;
 }
 
 .tape-yellow {
   background: #ffd000;
-  width: 58px;
-  height: 22px;
+  width: 48px;
+  height: 18px;
 }
 
 .tape-white {
   background: #ffffff;
   border: 1px solid rgba(0, 0, 0, 0.15);
-  width: 54px;
-  height: 20px;
+  width: 44px;
+  height: 16px;
 }
 
 .tape-top-left {
-  top: -12px;
-  left: -20px;
+  top: -10px;
+  left: -14px;
   transform: rotate(-35deg);
 }
 
 .tape-mid-left {
-  top: 75px;
-  left: -24px;
-  transform: rotate(-12deg);
+  top: 65px;
+  left: -16px;
+  transform: rotate(-10deg);
 }
 
 /* Dossier Overlapping Stickers */
@@ -1286,7 +1247,7 @@ body.timeline-unlocked #sponsors-section {
   z-index: 15;
   pointer-events: auto;
   cursor: pointer;
-  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.7)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.6)) drop-shadow(0 1px 3px rgba(0, 0, 0, 0.35));
   transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
@@ -1295,39 +1256,39 @@ body.timeline-unlocked #sponsors-section {
   width: 100%;
   height: auto;
   pointer-events: none;
-  filter: contrast(1.08) saturate(1.1);
+  filter: contrast(1.06) saturate(1.1);
 }
 
 .dossier-sticker:hover {
-  transform: scale(1.15) rotate(0deg) !important;
+  transform: scale(1.12) rotate(0deg) !important;
   z-index: 25;
 }
 
 .sticker-cap {
-  top: -24px;
-  left: -16px;
-  width: 76px;
+  top: -20px;
+  left: -12px;
+  width: 68px;
   transform: rotate(-10deg);
 }
 
 .sticker-strange {
-  top: -42px;
-  right: -22px;
-  width: 105px;
+  top: -36px;
+  right: -14px;
+  width: 92px;
   transform: rotate(4deg);
 }
 
 .sticker-ironman-fly {
-  top: -16px;
-  right: -30px;
-  width: 130px;
-  transform: rotate(-8deg);
+  top: -15px;
+  right: -18px;
+  width: 105px;
+  transform: rotate(-6deg);
 }
 
 .sticker-dume {
-  bottom: -40px;
-  right: -34px;
-  width: 115px;
+  bottom: -32px;
+  right: -20px;
+  width: 96px;
   transform: rotate(0deg);
 }
 
@@ -1336,32 +1297,32 @@ body.timeline-unlocked #sponsors-section {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 16px;
+  padding: 8px 14px;
   border-bottom: 3px solid #000000;
-  border-radius: 3px 3px 0 0;
+  border-radius: 1px 1px 0 0;
 }
 
 .dossier-phase-tag {
   font-family: var(--font-mono);
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   font-weight: 800;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   color: #000000;
   text-transform: uppercase;
 }
 
 .dossier-time-tag {
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   font-weight: 800;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   color: #000000;
   text-transform: uppercase;
 }
 
 /* Dossier Body */
 .dossier-body {
-  padding: 18px 20px 16px;
+  padding: 18px 16px 22px;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -1370,7 +1331,7 @@ body.timeline-unlocked #sponsors-section {
 
 .dossier-num {
   font-family: var(--font-display);
-  font-size: 2.6rem;
+  font-size: 2.7rem;
   font-weight: 800;
   line-height: 1;
   margin-bottom: 8px;
@@ -1379,9 +1340,9 @@ body.timeline-unlocked #sponsors-section {
 
 .dossier-title {
   font-family: var(--font-mono);
-  font-size: 1.05rem;
+  font-size: 0.98rem;
   font-weight: 800;
-  line-height: 1.3;
+  line-height: 1.35;
   color: #000000;
   letter-spacing: 0.01em;
   margin-bottom: 12px;
@@ -1390,86 +1351,52 @@ body.timeline-unlocked #sponsors-section {
 
 .dossier-desc {
   font-family: var(--font-body);
-  font-size: 0.83rem;
+  font-size: 0.82rem;
   line-height: 1.55;
   color: #1e1e24;
   font-weight: 500;
-  margin-bottom: 18px;
-}
-
-/* Milestones Data List */
-.dossier-milestones {
-  margin-top: auto;
-  padding-top: 14px;
-  border-top: 1.5px dashed rgba(0, 0, 0, 0.22);
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-
-.d-milestone-item {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  font-size: 0.72rem;
-}
-
-.d-mile-time {
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  font-weight: 700;
-  color: #000000;
-  background: rgba(0, 0, 0, 0.07);
-  padding: 2px 6px;
-  border-radius: 4px;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.d-mile-name {
-  font-family: var(--font-body);
-  font-weight: 600;
-  color: #2b2b36;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 /* Dossier Footer */
 .dossier-footer {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
-  padding: 11px 16px;
+  padding: 10px 14px;
   background: #f4f3ed;
   border-top: 2.5px solid #000000;
-  border-radius: 0 0 3px 3px;
+  border-radius: 0 0 2px 2px;
+  min-height: 48px;
+  box-sizing: border-box;
 }
 
 .d-foot-status, .d-foot-meta {
   font-family: var(--font-mono);
-  font-size: 0.63rem;
+  font-size: 0.61rem;
   font-weight: 800;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   color: #000000;
   text-transform: uppercase;
+  line-height: 1.25;
 }
 
 /* Responsive Grid */
-@media (max-width: 1200px) {
+@media (max-width: 1080px) {
   .dossier-timeline-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 28px;
+    max-width: 700px;
   }
 }
 
-@media (max-width: 700px) {
+@media (max-width: 640px) {
   .dossier-timeline-grid {
     grid-template-columns: 1fr;
     gap: 32px;
+    padding: 0 12px;
   }
   .dossier-title {
-    font-size: 0.98rem;
+    font-size: 0.94rem;
   }
 }
 
