@@ -1967,47 +1967,53 @@ body.timeline-unlocked #sponsors-section {
 }
 
 /* --------------------------------------------------------------------------
-   Minimalist Host Campus Strip (Clean, Unboxed)
+   Minimalist Host Campus Strip (Official GVPCDPGC Seal & Accreditation)
    -------------------------------------------------------------------------- */
 .host-campus-strip {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 18px;
-  background: rgba(255, 255, 255, 0.015);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 12px;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  padding: 11px 20px;
+  background: rgba(255, 255, 255, 0.018);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   transition: border-color 0.25s ease, background 0.25s ease;
 }
 
 .host-campus-strip:hover {
-  background: rgba(255, 255, 255, 0.025);
-  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.16);
 }
 
 .host-strip-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
 .host-strip-crest {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  overflow: hidden;
+  padding: 1px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
-.host-strip-crest svg {
-  width: 18px;
-  height: 18px;
+.host-crest-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 50%;
+  display: block;
 }
 
 .host-strip-info {
@@ -2028,25 +2034,40 @@ body.timeline-unlocked #sponsors-section {
   font-weight: 700;
   letter-spacing: 0.12em;
   color: #ffd000;
-  background: rgba(255, 208, 0, 0.1);
-  padding: 1px 6px;
+  background: rgba(255, 208, 0, 0.12);
+  border: 1px solid rgba(255, 208, 0, 0.25);
+  padding: 1px 7px;
   border-radius: 4px;
   text-transform: uppercase;
 }
 
 .host-strip-name {
   font-family: var(--font-body);
-  font-size: 0.92rem;
+  font-size: 0.94rem;
   font-weight: 600;
   color: #ffffff;
   letter-spacing: -0.01em;
 }
 
-.host-strip-dept {
+.host-strip-accreditations {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 3px;
   font-family: var(--font-body);
-  font-size: 0.72rem;
-  color: #71717a;
-  margin-top: 1px;
+  font-size: 0.73rem;
+  color: #94949e;
+  line-height: 1.3;
+}
+
+.accred-item {
+  color: #8b8b96;
+}
+
+.accred-sep {
+  color: rgba(255, 255, 255, 0.2);
+  font-size: 0.65rem;
 }
 
 .host-strip-right {
@@ -2069,6 +2090,19 @@ body.timeline-unlocked #sponsors-section {
   border: 1px solid rgba(255, 255, 255, 0.08);
   padding: 4px 9px;
   border-radius: 6px;
+}
+
+.host-chip-loc {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.loc-pin-svg {
+  width: 11px;
+  height: 11px;
+  color: #ffd000;
+  flex-shrink: 0;
 }
 
 .status-live-dot {

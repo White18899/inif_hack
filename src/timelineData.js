@@ -36,7 +36,7 @@ export const TIMELINE_EVENTS = [
     date: 'DAY 1 // 08:00 AM',
     era: 'Morning Ingress',
     title: 'Campus Ingress, RFID Badges & Breakfast Drop',
-    location: 'IITE Innovation Auditorium',
+    location: 'GVPCDPGC Campus, Visakhapatnam',
     vessel: 'Hacker Welcome Kit & NFC Wristband',
     wielders: 'Coordinators & Registered Hackers',
     desc: 'Arrival at the campus. Coordinators scan leader QR passes, issue branded hacker kits, allocate team lab benches, and distribute hot breakfast meal tokens (Item: Breakfast Token #1).'
