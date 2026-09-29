@@ -749,8 +749,6 @@ class InfinityScrollShowcase {
   renderCardContent(stone) {
     const cardIdx = document.getElementById('card-index-tag');
     if (cardIdx) cardIdx.textContent = `${stone.index} / 06`;
-    const cardHarmonic = document.getElementById('card-harmonic');
-    if (cardHarmonic) cardHarmonic.textContent = stone.frequency;
     const cardTheme = document.getElementById('card-marvel-theme');
     if (cardTheme) cardTheme.textContent = (stone.marvelTheme || 'SINGULARITY').toUpperCase();
     const cardTitle = document.getElementById('card-title');
