@@ -685,22 +685,26 @@ body.timeline-unlocked .showcase-layout {
 }
 
 .card-domain {
-  font-family: var(--font-mono);
-  font-size: 0.74rem;
-  font-weight: 600;
-  letter-spacing: 0.16em;
+  font-family: 'Imperial Script', cursive;
+  font-size: 1.75rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
   color: var(--active-stone-color);
-  margin-top: 8px;
-  text-transform: uppercase;
+  margin-top: 4px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  line-height: 1.25;
+  text-transform: none;
   transition: color 0.4s ease;
+  text-shadow: 0 0 16px var(--active-stone-glow);
 }
 
 .card-domain::before {
   content: '◈';
-  font-size: 0.65rem;
+  font-family: var(--font-mono);
+  font-style: normal;
+  font-size: 0.75rem;
   opacity: 0.85;
 }
 
