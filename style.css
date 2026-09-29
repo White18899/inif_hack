@@ -1108,11 +1108,9 @@ body:not(.timeline-unlocked) .site-footer {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 50px 32px 30px;
-  background: linear-gradient(180deg, rgba(3, 3, 5, 0.35) 0%, rgba(4, 5, 10, 0.95) 100px, #030305 100%);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(28px) saturate(180%);
-  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  padding: 40px 32px 30px;
+  background: #030305;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .timeline-section {
@@ -1812,17 +1810,29 @@ body.timeline-unlocked #sponsors-section {
 }
 
 /* ==========================================================================
-   MINIMALIST 1-SCREEN SPONSOR SHOWCASE
-   Ultra-refined, compact, fits 100% within a single screen viewport
+   MINIMALIST SPONSOR & HOST SHOWCASE (HUMAN-CRAFTED SWAG & CLEAN TYPOGRAPHY)
+   Zero heavy boxes, clean breathable typography, Marvel hackathon swag stickers
    ========================================================================== */
 .sponsors-minimal-section {
   position: relative;
-  overflow: hidden;
+  overflow: visible;
+}
+
+.sponsors-ambient-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 700px;
+  height: 350px;
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.02) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 1;
 }
 
 .sponsors-minimal-container {
   width: 100%;
-  max-width: 1260px;
+  max-width: 1220px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -1831,63 +1841,164 @@ body.timeline-unlocked #sponsors-section {
   z-index: 2;
 }
 
+/* --------------------------------------------------------------------------
+   Physical Hacker Laptop Swag Stickers (Vinyl Die-Cut Feel)
+   -------------------------------------------------------------------------- */
+.swag-sticker {
+  position: absolute;
+  z-index: 9;
+  user-select: none;
+  pointer-events: auto;
+  cursor: pointer;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.3s ease;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.75)) drop-shadow(0 1px 3px rgba(0, 0, 0, 0.5));
+}
+
+.swag-sticker img {
+  display: block;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+  filter: contrast(1.05) saturate(1.1);
+}
+
+.swag-sticker:hover {
+  transform: scale(1.18) rotate(0deg) !important;
+  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.9)) drop-shadow(0 0 14px rgba(255, 255, 255, 0.2));
+  z-index: 35;
+}
+
+@keyframes stickerPop {
+  0% { transform: scale(1) rotate(0deg); }
+  35% { transform: scale(1.26) rotate(-5deg); }
+  70% { transform: scale(0.94) rotate(3deg); }
+  100% { transform: scale(1.12) rotate(0deg); }
+}
+
+.swag-sticker:active {
+  animation: stickerPop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Individual Sticker Positions & Angles */
+.sticker-assemble {
+  top: -12px;
+  left: 10px;
+  width: 72px;
+  transform: rotate(-9deg);
+}
+
+.sticker-avengers {
+  top: -10px;
+  right: 18px;
+  width: 58px;
+  transform: rotate(8deg);
+}
+
+.sticker-ironman {
+  top: 140px;
+  left: -20px;
+  width: 58px;
+  transform: rotate(-12deg);
+}
+
+.sticker-spiderman {
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%) rotate(10deg);
+  width: 54px;
+}
+
+.sticker-gauntlet {
+  top: 145px;
+  right: -18px;
+  width: 58px;
+  transform: rotate(-7deg);
+}
+
+.sticker-hammer {
+  bottom: -16px;
+  right: 28px;
+  width: 62px;
+  transform: rotate(14deg);
+}
+
+/* --------------------------------------------------------------------------
+   Clean Minimalist Header (Human-Crafted Sans & Mono)
+   -------------------------------------------------------------------------- */
 .sponsors-mini-header {
   text-align: center;
   margin-bottom: 2px;
 }
 
-.sponsors-mini-header .mini-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 6px;
+.sponsors-mini-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: #71717a;
+  text-transform: uppercase;
+  margin-bottom: 5px;
 }
 
-.sponsors-mini-title {
-  font-family: var(--font-display);
-  font-size: clamp(1.4rem, 2.5vw, 1.85rem);
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+.sponsors-mini-eyebrow .eyebrow-accent {
+  color: #ffd000;
+  font-weight: 700;
+  margin-right: 2px;
+}
+
+.sponsors-clean-title {
+  font-family: var(--font-body);
+  font-size: clamp(1.4rem, 2.3vw, 1.85rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
   color: #ffffff;
-  line-height: 1.15;
+  line-height: 1.2;
   margin-bottom: 4px;
 }
 
-.sponsors-mini-sub {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  line-height: 1.4;
-  max-width: 620px;
+.sponsors-clean-sub {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  color: #8b8b96;
+  line-height: 1.45;
+  max-width: 600px;
   margin: 0 auto;
+  font-weight: 400;
 }
 
-/* Minimalist Host Campus Strip */
+/* --------------------------------------------------------------------------
+   Minimalist Host Campus Strip (Clean, Unboxed)
+   -------------------------------------------------------------------------- */
 .host-campus-strip {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 20px;
-  background: linear-gradient(90deg, rgba(255, 208, 0, 0.06) 0%, rgba(14, 16, 26, 0.7) 35%, rgba(10, 12, 20, 0.85) 100%);
-  border: 1px solid rgba(255, 208, 0, 0.22);
+  padding: 10px 18px;
+  background: rgba(255, 255, 255, 0.015);
+  border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 12px;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: border-color 0.25s ease, background 0.25s ease;
+}
+
+.host-campus-strip:hover {
+  background: rgba(255, 255, 255, 0.025);
+  border-color: rgba(255, 255, 255, 0.14);
 }
 
 .host-strip-left {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
 }
 
 .host-strip-crest {
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   border-radius: 8px;
-  background: rgba(255, 208, 0, 0.1);
-  border: 1px solid rgba(255, 208, 0, 0.3);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.09);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1895,8 +2006,8 @@ body.timeline-unlocked #sponsors-section {
 }
 
 .host-strip-crest svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
 }
 
 .host-strip-info {
@@ -1911,28 +2022,31 @@ body.timeline-unlocked #sponsors-section {
   flex-wrap: wrap;
 }
 
-.host-strip-label {
+.host-strip-badge {
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   color: #ffd000;
-  background: rgba(255, 208, 0, 0.12);
+  background: rgba(255, 208, 0, 0.1);
   padding: 1px 6px;
   border-radius: 4px;
+  text-transform: uppercase;
 }
 
 .host-strip-name {
-  font-family: var(--font-display);
-  font-size: 0.95rem;
-  font-weight: 700;
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  font-weight: 600;
   color: #ffffff;
+  letter-spacing: -0.01em;
 }
 
 .host-strip-dept {
+  font-family: var(--font-body);
   font-size: 0.72rem;
-  color: var(--text-dim);
-  margin-top: 2px;
+  color: #71717a;
+  margin-top: 1px;
 }
 
 .host-strip-right {
@@ -1942,67 +2056,57 @@ body.timeline-unlocked #sponsors-section {
   flex-shrink: 0;
 }
 
-.host-chip-venue {
+.host-chip-clean {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: #00d2ff;
-  background: rgba(0, 210, 255, 0.08);
-  border: 1px solid rgba(0, 210, 255, 0.25);
-  padding: 4px 9px;
-  border-radius: 6px;
-}
-
-.host-chip-venue svg {
-  width: 11px;
-  height: 11px;
-}
-
-.host-chip-access {
+  gap: 6px;
   font-family: var(--font-mono);
   font-size: 0.62rem;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.75);
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  letter-spacing: 0.06em;
+  color: #a1a1aa;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   padding: 4px 9px;
   border-radius: 6px;
 }
 
-/* 5 Sponsors Single-Row Grid */
+.status-live-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #00d2ff;
+  box-shadow: 0 0 6px #00d2ff;
+}
+
+/* --------------------------------------------------------------------------
+   5 Sponsors Clean Minimalist Row (No heavy opaque boxes)
+   -------------------------------------------------------------------------- */
 .sponsors-mini-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 14px;
+  gap: 12px;
 }
 
 .sponsor-mini-card {
   position: relative;
-  height: 205px;
+  height: 195px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   padding: 16px 14px;
-  background: linear-gradient(180deg, rgba(14, 16, 26, 0.75) 0%, rgba(8, 10, 16, 0.92) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 14px;
-  backdrop-filter: blur(18px) saturate(180%);
-  -webkit-backdrop-filter: blur(18px) saturate(180%);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  transition: all 0.25s var(--transition-smooth);
+  background: rgba(255, 255, 255, 0.015);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   overflow: hidden;
 }
 
 .sponsor-mini-card:hover {
-  transform: translateY(-3px);
-  border-color: var(--card-accent);
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.75), 0 0 20px var(--card-glow);
+  background: rgba(255, 255, 255, 0.035);
+  border-color: rgba(255, 255, 255, 0.16);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4), 0 0 20px var(--brand-glow, transparent);
 }
 
 .mini-card-top {
@@ -2014,80 +2118,89 @@ body.timeline-unlocked #sponsors-section {
 .mini-tier-tag {
   font-family: var(--font-mono);
   font-size: 0.58rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  color: var(--card-accent, #ffffffa6);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: #71717a;
   text-transform: uppercase;
 }
 
 .cf-dot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background: #F38020;
-  box-shadow: 0 0 6px #F38020;
+  box-shadow: 0 0 5px #F38020;
 }
 
 .mini-logo-wrap {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  height: 34px;
-  margin: 4px 0;
+  height: 32px;
+  margin: 2px 0;
 }
 
 .mini-brand-svg {
-  height: 28px;
+  height: 26px;
   width: auto;
   max-width: 100%;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.5));
   transition: transform 0.2s ease;
 }
 
 .sponsor-mini-card:hover .mini-brand-svg {
-  transform: scale(1.04);
+  transform: scale(1.03);
 }
 
-.mini-perks-wrap {
+.mini-perks-clean {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
 }
 
-.mini-perk-item {
-  display: block;
-  font-family: var(--font-mono);
-  font-size: 0.64rem;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.85);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  padding: 4px 8px;
-  border-radius: 5px;
+.perk-bullet {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  color: #71717a;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.2s ease;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition: all 0.2s ease;
 }
 
-.sponsor-mini-card:hover .mini-perk-item {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #ffffff;
+.perk-bullet::before {
+  content: "—";
+  color: rgba(255, 255, 255, 0.2);
+  font-size: 0.7rem;
+  flex-shrink: 0;
+}
+
+.sponsor-mini-card:hover .perk-bullet {
+  color: #d4d4d8;
 }
 
 .mini-card-foot {
   font-family: var(--font-mono);
   font-size: 0.58rem;
-  color: var(--text-dim);
+  color: #52525b;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   padding-top: 6px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  letter-spacing: 0.04em;
 }
 
-/* Responsive Minimal Adjustments */
+.sponsor-mini-card:hover .mini-card-foot {
+  color: #71717a;
+}
+
+/* --------------------------------------------------------------------------
+   Responsive Minimal Adjustments
+   -------------------------------------------------------------------------- */
 @media (max-width: 1100px) {
   #sponsors-section {
     height: auto;
@@ -2096,6 +2209,10 @@ body.timeline-unlocked #sponsors-section {
   }
   .sponsors-mini-grid {
     grid-template-columns: repeat(3, 1fr);
+  }
+  .sticker-ironman,
+  .sticker-gauntlet {
+    display: none;
   }
 }
 
@@ -2108,11 +2225,17 @@ body.timeline-unlocked #sponsors-section {
   .sponsors-mini-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+  .swag-sticker {
+    transform: scale(0.8) !important;
+  }
 }
 
 @media (max-width: 480px) {
   .sponsors-mini-grid {
     grid-template-columns: 1fr;
+  }
+  .swag-sticker {
+    display: none;
   }
 }
 
