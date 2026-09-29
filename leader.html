@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LEADER PORTAL // Squad Command — Infinity Hackathon 2026</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-base: #030305;
+      --bg-surface: #0a0a10;
+      --bg-card: rgba(14, 14, 22, 0.85);
+      --border-subtle: rgba(255, 255, 255, 0.1);
+      --border-active: rgba(255, 208, 0, 0.4);
+      --gold: #ffd000;
+      --cyan: #00d2ff;
+      --green: #00ff88;
+      --red: #ff2a4b;
+      --purple: #b026ff;
+      --text-main: #ffffff;
+      --text-muted: #94949b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg-base);
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    .font-display { font-family: 'Syne', sans-serif; }
+
+    /* Top Navbar */
+    .portal-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 36px;
+      background: rgba(10, 10, 16, 0.9);
+      border-bottom: 1px solid var(--border-subtle);
+      backdrop-filter: blur(20px);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: #fff;
+    }
+
+    .pulse-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--gold); box-shadow: 0 0 10px var(--gold);
+    }
+
+    .brand-title { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 800; letter-spacing: 0.1em; }
+    .portal-badge {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; font-weight: 700;
+      padding: 3px 8px; border-radius: 4px; background: rgba(255, 208, 0, 0.15);
+      color: var(--gold); border: 1px solid rgba(255, 208, 0, 0.3);
+    }
+
+    .nav-actions { display: flex; align-items: center; gap: 14px; }
+    .btn-return {
+      color: var(--text-muted); text-decoration: none; font-size: 0.8rem;
+      font-family: 'JetBrains Mono', monospace; transition: color 0.2s;
+    }
+    .btn-return:hover { color: #fff; }
+
+    /* Login Screen */
+    .login-container {
+      max-width: 440px; margin: 90px auto; padding: 36px;
+      background: var(--bg-surface); border: 1px solid var(--border-subtle);
+      border-radius: 20px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+      text-align: center;
+    }
+
+    .login-icon { font-size: 2.2rem; color: var(--gold); margin-bottom: 14px; }
+    .login-title { font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 800; margin-bottom: 6px; }
+    .login-sub { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 24px; }
+
+    .form-group { text-align: left; margin-bottom: 16px; }
+    .form-label {
+      display: block; font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;
+    }
+    .form-input {
+      width: 100%; padding: 12px 14px; border-radius: 8px;
+      background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-subtle);
+      color: #fff; font-size: 0.88rem; outline: none; transition: border-color 0.2s;
+    }
+    .form-input:focus { border-color: var(--gold); box-shadow: 0 0 12px rgba(255, 208, 0, 0.2); }
+
+    .btn-login {
+      width: 100%; padding: 12px; border-radius: 8px; border: none;
+      background: var(--gold); color: #000; font-family: 'Syne', sans-serif;
+      font-size: 0.88rem; font-weight: 800; cursor: pointer; transition: all 0.2s;
+      margin-top: 10px;
+    }
+    .btn-login:hover { background: #fff; box-shadow: 0 0 20px rgba(255, 255, 255, 0.4); }
+
+    .login-err {
+      padding: 10px; border-radius: 6px; background: rgba(255, 42, 75, 0.15);
+      border: 1px solid var(--red); color: #ff6b81; font-size: 0.78rem; margin-top: 14px; display: none;
+    }
+
+    /* Dashboard Layout */
+    .dashboard-layout { max-width: 1200px; margin: 36px auto; padding: 0 24px; display: none; }
+    
+    .team-hero-card {
+      padding: 28px 36px; background: linear-gradient(135deg, rgba(20, 20, 32, 0.9) 0%, rgba(10, 10, 16, 0.9) 100%);
+      border: 1px solid var(--border-subtle); border-radius: 16px; margin-bottom: 28px;
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;
+    }
+
+    .hero-meta { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; }
+    .team-title { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; color: #fff; }
+    .college-tag { font-size: 0.88rem; color: var(--text-muted); }
+
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 16px; border-radius: 30px; font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem; font-weight: 700;
+    }
+    .status-verified { background: rgba(0, 255, 136, 0.15); border: 1px solid var(--green); color: var(--green); }
+    .status-pending { background: rgba(255, 208, 0, 0.15); border: 1px solid var(--gold); color: var(--gold); }
+
+    /* Dashboard 2-column grid */
+    .dash-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
+
+    .dash-section {
+      background: var(--bg-surface); border: 1px solid var(--border-subtle);
+      border-radius: 16px; padding: 24px; margin-bottom: 24px;
+    }
+
+    .sec-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 20px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px;
+    }
+
+    .sec-title {
+      font-family: 'Syne', sans-serif; font-size: 1.05rem; font-weight: 700;
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    /* Problem Statements */
+    .ps-card {
+      padding: 18px; border-radius: 12px; background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-subtle); margin-bottom: 14px; transition: all 0.2s;
+    }
+    .ps-card.selected {
+      border-color: var(--gold); background: rgba(255, 208, 0, 0.04);
+      box-shadow: 0 0 20px rgba(255, 208, 0, 0.15);
+    }
+    .ps-meta-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .ps-code { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--gold); font-weight: 700; }
+    .ps-diff { font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; background: rgba(255, 255, 255, 0.08); }
+    .ps-title { font-size: 0.95rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
+    .ps-desc { font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 12px; }
+
+    .btn-select-ps {
+      padding: 8px 16px; border-radius: 6px; border: 1px solid var(--gold);
+      background: transparent; color: var(--gold); font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem; font-weight: 700; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-select-ps:hover, .btn-select-ps.active {
+      background: var(--gold); color: #000;
+    }
+
+    /* Lock Card */
+    .ps-locked-box {
+      text-align: center; padding: 36px 20px;
+      border: 1px dashed rgba(255, 255, 255, 0.15); border-radius: 12px;
+    }
+    .lock-icon { font-size: 2rem; color: var(--gold); margin-bottom: 10px; }
+    .lock-title { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; }
+    .lock-sub { font-size: 0.82rem; color: var(--text-muted); max-width: 480px; margin: 0 auto; }
+
+    /* Review Milestones & Food Trackers */
+    .timeline-track-list { display: flex; flex-direction: column; gap: 12px; }
+    .milestone-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px; border-radius: 8px; background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-subtle);
+    }
+    .m-title { font-size: 0.82rem; font-weight: 600; color: #fff; }
+    .m-sub { font-size: 0.7rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+    
+    .badge-check {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; font-weight: 700;
+      padding: 3px 8px; border-radius: 4px;
+    }
+    .badge-done { background: rgba(0, 255, 136, 0.15); color: var(--green); border: 1px solid var(--green); }
+    .badge-wait { background: rgba(255, 255, 255, 0.05); color: var(--text-muted); border: 1px solid var(--border-subtle); }
+
+    .food-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    .food-card {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 14px; border-radius: 8px; background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-subtle);
+    }
+    .food-name { font-size: 0.82rem; font-weight: 600; }
+
+    .members-list { display: flex; flex-direction: column; gap: 8px; }
+    .member-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 14px; border-radius: 6px; background: rgba(255, 255, 255, 0.02);
+      font-size: 0.8rem;
+    }
+    .m-role { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--gold); }
+
+    @media (max-width: 860px) {
+      .dash-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="portal-nav">
+    <a href="/" class="brand-group">
+      <span class="pulse-dot"></span>
+      <span class="brand-title">INFINITY HACKATHON</span>
+      <span class="portal-badge">TEAM LEADER DESK</span>
+    </a>
+    <div class="nav-actions">
+      <a href="/" class="btn-return">← 3D GEMSTONE ENGINE</a>
+      <button id="btn-logout" class="btn-return" style="background:none; border:none; cursor:pointer; display:none;">LOGOUT</button>
+    </div>
+  </header>
+
+  <!-- Login Section -->
+  <main class="login-container" id="sec-login">
+    <div class="login-icon">👑</div>
+    <h2 class="login-title">TEAM LEADER LOGIN</h2>
+    <p class="login-sub">Enter your registered leader email and team password.</p>
+
+    <form id="form-leader-login">
+      <div class="form-group">
+        <label class="form-label" for="txt-email">LEADER EMAIL ADDRESS</label>
+        <input type="email" id="txt-email" class="form-input" placeholder="tony@stark.io" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="txt-password">TEAM PASSWORD</label>
+        <input type="password" id="txt-password" class="form-input" placeholder="••••••••" required>
+      </div>
+
+      <button type="submit" class="btn-login" id="btn-do-login">AUTHENTICATE & ENTER PORTAL</button>
+      <div class="login-err" id="login-err"></div>
+    </form>
+  </main>
+
+  <!-- Dashboard Section -->
+  <main class="dashboard-layout" id="sec-dashboard">
+    
+    <!-- Team Overview Hero -->
+    <div class="team-hero-card">
+      <div>
+        <div class="hero-meta">
+          <span class="portal-badge font-mono" id="dash-team-id">INF-0000</span>
+          <span class="portal-badge" id="dash-domain-tag">MIND STONE // INTELLIGENCE</span>
+          <span class="college-tag" id="dash-team-size">4 Members</span>
+        </div>
+        <h2 class="team-title" id="dash-team-name">Team Name</h2>
+        <div class="college-tag" id="dash-college">College Name</div>
+      </div>
+
+      <div id="dash-payment-badge">
+        <div class="status-badge status-verified">✓ PAYMENT VERIFIED</div>
+      </div>
+    </div>
+
+    <!-- 2-Column Grid -->
+    <div class="dash-grid">
+      
+      <!-- LEFT: Problem Statement Selection & Milestones -->
+      <div>
+        
+        <!-- Problem Statement Section -->
+        <div class="dash-section">
+          <div class="sec-header">
+            <h3 class="sec-title"><span>🎯</span> PROBLEM STATEMENTS SELECTION</h3>
+            <span class="portal-badge" id="ps-status-pill">RELEASE STATUS: ACTIVE</span>
+          </div>
+
+          <div id="ps-container">
+            <!-- Dynamic Problem Statements or Locked notice -->
+          </div>
+        </div>
+
+        <!-- Review Milestones Timeline -->
+        <div class="dash-section">
+          <div class="sec-header">
+            <h3 class="sec-title"><span>⏱️</span> REVIEW MILESTONES TIMELINE</h3>
+            <span class="college-tag">Coordinator & Jury Station</span>
+          </div>
+
+          <div class="timeline-track-list" id="reviews-list">
+            <div class="milestone-item">
+              <div>
+                <div class="m-title">Review Round 1: Architecture & Idea Feasibility</div>
+                <div class="m-sub">Day 1 // 07:30 PM • Pod Check-in</div>
+              </div>
+              <span class="badge-check badge-wait" id="status-r1">PENDING</span>
+            </div>
+
+            <div class="milestone-item">
+              <div>
+                <div class="m-title">Review Round 2: Mid-way Logic & API Stress Test</div>
+                <div class="m-sub">Day 2 // 09:30 AM • Pod Check-in</div>
+              </div>
+              <span class="badge-check badge-wait" id="status-r2">PENDING</span>
+            </div>
+
+            <div class="milestone-item">
+              <div>
+                <div class="m-title">Review Round 3: Grand Pitch & Final Product Demo</div>
+                <div class="m-sub">Day 2 // 04:30 PM • Main Stage</div>
+              </div>
+              <span class="badge-check badge-wait" id="status-r3">PENDING</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT: Meal Fuel Tokens & Squad Roster -->
+      <div>
+        
+        <!-- Food & Meal Tokens Tracker -->
+        <div class="dash-section">
+          <div class="sec-header">
+            <h3 class="sec-title"><span>🍱</span> MEAL TOKENS TRACKER</h3>
+            <span class="college-tag">Dining Quad</span>
+          </div>
+
+          <div class="food-grid" id="food-tokens-list">
+            <div class="food-card">
+              <span class="food-name">☕ High Tea Fuel</span>
+              <span class="badge-check badge-wait" id="food-highTea">PENDING</span>
+            </div>
+            <div class="food-card">
+              <span class="food-name">🍲 Dinner Buffet</span>
+              <span class="badge-check badge-wait" id="food-dinner">PENDING</span>
+            </div>
+            <div class="food-card">
+              <span class="food-name">⚡ Midnight Fuel & Red Bull</span>
+              <span class="badge-check badge-wait" id="food-midnightFuel">PENDING</span>
+            </div>
+            <div class="food-card">
+              <span class="food-name">🥐 Day 2 Breakfast</span>
+              <span class="badge-check badge-wait" id="food-breakfast">PENDING</span>
+            </div>
+            <div class="food-card">
+              <span class="food-name">🥗 Day 2 Lunch Drop</span>
+              <span class="badge-check badge-wait" id="food-lunch">PENDING</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Squad Roster & Room Allocation -->
+        <div class="dash-section">
+          <div class="sec-header">
+            <h3 class="sec-title"><span>👥</span> SQUAD ROSTER</h3>
+            <span class="portal-badge" id="dash-room">LAB BLOCK 3</span>
+          </div>
+
+          <div class="members-list" id="roster-list">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <script type="module">
+    let currentTeam = null;
+    let currentDomain = null;
+    let authCredentials = { email: '', password: '' };
+
+    const secLogin = document.getElementById('sec-login');
+    const secDash = document.getElementById('sec-dashboard');
+    const formLogin = document.getElementById('form-leader-login');
+    const loginErr = document.getElementById('login-err');
+    const btnLogout = document.getElementById('btn-logout');
+
+    formLogin.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      loginErr.style.display = 'none';
+
+      const email = document.getElementById('txt-email').value.trim();
+      const password = document.getElementById('txt-password').value;
+
+      try {
+        const res = await fetch('/api/teams/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+          throw new Error(data.error || 'Authentication failed.');
+        }
+
+        currentTeam = data.team;
+        currentDomain = data.domainInfo;
+        authCredentials = { email, password };
+
+        renderDashboard();
+      } catch (err) {
+        loginErr.textContent = err.message;
+        loginErr.style.display = 'block';
+      }
+    });
+
+    btnLogout.addEventListener('click', () => {
+      currentTeam = null;
+      secDash.style.display = 'none';
+      secLogin.style.display = 'block';
+      btnLogout.style.display = 'none';
+    });
+
+    function renderDashboard() {
+      secLogin.style.display = 'none';
+      secDash.style.display = 'block';
+      btnLogout.style.display = 'inline-block';
+
+      // Meta Header
+      document.getElementById('dash-team-id').textContent = currentTeam.id;
+      document.getElementById('dash-team-name').textContent = currentTeam.teamName;
+      document.getElementById('dash-college').textContent = currentTeam.college;
+      document.getElementById('dash-team-size').textContent = `${currentTeam.teamSize} Members`;
+      document.getElementById('dash-room').textContent = currentTeam.roomAllocated || 'Lab Block 3';
+
+      const domainName = (currentTeam.preferredDomain || 'mind').toUpperCase();
+      document.getElementById('dash-domain-tag').textContent = `${domainName} STONE // ${currentDomain?.domainName || ''}`;
+
+      // Payment Status
+      const payBadge = document.getElementById('dash-payment-badge');
+      if (currentTeam.payment?.status === 'verified') {
+        payBadge.innerHTML = `<div class="status-badge status-verified">✓ PAYMENT VERIFIED (UTR: ${currentTeam.payment.utr})</div>`;
+      } else {
+        payBadge.innerHTML = `<div class="status-badge status-pending">⏳ PAYMENT UNDER VERIFICATION (UTR: ${currentTeam.payment?.utr || 'N/A'})</div>`;
+      }
+
+      // Review Statuses
+      updateStatusBadge('status-r1', currentTeam.reviews?.r1?.attended);
+      updateStatusBadge('status-r2', currentTeam.reviews?.r2?.attended);
+      updateStatusBadge('status-r3', currentTeam.reviews?.r3?.attended);
+
+      // Food Statuses
+      updateStatusBadge('food-highTea', currentTeam.food?.highTea?.collected);
+      updateStatusBadge('food-dinner', currentTeam.food?.dinner?.collected);
+      updateStatusBadge('food-midnightFuel', currentTeam.food?.midnightFuel?.collected);
+      updateStatusBadge('food-breakfast', currentTeam.food?.breakfast?.collected);
+      updateStatusBadge('food-lunch', currentTeam.food?.lunch?.collected);
+
+      // Members Roster
+      const rosterList = document.getElementById('roster-list');
+      rosterList.innerHTML = `
+        <div class="member-row">
+          <div>
+            <strong>${currentTeam.leader?.name || 'Leader'}</strong>
+            <div style="font-size:0.7rem; color:#999;">${currentTeam.leader?.email} • ${currentTeam.leader?.phone}</div>
+          </div>
+          <span class="m-role">TEAM LEADER</span>
+        </div>
+      `;
+      (currentTeam.members || []).forEach((m, idx) => {
+        rosterList.innerHTML += `
+          <div class="member-row">
+            <div>
+              <strong>${m.name || 'Member ' + (idx + 2)}</strong>
+              <div style="font-size:0.7rem; color:#999;">${m.email} • ${m.phone}</div>
+            </div>
+            <span class="m-role">MEMBER 0${idx + 2}</span>
+          </div>
+        `;
+      });
+
+      // Problem Statements
+      renderProblemStatements();
+    }
+
+    function updateStatusBadge(elemId, isDone) {
+      const el = document.getElementById(elemId);
+      if (!el) return;
+      if (isDone) {
+        el.className = 'badge-check badge-done';
+        el.textContent = 'RECEIVED / ATTENDED';
+      } else {
+        el.className = 'badge-check badge-wait';
+        el.textContent = 'PENDING';
+      }
+    }
+
+    function renderProblemStatements() {
+      const psContainer = document.getElementById('ps-container');
+      const psStatusPill = document.getElementById('ps-status-pill');
+
+      // Check if problem statements are unlocked by organizers
+      const isReleased = currentDomain?.isPsReleased;
+
+      if (!isReleased) {
+        psStatusPill.textContent = 'RELEASE STATUS: LOCKED';
+        psStatusPill.style.color = '#ffd000';
+        psContainer.innerHTML = `
+          <div class="ps-locked-box">
+            <div class="lock-icon">🔒</div>
+            <h4 class="lock-title">PROBLEM STATEMENTS LOCKED</h4>
+            <p class="lock-sub">
+              Classified problem statements for the <strong>${currentDomain?.domainName || ''}</strong> domain will be unlocked by the organizer command post 1 to 2 days prior to hackathon kickoff.
+            </p>
+          </div>
+        `;
+        return;
+      }
+
+      psStatusPill.textContent = 'RELEASE STATUS: UNLOCKED';
+      psStatusPill.style.color = '#00ff88';
+
+      const statements = currentDomain.problemStatements || [];
+      if (statements.length === 0) {
+        psContainer.innerHTML = `<p style="color:#aaa; font-size:0.85rem;">No problem statements uploaded yet for this domain.</p>`;
+        return;
+      }
+
+      let html = '';
+      statements.forEach(ps => {
+        const isSelected = currentTeam.selectedProblemStatement?.id === ps.id;
+        html += `
+          <div class="ps-card ${isSelected ? 'selected' : ''}">
+            <div class="ps-meta-row">
+              <span class="ps-code">${ps.code}</span>
+              <span class="ps-diff">${ps.difficulty}</span>
+            </div>
+            <h4 class="ps-title">${ps.title}</h4>
+            <p class="ps-desc">${ps.description}</p>
+            <button class="btn-select-ps ${isSelected ? 'active' : ''}" data-ps-id="${ps.id}">
+              ${isSelected ? '✓ CHOSEN PROBLEM STATEMENT' : 'SELECT THIS STATEMENT'}
+            </button>
+          </div>
+        `;
+      });
+      psContainer.innerHTML = html;
+
+      // Bind selection buttons
+      psContainer.querySelectorAll('.btn-select-ps').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const psId = btn.getAttribute('data-ps-id');
+          btn.textContent = 'Locking selection...';
+
+          try {
+            const res = await fetch('/api/teams/update-selection', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                email: authCredentials.email,
+                password: authCredentials.password,
+                problemStatementId: psId,
+              }),
+            });
+            const data = await res.json();
+            if (data.success) {
+              currentTeam = data.team;
+              renderProblemStatements();
+            }
+          } catch (e) {
+            alert('Error selecting problem statement: ' + e.message);
+          }
+        });
+      });
+    }
+  </script>
+</body>
+</html>

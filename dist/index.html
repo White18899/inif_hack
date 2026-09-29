@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>INFINITY HACKATHON 2026 // Forge the Universe Across 6 Singularities</title>
+  <meta name="description" content="Join India's premier 36-hour hackathon. 6 Infinity Domains, 3D WebGL showcase, ₹390/member registration fee, Cloudflare R2 verified portals for Leaders, Coordinators, Judges, and Admins.">
+  
+  <!-- Typography: Syne, Space Grotesk, Inter, JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+  
+  <script type="module" crossorigin src="/assets/index-DLu6Uujq.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-BidA5N-k.css">
+</head>
+<body class="theme-obsidian">
+  <!-- 3D Canvas Viewport (Untouched, Pristine Three.js WebGL Engine) -->
+  <div id="webgl-container"></div>
+
+  <!-- Ambient Cinematic Vignette -->
+  <div class="vignette-overlay"></div>
+
+  <!-- Top Minimalist Header Navigation -->
+  <header class="hud-header">
+    <div class="header-left">
+      <a href="#" class="brand-tag-link" style="text-decoration:none;">
+        <div class="brand-tag">
+          <span class="pulse-dot"></span>
+          <span class="mono-label">CODEX // 06</span>
+        </div>
+        <h1 class="brand-title">INFINITY HACKATHON</h1>
+      </a>
+    </div>
+
+    <!-- Navigation Menu Links -->
+    <nav class="hud-nav" aria-label="Main Navigation">
+      <a href="#showcase-section" class="nav-link">DOMAINS</a>
+      <a href="#timeline-section" class="nav-link">SCHEDULE</a>
+      <a href="#sponsors-section" class="nav-link">SPONSORS</a>
+      <a href="#conduct-section" class="nav-link">CONDUCT</a>
+      <a href="#faq-section" class="nav-link">FAQS</a>
+      <a href="#contact-section" class="nav-link">CONTACT</a>
+    </nav>
+
+    <div class="header-right">
+      <button id="btn-audio" class="hud-btn" title="Toggle Cosmic Synthesizer (Mute/Unmute)" aria-label="Audio">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <path class="audio-wave" d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+          <path class="audio-wave-outer" d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+          <line class="audio-muted-slash" x1="23" y1="1" x2="1" y2="23"></line>
+        </svg>
+        <span class="btn-text">AUDIO</span>
+      </button>
+
+      <button id="btn-wireframe" class="hud-btn" title="Toggle Crystal Wireframe Diagnostics" aria-label="Wireframe">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+        </svg>
+        <span class="btn-text">WIREFRAME</span>
+      </button>
+
+      <button id="btn-convergence" class="hud-btn hud-btn-convergence" title="Trigger Hexagonal Convergence" aria-label="Convergence">
+        <span class="btn-text">✦ CONVERGENCE</span>
+      </button>
+
+      <!-- Portals Dropdown Trigger -->
+      <div class="portals-dropdown-container">
+        <button id="btn-portals" class="hud-btn hud-btn-portals" title="Access Role Portals">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          <span class="btn-text">PORTALS ▾</span>
+        </button>
+        <div class="portals-menu" id="portals-menu">
+          <a href="/leader.html" class="portal-menu-item">
+            <span class="portal-badge badge-leader">LEADER</span>
+            <div>
+              <div class="portal-title">Team Leader Portal</div>
+              <div class="portal-desc">Problem statements, review & food timeline</div>
+            </div>
+          </a>
+          <a href="/coordinator.html" class="portal-menu-item">
+            <span class="portal-badge badge-coord">COORDINATOR</span>
+            <div>
+              <div class="portal-title">Coordinator Portal</div>
+              <div class="portal-desc">Mark meal tokens & review attendance</div>
+            </div>
+          </a>
+          <a href="/judges.html" class="portal-menu-item">
+            <span class="portal-badge badge-judge">JUDGES</span>
+            <div>
+              <div class="portal-title">Judges Evaluation Portal</div>
+              <div class="portal-desc">Confidential scoring (hidden from teams)</div>
+            </div>
+          </a>
+          <div class="menu-divider"></div>
+          <a href="/admin.html" class="portal-menu-item">
+            <span class="portal-badge badge-admin">ADMIN</span>
+            <div>
+              <div class="portal-title">Master Admin Console</div>
+              <div class="portal-desc">Full edit, payments, PS release & Excel export</div>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <!-- Quick Register Nav CTA -->
+      <button id="btn-nav-register" class="hud-btn hud-btn-register" title="Register Your Squad">
+        <span class="btn-text">✦ REGISTER SQUAD</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Showcase Layout (3D Stones + Interactive Domain HUD) -->
+  <main class="showcase-layout" id="showcase-section">
+    
+    <!-- LEFT: Minimalist Vertical Pager -->
+    <nav class="vertical-pager" id="vertical-pager" aria-label="Stone Navigation">
+      <div class="pager-items-list" id="pager-list">
+        <!-- Rendered dynamically with integrated SVG precision nodes -->
+      </div>
+    </nav>
+
+    <!-- CENTER-LEFT: Stone Stage & Scroll Chevrons Indicator -->
+    <div class="stone-stage-overlay" id="stone-stage-overlay">
+      <div class="stone-stage-tag" id="stone-stage-tag">
+        <span class="mono-label">// DOMAIN SPECIMEN</span>
+        <span class="stage-roman" id="stage-roman">I</span>
+      </div>
+
+      <!-- Animated Scroll Down Chevrons -->
+      <div class="scroll-indicator" id="scroll-btn" role="button" tabindex="0" title="Scroll down to explore domains">
+        <span class="scroll-label" id="scroll-label">SCROLL TO DISCOVER DOMAINS</span>
+        <div class="chevrons-container">
+          <svg class="chevron chevron-1" viewBox="0 0 24 14" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="2 2 12 12 22 2"></polyline>
+          </svg>
+          <svg class="chevron chevron-2" viewBox="0 0 24 14" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="2 2 12 12 22 2"></polyline>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Large Rounded Info Card with "WIELD THIS STONE" Action -->
+    <aside class="info-card-container" id="info-container">
+      <div class="info-card" id="info-card">
+        
+        <!-- Info Card Top Header -->
+        <div class="card-header">
+          <div class="card-badge-row">
+            <span class="card-index-tag" id="card-index-tag">01 / 06</span>
+            <span class="card-status-dot"></span>
+            <span class="card-harmonic-tag" id="card-harmonic">528.00 THz</span>
+            <span class="card-security-chip" id="card-marvel-theme">VISION NEURAL GOLD</span>
+          </div>
+          <h2 class="card-stone-name" id="card-title">MIND STONE</h2>
+          <div class="card-domain" id="card-domain">INTELLIGENCE // AI • ML • Decision Systems</div>
+        </div>
+
+        <div class="card-divider"></div>
+
+        <!-- Archival Lore & Provenance -->
+        <div class="card-body">
+          <div class="card-meta-grid">
+            <div class="meta-item">
+              <span class="meta-label">CONTAINMENT VESSEL</span>
+              <span class="meta-value" id="card-vessel">The Scepter / Vision</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">ORIGIN LOCUS</span>
+              <span class="meta-value" id="card-origin">Neural Matrix</span>
+            </div>
+          </div>
+
+          <blockquote class="card-quote" id="card-quote">
+            "It contains an intellect of supreme cosmic density."
+          </blockquote>
+
+          <p class="card-description" id="card-desc">
+            Architect autonomous multi-agent networks, neural cognition models, self-refining LLM pipelines, and intelligent decision systems capable of enterprise-scale problem-solving.
+          </p>
+
+          <!-- Recommended Tech Stack Section -->
+          <div class="card-tech-section">
+            <span class="meta-label">RECOMMENDED TECH STACK</span>
+            <div class="card-tech-tags" id="card-tech-tags">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Energy Capacity Meter -->
+          <div class="card-power-section">
+            <div class="power-labels">
+              <span class="meta-label">KINETIC ENERGY POTENTIAL</span>
+              <span class="mono-label" id="card-power-val">98.5%</span>
+            </div>
+            <div class="power-track">
+              <div class="power-fill" id="card-power-fill" style="width: 98.5%;"></div>
+            </div>
+          </div>
+
+          <!-- Technical Metrics Grid -->
+          <div class="card-stats-grid" id="card-stats-grid">
+            <!-- Injected dynamically -->
+          </div>
+        </div>
+
+        <div class="card-divider"></div>
+
+        <!-- PRIMARY CALL TO ACTION: WIELD THIS STONE -->
+        <div class="card-wield-section">
+          <button id="btn-wield-stone" class="btn-wield-stone" title="Select this domain for your team registration">
+            <div class="wield-btn-content">
+              <span class="wield-icon">✦</span>
+              <span class="wield-title">WIELD THIS STONE</span>
+            </div>
+            <span class="wield-sub">Select this domain for your squad & register</span>
+          </button>
+        </div>
+
+        <!-- Card Bottom Utility Action Bar -->
+        <div class="card-footer">
+          <button id="btn-pulse" class="card-action-btn" title="Shine Gemstone Radiance (Hotkeys: S, P or Click 3D Stone)">
+            <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+            <span>SHINE STONE</span>
+          </button>
+
+          <button id="btn-sound-play" class="card-action-btn" title="Harmonic Resonance Tonal Burst">
+            <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v20M17 5v14M7 9v6M22 8v8M2 11v2"></path>
+            </svg>
+            <span>RESONATE</span>
+          </button>
+        </div>
+
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- SECTION 2: Hackathon Event Timeline & Schedule -->
+  <section class="timeline-section" id="timeline-section">
+    <div class="timeline-inner">
+      
+      <!-- Section Header -->
+      <div class="timeline-header">
+        <div class="timeline-tag">
+          <span class="pulse-dot"></span>
+          <span class="mono-label">// CHRONOLOGY & RUNNING ORDER</span>
+        </div>
+        <h2 class="timeline-title">EVENT TIMELINE & SCHEDULE</h2>
+        <p class="timeline-subtitle">
+          36 continuous hours of architecture, implementation, evaluation rounds, and gourmet culinary fuel across the multiverse.
+        </p>
+
+        <!-- Interactive Domain Filter Bar -->
+        <div class="timeline-filters">
+          <div class="stone-filter-pills" id="timeline-filters">
+            <button class="filter-pill active" data-stone="all">
+              <span class="filter-dot" style="background: #ffffff;"></span>
+              <span>ALL PHASES</span>
+            </button>
+            <button class="filter-pill" data-stone="mind" style="--pill-color: #ffd000;">
+              <span class="filter-dot" style="background: #ffd000;"></span>
+              <span>MIND</span>
+            </button>
+            <button class="filter-pill" data-stone="space" style="--pill-color: #00d2ff;">
+              <span class="filter-dot" style="background: #00d2ff;"></span>
+              <span>SPACE</span>
+            </button>
+            <button class="filter-pill" data-stone="reality" style="--pill-color: #ff2a4b;">
+              <span class="filter-dot" style="background: #ff2a4b;"></span>
+              <span>REALITY</span>
+            </button>
+            <button class="filter-pill" data-stone="power" style="--pill-color: #b026ff;">
+              <span class="filter-dot" style="background: #b026ff;"></span>
+              <span>POWER</span>
+            </button>
+            <button class="filter-pill" data-stone="time" style="--pill-color: #00ff88;">
+              <span class="filter-dot" style="background: #00ff88;"></span>
+              <span>TIME</span>
+            </button>
+            <button class="filter-pill" data-stone="soul" style="--pill-color: #ff7700;">
+              <span class="filter-dot" style="background: #ff7700;"></span>
+              <span>SOUL</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Timeline Stream with Laser Spine -->
+      <div class="timeline-stream">
+        <div class="timeline-spine"></div>
+        <div class="timeline-cards-list" id="timeline-cards-list">
+          <!-- Rendered dynamically via JavaScript -->
+        </div>
+      </div>
+
+      <!-- Timeline Footer Stats & Return -->
+      <div class="timeline-footer">
+        <div class="timeline-stats-row">
+          <div class="t-stat">
+            <span class="t-stat-val">06</span>
+            <span class="t-stat-lbl">DOMAINS</span>
+          </div>
+          <div class="t-stat">
+            <span class="t-stat-val">36H</span>
+            <span class="t-stat-lbl">CONTINUOUS HACK</span>
+          </div>
+          <div class="t-stat">
+            <span class="t-stat-val">03</span>
+            <span class="t-stat-lbl">REVIEW ROUNDS</span>
+          </div>
+          <div class="t-stat">
+            <span class="t-stat-val">05</span>
+            <span class="t-stat-lbl">MEAL DROPS</span>
+          </div>
+        </div>
+
+        <button id="btn-back-to-stones" class="back-to-stones-btn" title="Return to 3D Gemstone Engine">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="18 15 12 9 6 15"></polyline>
+          </svg>
+          <span>RETURN TO 3D SHOWCASE</span>
+        </button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SECTION 3: Host College & Corporate Sponsors -->
+  <section class="content-section" id="sponsors-section">
+    <div class="section-container">
+      <div class="section-header">
+        <div class="section-tag">
+          <span class="pulse-dot"></span>
+          <span class="mono-label">// PATRONS & HOST ALLIANCE</span>
+        </div>
+        <h2 class="section-title">HOST INSTITUTION & GLOBAL SPONSORS</h2>
+        <p class="section-subtitle">
+          Supported by leading frontier technology platforms, cloud infrastructures, and academic centers of excellence.
+        </p>
+      </div>
+
+      <!-- Host College Banner -->
+      <div class="host-college-card">
+        <div class="college-logo-container">
+          <div class="college-crest-symbol">🏛️</div>
+          <div>
+            <span class="mono-label" style="color: #ffd000;">OFFICIAL HOST CAMPUS</span>
+            <h3 class="college-name">Infinity Institute of Technology & Engineering (IITE)</h3>
+            <p class="college-sub">Autonomous Campus • Department of Computer Science & Information Technology • Accredited Grade A++</p>
+          </div>
+        </div>
+        <div class="college-badge-chip">ON-SITE HACKATHON VENUE</div>
+      </div>
+
+      <!-- 5 Sponsors Grid -->
+      <div class="sponsors-grid">
+        <!-- Sponsor 1: Cloudflare -->
+        <div class="sponsor-card sponsor-title">
+          <div class="sponsor-tier">TITLE CLOUD & R2 PARTNER</div>
+          <div class="sponsor-brand">
+            <span class="sponsor-logo-icon">⚡</span>
+            <h4 class="sponsor-name">Cloudflare</h4>
+          </div>
+          <p class="sponsor-desc">Powering the hackathon's global edge network, Workers serverless runtime, and zero-egress Cloudflare R2 object storage database.</p>
+          <div class="sponsor-tag">R2 Object Storage & CDN</div>
+        </div>
+
+        <!-- Sponsor 2: GitHub -->
+        <div class="sponsor-card">
+          <div class="sponsor-tier">DEVELOPER ECOSYSTEM PARTNER</div>
+          <div class="sponsor-brand">
+            <span class="sponsor-logo-icon">🐙</span>
+            <h4 class="sponsor-name">GitHub</h4>
+          </div>
+          <p class="sponsor-desc">Supplying GitHub Copilot enterprise subscriptions, Codespaces cloud developer environments, and student developer packs.</p>
+          <div class="sponsor-tag">Copilot & Codespaces</div>
+        </div>
+
+        <!-- Sponsor 3: Devfolio -->
+        <div class="sponsor-card">
+          <div class="sponsor-tier">COMMUNITY & PLATFORM PARTNER</div>
+          <div class="sponsor-brand">
+            <span class="sponsor-logo-icon">🚀</span>
+            <h4 class="sponsor-name">Devfolio</h4>
+          </div>
+          <p class="sponsor-desc">Empowering frictionless hacker registrations, mentor matchmaking, and verified project submissions across collegiate circuits.</p>
+          <div class="sponsor-tag">Hackathon Operations</div>
+        </div>
+
+        <!-- Sponsor 4: AWS Startups -->
+        <div class="sponsor-card">
+          <div class="sponsor-tier">INFRASTRUCTURE PARTNER</div>
+          <div class="sponsor-brand">
+            <span class="sponsor-logo-icon">☁️</span>
+            <h4 class="sponsor-name">AWS Startups</h4>
+          </div>
+          <p class="sponsor-desc">Granting up to $10,000 in promotional AWS cloud computing and GPU credits for winning prototypes in AI and Analytics.</p>
+          <div class="sponsor-tag">Cloud Credits & GPUs</div>
+        </div>
+
+        <!-- Sponsor 5: Polygon -->
+        <div class="sponsor-card">
+          <div class="sponsor-tier">DECENTRALIZED ECOSYSTEM</div>
+          <div class="sponsor-brand">
+            <span class="sponsor-logo-icon">💎</span>
+            <h4 class="sponsor-name">Polygon</h4>
+          </div>
+          <p class="sponsor-desc">Providing Web3 developer tooling, testnet faucets, and dedicated bounty pools for zero-knowledge and decentralized applications.</p>
+          <div class="sponsor-tag">Web3 & ZK Bounties</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 4: Code of Conduct -->
+  <section class="content-section" id="conduct-section">
+    <div class="section-container">
+      <div class="section-header">
+        <div class="section-tag">
+          <span class="pulse-dot"></span>
+          <span class="mono-label">// ETHICAL COVENANT</span>
+        </div>
+        <h2 class="section-title">CODE OF CONDUCT</h2>
+        <p class="section-subtitle">
+          Infinity Hackathon is an inclusive, respectful space dedicated to intellectual exploration, safety, and original engineering.
+        </p>
+      </div>
+
+      <div class="conduct-grid">
+        <div class="conduct-card">
+          <div class="conduct-num">01</div>
+          <h3 class="conduct-card-title">Universal Inclusivity & Respect</h3>
+          <p class="conduct-card-desc">Every participant, mentor, judge, and coordinator is treated with supreme respect. Harassment based on gender, sexual orientation, disability, physical appearance, race, or religion is strictly prohibited with zero tolerance.</p>
+        </div>
+
+        <div class="conduct-card">
+          <div class="conduct-num">02</div>
+          <h3 class="conduct-card-title">Original Engineering & Attribution</h3>
+          <p class="conduct-card-desc">All code and prototypes must be crafted during the 36-hour hackathon window. Open-source libraries, APIs, and starter templates are welcome provided they are disclosed in the project README. Pre-built entire solutions are strictly disqualified.</p>
+        </div>
+
+        <div class="conduct-card">
+          <div class="conduct-num">03</div>
+          <h3 class="conduct-card-title">Collaboration & Fair Evaluation</h3>
+          <p class="conduct-card-desc">Teams must adhere to fair play. Any attempt to sabotage other squads, tamper with coordinator meal registers, or influence judges outside formal evaluation channels results in immediate expulsion from the campus.</p>
+        </div>
+
+        <div class="conduct-card">
+          <div class="conduct-num">04</div>
+          <h3 class="conduct-card-title">Campus & Resource Safety</h3>
+          <p class="conduct-card-desc">Participants must take care of college hardware labs, Wi-Fi access points, and dining facilities. Keep noise levels courteous during midnight hours and wear your participant RFID badge at all times.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 5: About & Frequently Asked Questions + Contact Info -->
+  <section class="content-section" id="faq-section">
+    <div class="section-container">
+      <div class="section-header">
+        <div class="section-tag">
+          <span class="pulse-dot"></span>
+          <span class="mono-label">// KNOWLEDGE VAULT</span>
+        </div>
+        <h2 class="section-title">ABOUT & FREQUENTLY ASKED QUESTIONS</h2>
+        <p class="section-subtitle">
+          Answers to essential queries regarding team size, entry fees, payment validation, problem statements, and campus logistics.
+        </p>
+      </div>
+
+      <div class="faq-container">
+        
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>What is the squad size and registration fee?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>Teams must consist strictly of <strong>3 or 4 members</strong>. The registration fee is <strong>₹390 per member</strong>:</p>
+            <ul>
+              <li><strong>3 Members:</strong> ₹390 × 3 = <strong>₹1,170</strong> total</li>
+              <li><strong>4 Members:</strong> ₹390 × 4 = <strong>₹1,560</strong> total</li>
+            </ul>
+            <p>This fee covers round-the-clock campus security, high-speed Wi-Fi, official hacker kits, 5 gourmet meals (High Tea, Dinner, Midnight Fuel, Day 2 Breakfast, Lunch), and certificates.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>When will Problem Statements be released?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>In accordance with hackathon guidelines, problem statements for each of the 6 Infinity Domains will be unlocked <strong>1 to 2 days prior to the hackathon kickoff</strong>. Team leaders can log in to their dashboard at any time to view countdowns and select their problem statement once unlocked by organizers.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>How does payment proof and UTR verification work?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>During registration, pay the exact fee via UPI to <code>infinityhack@okaxis</code> or scan the dynamic QR code. Upload your payment screenshot. Our portal automatically scans the image to identify your 12-digit UTR number and phone number.</p>
+            <p><strong>Note:</strong> Every transaction UTR must be completely unique. However, the same phone number can be used if a college coordinator or faculty mentor is paying on behalf of multiple squads.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>How are evaluations scored and are marks visible to teams?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>Teams undergo 3 milestone reviews with industry judges. To preserve competitive suspense and prevent bias, <strong>judges' numerical scores and evaluation rubrics remain strictly confidential and hidden from team leader dashboards</strong>. Final rankings are unveiled during the Grand Valedictory Ceremony.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>Are travel and overnight accommodation provided?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>Dedicated air-conditioned rest halls with mattresses, sleeping zones, shower facilities, and gaming lounges are provided inside the campus for all 36 hours. External travel reimbursements are reserved for top finalist teams traveling over 500km.</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Contact Info Section -->
+      <div class="contact-box" id="contact-section">
+        <div class="contact-header">
+          <span class="mono-label" style="color: #ffd000;">// DIRECT DISPATCH</span>
+          <h3 class="contact-title">HACKATHON OPERATIONS COMMAND</h3>
+        </div>
+
+        <div class="contact-grid">
+          <div class="contact-col">
+            <span class="contact-lbl">HELPDESK EMAIL</span>
+            <a href="mailto:hackathon@infinityfest.org" class="contact-val">hackathon@infinityfest.org</a>
+          </div>
+          <div class="contact-col">
+            <span class="contact-lbl">EMERGENCY HOTLINE</span>
+            <a href="tel:+919876543210" class="contact-val">+91 98765 43210 / +91 91234 56789</a>
+          </div>
+          <div class="contact-col">
+            <span class="contact-lbl">DISCORD COMMUNITY</span>
+            <a href="https://discord.gg/infinityhack" target="_blank" rel="noopener" class="contact-val">discord.gg/infinityhack</a>
+          </div>
+          <div class="contact-col">
+            <span class="contact-lbl">CAMPUS VENUE</span>
+            <span class="contact-val">Infinity Tech Campus, Innovation Auditorium, Lab Block 3, Bengaluru 560064</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Site Footer -->
+  <footer class="site-footer">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <span class="pulse-dot"></span>
+        <span class="brand-title">INFINITY HACKATHON 2026</span>
+        <span class="footer-copy">© 2026 Infinity Institute of Technology & Engineering. Cloudflare R2 Database Enabled.</span>
+      </div>
+
+      <div class="footer-portals">
+        <span class="mono-label">PORTALS:</span>
+        <a href="/leader.html" class="footer-link">Leader Dashboard</a>
+        <span class="footer-sep">•</span>
+        <a href="/coordinator.html" class="footer-link">Coordinator Desk</a>
+        <span class="footer-sep">•</span>
+        <a href="/judges.html" class="footer-link">Judges Portal</a>
+        <span class="footer-sep">•</span>
+        <a href="/admin.html" class="footer-link">Admin Console</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- =========================================================================
+       REGISTRATION MODAL
+       ========================================================================= -->
+  <div class="modal-backdrop" id="modal-register" aria-hidden="true">
+    <div class="modal-dialog modal-register-dialog">
+      <button class="modal-close-btn" id="btn-close-register" aria-label="Close Modal">✕</button>
+      
+      <div class="modal-header">
+        <div class="modal-badge-row">
+          <span class="pulse-dot"></span>
+          <span class="mono-label" id="reg-domain-badge">DOMAIN: MIND STONE // INTELLIGENCE</span>
+        </div>
+        <h2 class="modal-title">REGISTER SQUAD</h2>
+        <p class="modal-sub">Forge your 3-4 member team and lock in your chosen Infinity Domain.</p>
+      </div>
+
+      <form id="form-registration" class="register-form">
+        
+        <!-- STEP 1: SQUAD & DOMAIN DETAILS -->
+        <div class="form-section">
+          <div class="form-section-title">
+            <span class="step-num">01</span>
+            <span>Squad & Domain Information</span>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label" for="reg-team-name">TEAM NAME <span class="req">*</span></label>
+              <input type="text" id="reg-team-name" class="form-input" placeholder="e.g. Stark Coders" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="reg-college">COLLEGE / INSTITUTION NAME <span class="req">*</span></label>
+              <input type="text" id="reg-college" class="form-input" placeholder="e.g. MIT World Peace University" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">PREFERRED DOMAIN / STONE <span class="req">*</span></label>
+            <div class="domain-radio-pills" id="domain-radio-pills">
+              <!-- Dynamically populated or rendered -->
+              <label class="domain-radio-card" data-domain="mind">
+                <input type="radio" name="domain" value="mind" checked>
+                <div class="radio-box" style="--stone-color: #ffd000;">
+                  <span class="radio-dot"></span>
+                  <div>
+                    <div class="radio-title">Mind Stone</div>
+                    <div class="radio-sub">INTELLIGENCE (AI • ML)</div>
+                  </div>
+                </div>
+              </label>
+
+              <label class="domain-radio-card" data-domain="space">
+                <input type="radio" name="domain" value="space">
+                <div class="radio-box" style="--stone-color: #00d2ff;">
+                  <span class="radio-dot"></span>
+                  <div>
+                    <div class="radio-title">Space Stone</div>
+                    <div class="radio-sub">CONNECTIVITY (Cloud • Cyber)</div>
+                  </div>
+                </div>
+              </label>
+
+              <label class="domain-radio-card" data-domain="reality">
+                <input type="radio" name="domain" value="reality">
+                <div class="radio-box" style="--stone-color: #ff2a4b;">
+                  <span class="radio-dot"></span>
+                  <div>
+                    <div class="radio-title">Reality Stone</div>
+                    <div class="radio-sub">DIGITAL (Web • Mobile)</div>
+                  </div>
+                </div>
+              </label>
+
+              <label class="domain-radio-card" data-domain="power">
+                <input type="radio" name="domain" value="power">
+                <div class="radio-box" style="--stone-color: #b026ff;">
+                  <span class="radio-dot"></span>
+                  <div>
+                    <div class="radio-title">Power Stone</div>
+                    <div class="radio-sub">AUTOMATION (IoT • Robotics)</div>
+                  </div>
+                </div>
+              </label>
+
+              <label class="domain-radio-card" data-domain="time">
+                <input type="radio" name="domain" value="time">
+                <div class="radio-box" style="--stone-color: #00ff88;">
+                  <span class="radio-dot"></span>
+                  <div>
+                    <div class="radio-title">Time Stone</div>
+                    <div class="radio-sub">ANALYTICS (Data • Prediction)</div>
+                  </div>
+                </div>
+              </label>
+
+              <label class="domain-radio-card" data-domain="soul">
+                <input type="radio" name="domain" value="soul">
+                <div class="radio-box" style="--stone-color: #ff7700;">
+                  <span class="radio-dot"></span>
+                  <div>
+                    <div class="radio-title">Soul Stone</div>
+                    <div class="radio-sub">IMPACT (Health • Social)</div>
+                  </div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label" for="reg-tech-stack">CORE TECH STACK <span class="req">*</span></label>
+              <input type="text" id="reg-tech-stack" class="form-input" placeholder="e.g. Python, PyTorch, FastAPI, React" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">SQUAD SIZE (3–4 MEMBERS) <span class="req">*</span></label>
+              <div class="size-toggle-group">
+                <label class="size-pill">
+                  <input type="radio" name="teamSize" value="3" checked id="size-3">
+                  <span class="size-text">3 Members</span>
+                  <span class="size-fee-badge">₹1,170 (₹390 × 3)</span>
+                </label>
+                <label class="size-pill">
+                  <input type="radio" name="teamSize" value="4" id="size-4">
+                  <span class="size-text">4 Members</span>
+                  <span class="size-fee-badge">₹1,560 (₹390 × 4)</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 2: TEAM LEADER DETAILS -->
+        <div class="form-section">
+          <div class="form-section-title">
+            <span class="step-num">02</span>
+            <span>Team Leader Credentials (Used to Login)</span>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label" for="reg-leader-name">LEADER FULL NAME <span class="req">*</span></label>
+              <input type="text" id="reg-leader-name" class="form-input" placeholder="e.g. Tony Stark" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="reg-leader-phone">LEADER PHONE NUMBER <span class="req">*</span></label>
+              <input type="tel" id="reg-leader-phone" class="form-input" placeholder="10-digit mobile number" required>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label" for="reg-leader-email">LEADER EMAIL (LOGIN USERNAME) <span class="req">*</span></label>
+              <input type="email" id="reg-leader-email" class="form-input" placeholder="tony@stark.io" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="reg-team-password">TEAM PASSWORD (FOR PORTAL LOGIN) <span class="req">*</span></label>
+              <input type="password" id="reg-team-password" class="form-input" placeholder="Minimum 6 characters" required minlength="6">
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 3: TEAM MEMBERS' DETAILS -->
+        <div class="form-section">
+          <div class="form-section-title">
+            <span class="step-num">03</span>
+            <span>Team Members' Details</span>
+          </div>
+
+          <!-- Member 2 -->
+          <div class="member-sub-card">
+            <div class="member-card-header">
+              <span class="mono-label">MEMBER 02</span>
+            </div>
+            <div class="form-grid-3">
+              <input type="text" id="reg-m2-name" class="form-input" placeholder="Full Name *" required>
+              <input type="email" id="reg-m2-email" class="form-input" placeholder="Email *" required>
+              <input type="tel" id="reg-m2-phone" class="form-input" placeholder="Phone *" required>
+            </div>
+          </div>
+
+          <!-- Member 3 -->
+          <div class="member-sub-card">
+            <div class="member-card-header">
+              <span class="mono-label">MEMBER 03</span>
+            </div>
+            <div class="form-grid-3">
+              <input type="text" id="reg-m3-name" class="form-input" placeholder="Full Name *" required>
+              <input type="email" id="reg-m3-email" class="form-input" placeholder="Email *" required>
+              <input type="tel" id="reg-m3-phone" class="form-input" placeholder="Phone *" required>
+            </div>
+          </div>
+
+          <!-- Member 4 (Dynamic for Team Size 4) -->
+          <div class="member-sub-card" id="member-4-card" style="display: none;">
+            <div class="member-card-header">
+              <span class="mono-label">MEMBER 04</span>
+            </div>
+            <div class="form-grid-3">
+              <input type="text" id="reg-m4-name" class="form-input" placeholder="Full Name">
+              <input type="email" id="reg-m4-email" class="form-input" placeholder="Email">
+              <input type="tel" id="reg-m4-phone" class="form-input" placeholder="Phone">
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 4: PAYMENT VERIFICATION & AUTO IDENTIFY UTR -->
+        <div class="form-section">
+          <div class="form-section-title">
+            <span class="step-num">04</span>
+            <span>Fee Payment & UTR Verification</span>
+          </div>
+
+          <div class="payment-box-wrapper">
+            <!-- Left: Dynamic UPI QR Box -->
+            <div class="qr-code-box">
+              <div class="qr-placeholder" id="qr-display">
+                <svg class="qr-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <rect x="3" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="14" width="7" height="7"></rect>
+                  <rect x="3" y="14" width="7" height="7"></rect>
+                  <rect x="9" y="9" width="6" height="6"></rect>
+                </svg>
+                <div class="qr-amount-text" id="qr-amount-text">PAY ₹1,170</div>
+              </div>
+              <div class="upi-id-tag">
+                <span>UPI:</span>
+                <code>infinityhack@okaxis</code>
+              </div>
+              <div class="qr-fee-note">₹390 per member • All meals & access included</div>
+            </div>
+
+            <!-- Right: Upload Screenshot & Auto-OCR Identification -->
+            <div class="payment-inputs-col">
+              <div class="form-group">
+                <label class="form-label" for="reg-screenshot">PAYMENT SCREENSHOT <span class="req">*</span></label>
+                <input type="file" id="reg-screenshot" class="form-file-input" accept="image/png, image/jpeg, image/jpg, image/webp" required>
+                <div class="file-help-text">Upload Google Pay, PhonePe, or Paytm receipt screenshot.</div>
+              </div>
+
+              <!-- Client Preview & Auto-Detection Status -->
+              <div class="ocr-detection-banner" id="ocr-banner" style="display: none;">
+                <div class="ocr-icon">⚡</div>
+                <div>
+                  <div class="ocr-title">Auto-Identified Payment Telemetry</div>
+                  <div class="ocr-body" id="ocr-body">Extracting 12-digit UTR and Phone...</div>
+                </div>
+              </div>
+
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label class="form-label" for="reg-utr">
+                    PAYMENT UTR / REF NO <span class="req">*</span>
+                    <span class="utr-status-badge" id="utr-check-badge"></span>
+                  </label>
+                  <input type="text" id="reg-utr" class="form-input" placeholder="12-digit bank UTR number" required>
+                  <div class="field-subtext">Must be completely unique. Auto-verified in real time.</div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="reg-pay-phone">PAYER PHONE NUMBER <span class="req">*</span></label>
+                  <input type="tel" id="reg-pay-phone" class="form-input" placeholder="Payer mobile number" required>
+                  <div class="field-subtext">Payer phone may be identical if paying for multiple teams.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Submit Bar -->
+        <div class="form-submit-bar">
+          <div class="fee-summary-box">
+            <span class="fee-label">TOTAL REGISTRATION FEE:</span>
+            <span class="fee-amount" id="total-fee-display">₹1,170</span>
+          </div>
+
+          <button type="submit" id="btn-submit-registration" class="btn-submit-reg">
+            <span class="submit-btn-text">CONFIRM REGISTRATION & LOCK DOMAIN</span>
+            <span class="spinner" id="reg-spinner" style="display: none;"></span>
+          </button>
+        </div>
+
+        <div class="form-error-msg" id="reg-error-msg" style="display: none;"></div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       REGISTRATION SUCCESS CONFIRMATION MODAL
+       ========================================================================= -->
+  <div class="modal-backdrop" id="modal-success" aria-hidden="true">
+    <div class="modal-dialog modal-success-dialog">
+      <div class="success-icon-wrap">✦</div>
+      <h2 class="modal-title" style="color: #ffd000;">SQUAD COMMISSIONED!</h2>
+      <p class="modal-sub">Your team has successfully wielded the singularity and registered with Cloudflare R2 persistence.</p>
+
+      <div class="success-summary-box">
+        <div class="summary-row">
+          <span class="summary-lbl">TEAM ID:</span>
+          <span class="summary-val font-mono" id="suc-team-id">INF-0000</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-lbl">TEAM NAME:</span>
+          <span class="summary-val" id="suc-team-name">Stark Coders</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-lbl">SELECTED DOMAIN:</span>
+          <span class="summary-val" id="suc-domain">Mind Stone // INTELLIGENCE</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-lbl">LOGIN EMAIL:</span>
+          <span class="summary-val font-mono" id="suc-email">tony@stark.io</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-lbl">AMOUNT PAID:</span>
+          <span class="summary-val" id="suc-amount">₹1,170</span>
+        </div>
+      </div>
+
+      <p class="success-note">
+        Use your leader email and chosen password to access the Team Leader Dashboard to monitor your payment verification, food meal tokens, review milestones, and select your Problem Statement when unlocked.
+      </p>
+
+      <div class="modal-actions-row">
+        <a href="/leader.html" class="btn-modal-primary" id="btn-go-leader">PROCEED TO LEADER DASHBOARD →</a>
+        <button class="btn-modal-secondary" id="btn-close-success">CLOSE</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Entry Script (Three.js 3D Engine + DOM Controller) -->
+</body>
+</html>
