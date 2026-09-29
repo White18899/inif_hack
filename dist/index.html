@@ -17,8 +17,8 @@
     }
     window.scrollTo(0, 0);
   </script>
-  <script type="module" crossorigin src="/assets/index-B82PiKS9.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-Dzt1I2k5.css">
+  <script type="module" crossorigin src="/assets/index-ITFmhkvo.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-BPtU1I2A.css">
 </head>
 <body class="theme-obsidian">
   <!-- 3D Canvas Viewport (Untouched, Pristine Three.js WebGL Engine) -->
@@ -50,49 +50,14 @@
     </nav>
 
     <div class="header-right">
-      <!-- Portals Dropdown Trigger -->
-      <div class="portals-dropdown-container">
-        <button id="btn-portals" class="hud-btn hud-btn-portals" title="Access Role Portals">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <rect x="3" y="3" width="7" height="7"></rect>
-            <rect x="14" y="3" width="7" height="7"></rect>
-            <rect x="14" y="14" width="7" height="7"></rect>
-            <rect x="3" y="14" width="7" height="7"></rect>
-          </svg>
-          <span class="btn-text">PORTALS ▾</span>
-        </button>
-        <div class="portals-menu" id="portals-menu">
-          <a href="/leader.html" class="portal-menu-item">
-            <span class="portal-badge badge-leader">LEADER</span>
-            <div>
-              <div class="portal-title">Team Leader Portal</div>
-              <div class="portal-desc">Problem statements, review & food timeline</div>
-            </div>
-          </a>
-          <a href="/coordinator.html" class="portal-menu-item">
-            <span class="portal-badge badge-coord">COORDINATOR</span>
-            <div>
-              <div class="portal-title">Coordinator Portal</div>
-              <div class="portal-desc">Mark meal tokens & review attendance</div>
-            </div>
-          </a>
-          <a href="/judges.html" class="portal-menu-item">
-            <span class="portal-badge badge-judge">JUDGES</span>
-            <div>
-              <div class="portal-title">Judges Evaluation Portal</div>
-              <div class="portal-desc">Confidential scoring (hidden from teams)</div>
-            </div>
-          </a>
-          <div class="menu-divider"></div>
-          <a href="/admin.html" class="portal-menu-item">
-            <span class="portal-badge badge-admin">ADMIN</span>
-            <div>
-              <div class="portal-title">Master Admin Console</div>
-              <div class="portal-desc">Full edit, payments, PS release & Excel export</div>
-            </div>
-          </a>
-        </div>
-      </div>
+      <!-- Direct Team Leader Portal Button -->
+      <a href="/leader.html" id="btn-leader-nav" class="hud-btn hud-btn-leader" title="Team Leader Portal">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+        <span class="btn-text">LEADER PORTAL</span>
+      </a>
 
       <!-- Quick Register Nav CTA -->
       <button id="btn-nav-register" class="hud-btn hud-btn-register" title="Register Your Squad">
@@ -740,14 +705,7 @@
       </div>
 
       <div class="footer-portals">
-        <span class="mono-label">PORTALS:</span>
-        <a href="/leader.html" class="footer-link">Leader Dashboard</a>
-        <span class="footer-sep">•</span>
-        <a href="/coordinator.html" class="footer-link">Coordinator Desk</a>
-        <span class="footer-sep">•</span>
-        <a href="/judges.html" class="footer-link">Judges Portal</a>
-        <span class="footer-sep">•</span>
-        <a href="/admin.html" class="footer-link">Admin Console</a>
+        <a href="/leader.html" class="footer-link">Team Leader Portal</a>
       </div>
     </div>
   </footer>
@@ -1103,12 +1061,9 @@
         <a href="#contact-section" class="mobile-nav-link">✦ CONTACT</a>
       </div>
       <div class="mobile-drawer-portals">
-        <span class="mono-label">// ACCESS ROLE PORTALS</span>
-        <div class="mobile-portals-grid">
-          <a href="/leader.html" class="m-portal-item">LEADER PORTAL</a>
-          <a href="/coordinator.html" class="m-portal-item">COORDINATOR</a>
-          <a href="/judges.html" class="m-portal-item">JUDGES EVAL</a>
-          <a href="/admin.html" class="m-portal-item">ADMIN CONSOLE</a>
+        <span class="mono-label">// SQUAD PORTAL</span>
+        <div class="mobile-portals-grid" style="grid-template-columns: 1fr;">
+          <a href="/leader.html" class="m-portal-item" style="justify-content: center; font-weight: 700; color: #ffd000; border-color: rgba(255, 208, 0, 0.4);">✦ TEAM LEADER PORTAL</a>
         </div>
       </div>
       <div class="mobile-drawer-audio">
