@@ -516,9 +516,10 @@ class InfinityScrollShowcase {
       setTimeout(() => {
         const timelineSec = document.getElementById('timeline-section');
         if (timelineSec) {
-          timelineSec.scrollIntoView({ behavior: 'smooth' });
+          const targetY = timelineSec.offsetTop || window.innerHeight;
+          window.scrollTo({ top: targetY, behavior: 'smooth' });
         }
-      }, 60);
+      }, 50);
     }
   }
 
@@ -615,6 +616,12 @@ class InfinityScrollShowcase {
       this.endConvergence();
     }
     const total = STONES.length;
+
+    // After the 6th stone (index 5) is scrolled forward, proceed to the timeline section!
+    if (this.currentIndex === total - 1 && direction > 0) {
+      this.unlockTimeline(true);
+      return;
+    }
 
     let nextIndex = this.currentIndex + direction;
     if (nextIndex >= total) nextIndex = 0;
