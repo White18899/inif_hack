@@ -757,51 +757,14 @@ class InfinityScrollShowcase {
     if (cardTitle) cardTitle.textContent = stone.name;
     const cardDomain = document.getElementById('card-domain');
     if (cardDomain) cardDomain.textContent = `${stone.domain} // ${stone.domainTagline || ''}`;
-    const cardVessel = document.getElementById('card-vessel');
-    if (cardVessel) cardVessel.textContent = stone.vessel;
-    const cardOrigin = document.getElementById('card-origin');
-    if (cardOrigin) cardOrigin.textContent = stone.origin;
-    const cardQuote = document.getElementById('card-quote');
-    if (cardQuote) cardQuote.textContent = `"${stone.quote}"`;
     const cardDesc = document.getElementById('card-desc');
     if (cardDesc) cardDesc.textContent = stone.description;
-    const cardPower = document.getElementById('card-power-val');
-    if (cardPower) cardPower.textContent = stone.powerLevel;
-    const cardFill = document.getElementById('card-power-fill');
-    if (cardFill) cardFill.style.width = stone.powerLevel;
-
-    // Tech Stack Badges
-    const techContainer = document.getElementById('card-tech-tags');
-    if (techContainer) {
-      techContainer.innerHTML = '';
-      (stone.techStack || []).forEach(tech => {
-        const tag = document.createElement('span');
-        tag.className = 'tech-tag';
-        tag.textContent = tech;
-        techContainer.appendChild(tag);
-      });
-    }
 
     // Dynamic Wield Button Styling
     const btnWield = document.getElementById('btn-wield-stone');
     if (btnWield) {
       btnWield.setAttribute('data-stone-id', stone.id);
       btnWield.style.setProperty('--btn-glow', stone.colorHex);
-    }
-
-    // Render Stats
-    const statsContainer = document.getElementById('card-stats-grid');
-    if (statsContainer) {
-      statsContainer.innerHTML = '';
-      stone.stats.forEach(st => {
-        const box = document.createElement('div');
-        box.className = 'card-stat-box';
-        box.innerHTML = `
-          <div class="stat-label-text">${st.label}</div>
-          <div class="stat-val-text">${st.value}</div>
-        `;
-        statsContainer.appendChild(box);
-      });
     }
   }
 
@@ -1095,15 +1058,21 @@ class InfinityScrollShowcase {
       }
     });
 
-    // Pulse Button
-    document.getElementById('btn-pulse').addEventListener('click', () => {
-      this.pulseCurrentStone();
-    });
+    // Pulse Button (if present)
+    const btnPulse = document.getElementById('btn-pulse');
+    if (btnPulse) {
+      btnPulse.addEventListener('click', () => {
+        this.pulseCurrentStone();
+      });
+    }
 
-    // Resonate Button
-    document.getElementById('btn-sound-play').addEventListener('click', () => {
-      audioEngine.playStoneChime(STONES[this.currentIndex].id);
-    });
+    // Resonate Button (if present)
+    const btnSoundPlay = document.getElementById('btn-sound-play');
+    if (btnSoundPlay) {
+      btnSoundPlay.addEventListener('click', () => {
+        audioEngine.playStoneChime(STONES[this.currentIndex].id);
+      });
+    }
 
     // Keyboard Hotkeys
     window.addEventListener('keydown', (e) => {

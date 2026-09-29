@@ -579,34 +579,22 @@ body.timeline-unlocked .showcase-layout {
   overflow-x: hidden;
   scrollbar-width: none;
   
-  /* Genuine Optical Translucency & Specular Sheen (lets starfield & cosmic dust shine through) */
-  background: 
-    /* Specular diagonal glass sheen catching light */
-    linear-gradient(125deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 30%, transparent 65%),
-    /* Ultra-luxurious smoked obsidian glass foundation */
-    linear-gradient(160deg, rgba(14, 16, 26, 0.72) 0%, rgba(6, 8, 14, 0.82) 100%);
-    
-  /* Crisp beveled diamond-glass borders */
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-top: 1px solid rgba(255, 255, 255, 0.38); /* Diamond-polished top rim */
-  border-radius: 28px;
-  padding: 34px 36px;
+  /* Pure Minimal Luxury: Borderless, floating seamlessly over cosmic obsidian space */
+  background: transparent;
+  border: none;
+  border-top: none;
+  border-radius: 0;
+  padding: 16px 20px;
   
-  /* Intense physical frosted glass blur */
-  backdrop-filter: blur(28px) saturate(220%) brightness(105%);
-  -webkit-backdrop-filter: blur(28px) saturate(220%) brightness(105%);
-  
-  /* Pure neutral deep space elevation shadow & crisp diamond glass rims */
-  box-shadow: 
-    0 30px 80px rgba(0, 0, 0, 0.85),
-    inset 0 1px 0 rgba(255, 255, 255, 0.28),
-    inset 1px 0 0 rgba(255, 255, 255, 0.16);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
     
   pointer-events: auto;
   transition: 
-    opacity 0.6s var(--transition-smooth), 
-    transform 0.6s var(--transition-smooth), 
-    filter 0.6s ease;
+    opacity 0.4s var(--transition-smooth), 
+    transform 0.4s var(--transition-smooth), 
+    filter 0.4s ease;
 }
 
 .info-card::-webkit-scrollbar {
@@ -789,11 +777,11 @@ body.timeline-unlocked .showcase-layout {
 }
 
 .card-description {
-  font-size: 0.85rem;
-  line-height: 1.65;
-  color: var(--text-muted);
+  font-size: 0.92rem;
+  line-height: 1.7;
+  color: rgba(235, 235, 245, 0.85);
   letter-spacing: 0.01em;
-  margin-bottom: 18px;
+  margin-bottom: 24px;
 }
 
 /* Power Section Energy Conduit */
@@ -1577,8 +1565,8 @@ body.timeline-unlocked .timeline-section {
 
 /* Wield This Stone CTA Button on Info Card */
 .card-wield-section {
-  padding: 18px 24px;
-  background: rgba(255, 255, 255, 0.02);
+  padding: 8px 0 0 0;
+  background: transparent;
 }
 
 .btn-wield-stone {
@@ -1587,21 +1575,26 @@ body.timeline-unlocked .timeline-section {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 14px 20px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%);
+  gap: 6px;
+  padding: 16px 24px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.03) 100%), rgba(10, 12, 20, 0.8);
   border: 1px solid var(--btn-glow, rgba(255, 255, 255, 0.3));
   color: #ffffff;
   cursor: pointer;
-  transition: all 0.25s var(--transition-smooth);
-  box-shadow: 0 0 20px rgba(var(--active-stone-rgb), 0.2);
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transition: all 0.3s var(--transition-smooth);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 24px rgba(var(--active-stone-rgb), 0.22);
 }
 
 .btn-wield-stone:hover {
   background: var(--btn-glow, #ffffff);
   color: #030305;
-  box-shadow: 0 0 35px var(--btn-glow, rgba(255, 255, 255, 0.7));
+  border-color: var(--btn-glow, #ffffff);
+  box-shadow: 0 12px 35px var(--btn-glow, rgba(255, 255, 255, 0.65)), 0 0 50px var(--active-stone-glow);
   transform: translateY(-2px);
 }
 
@@ -1614,27 +1607,32 @@ body.timeline-unlocked .timeline-section {
 .wield-btn-content {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .wield-icon {
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   color: var(--btn-glow, #ffd000);
+  transition: transform 0.3s ease;
+}
+
+.btn-wield-stone:hover .wield-icon {
+  transform: scale(1.15) rotate(15deg);
 }
 
 .wield-title {
   font-family: var(--font-display);
-  font-size: 0.96rem;
+  font-size: 1.02rem;
   font-weight: 800;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
 }
 
 .wield-sub {
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 0.68rem;
   font-weight: 500;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   color: rgba(255, 255, 255, 0.6);
   text-transform: uppercase;
 }
