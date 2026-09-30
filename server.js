@@ -442,7 +442,7 @@ app.get('/api/verify-utr', async (req, res) => {
 // Enforces:
 // - Mandatory fields
 // - Team size: 3 or 4
-// - Fee calculation: ₹390 * teamSize (3 => ₹1170, 4 => ₹1560)
+// - Fee calculation: ₹349 * teamSize (3 => ₹1047, 4 => ₹1396)
 // - Strictly unique UTR
 // - Allows same phone number across multiple teams
 // - Auto stores reviews & food structures
@@ -507,8 +507,8 @@ app.post('/api/register', upload.single('paymentScreenshot'), async (req, res) =
       return res.status(400).json({ success: false, error: 'Team size must be strictly 3 or 4 members.' });
     }
 
-    // Calculate dynamic fee at ₹390 per member
-    const calculatedAmount = 390 * parsedSize; // 3 => ₹1,170; 4 => ₹1,560
+    // Calculate dynamic fee at ₹349 per member
+    const calculatedAmount = 349 * parsedSize; // 3 => ₹1,047; 4 => ₹1,396
 
     // Parse tech stack
     let parsedTechStack = [];
@@ -940,7 +940,7 @@ app.get('/api/admin/export', async (req, res) => {
       'College': t.college,
       'Domain': (t.preferredDomain || '').toUpperCase(),
       'Team Size': t.teamSize || (t.members ? t.members.length + 1 : 4),
-      'Fee Amount (₹)': t.payment?.amount || (390 * (t.teamSize || 4)),
+      'Fee Amount (₹)': t.payment?.amount || (349 * (t.teamSize || 4)),
       'Payment Status': (t.payment?.status || 'pending').toUpperCase(),
       'UTR / Transaction No': t.payment?.utr || 'N/A',
       'Payer Phone': t.payment?.phone || 'N/A',

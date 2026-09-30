@@ -16,6 +16,7 @@ export function initRegistrationModule() {
   const member4Card = document.getElementById('member-4-card');
   const m4Inputs = member4Card ? member4Card.querySelectorAll('input') : [];
 
+  const qrImg = document.getElementById('qr-img');
   const qrAmountText = document.getElementById('qr-amount-text');
   const totalFeeDisplay = document.getElementById('total-fee-display');
   const regScreenshot = document.getElementById('reg-screenshot');
@@ -44,6 +45,17 @@ export function initRegistrationModule() {
       radio.checked = true;
       updateDomainBadge(stoneId);
     }
+
+    // Ensure QR code and fee match active team size
+    const activeSizeRadio = document.querySelector('input[name="teamSize"]:checked');
+    const currentSize = activeSizeRadio ? parseInt(activeSizeRadio.value, 10) : 3;
+    if (qrImg) {
+      qrImg.src = currentSize === 4 ? '/4mem.png' : '/3mem.png';
+    }
+    const currentFee = currentSize * 349;
+    if (qrAmountText) qrAmountText.textContent = `PAY ₹${currentFee.toLocaleString('en-IN')}`;
+    if (totalFeeDisplay) totalFeeDisplay.textContent = `₹${currentFee.toLocaleString('en-IN')}`;
+
     audioEngine.playChime(580);
   }
 
@@ -125,13 +137,16 @@ export function initRegistrationModule() {
     });
   });
 
-  // Team Size Toggle listener (3 or 4 members, ₹390 per member)
+  // Team Size Toggle listener (3 or 4 members, ₹349 per member)
   sizeRadios.forEach(radio => {
     radio.addEventListener('change', () => {
       audioEngine.playClick();
       const size = parseInt(radio.value, 10);
-      const fee = size * 390;
+      const fee = size * 349;
 
+      if (qrImg) {
+        qrImg.src = size === 4 ? '/4mem.png' : '/3mem.png';
+      }
       if (qrAmountText) qrAmountText.textContent = `PAY ₹${fee.toLocaleString('en-IN')}`;
       if (totalFeeDisplay) totalFeeDisplay.textContent = `₹${fee.toLocaleString('en-IN')}`;
 
@@ -341,6 +356,14 @@ export function initRegistrationModule() {
 
         formReg.reset();
         if (ocrBanner) ocrBanner.style.display = 'none';
+        if (qrImg) qrImg.src = '/3mem.png';
+        if (qrAmountText) qrAmountText.textContent = 'PAY ₹1,047';
+        if (totalFeeDisplay) totalFeeDisplay.textContent = '₹1,047';
+        if (member4Card) member4Card.style.display = 'none';
+        m4Inputs.forEach(input => {
+          input.removeAttribute('required');
+          input.value = '';
+        });
 
       } catch (err) {
         showError(err.message);

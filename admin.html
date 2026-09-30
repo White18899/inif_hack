@@ -904,7 +904,7 @@
       </div>
       <div class="kpi-card">
         <div class="kpi-val" id="kpi-total-fees">₹0</div>
-        <div class="kpi-lbl">TOTAL REVENUE (₹390/MEMBER)</div>
+        <div class="kpi-lbl">TOTAL REVENUE (₹349/MEMBER)</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-val" id="kpi-verified-payments">0</div>
@@ -1239,7 +1239,7 @@
       allTeams.forEach(t => {
         const size = t.teamSize || 4;
         totalHackers += size;
-        const fee = t.payment?.amount || (size * 390);
+        const fee = t.payment?.amount || (size * 349);
         totalFee += fee;
         if (t.payment?.status === 'verified') verifiedCount++;
       });
@@ -1303,7 +1303,7 @@
             </td>
             <td>
               ${statusBadge}
-              <div style="font-size:0.7rem; color:#aaa; margin-top:2px;">₹${pay.amount || (t.teamSize || 4) * 390}</div>
+              <div style="font-size:0.7rem; color:#aaa; margin-top:2px;">₹${pay.amount || (t.teamSize || 4) * 349}</div>
             </td>
             <td>
               <div class="font-mono" style="font-size:0.72rem;">${pay.utr || 'N/A'}</div>
@@ -1440,7 +1440,7 @@
       const pay = editingTeam.payment || {};
       document.getElementById('edt-pay-status').value = pay.status || 'pending';
       document.getElementById('edt-pay-utr').value = pay.utr || '';
-      document.getElementById('edt-pay-amount').value = pay.amount || (editingTeam.teamSize || 4) * 390;
+      document.getElementById('edt-pay-amount').value = pay.amount || (editingTeam.teamSize || 4) * 349;
 
       const food = editingTeam.food || {};
       document.getElementById('edt-food-ht').checked = Boolean(food.highTea?.collected);

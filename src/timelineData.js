@@ -11,7 +11,7 @@ export const TIMELINE_EVENTS = [
     location: 'Online Registration Portal',
     vessel: 'Cloudflare R2 Verification Engine',
     wielders: 'All Collegiate Squads (3–4 Members)',
-    desc: 'Squads assemble their teams, choose an Infinity Stone domain, remit the ₹390/member fee, and upload payment screenshots. The automated UTR engine validates unique transaction references in real time.'
+    desc: 'Squads assemble their teams, choose an Infinity Stone domain, remit the ₹349/member fee, and upload payment screenshots. The automated UTR engine validates unique transaction references in real time.'
   },
   {
     id: 'ps-release',

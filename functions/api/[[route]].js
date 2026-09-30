@@ -471,7 +471,7 @@ export async function onRequest(context) {
         return jsonResponse({ success: false, error: 'Team size must be strictly 3 or 4 members.' }, 400);
       }
 
-      const calculatedAmount = 390 * parsedSize; // 3 => ₹1,170; 4 => ₹1,560
+      const calculatedAmount = 349 * parsedSize; // 3 => ₹1,047; 4 => ₹1,396
 
       let parsedTechStack = [];
       if (Array.isArray(techStack)) {
@@ -873,7 +873,7 @@ export async function onRequest(context) {
         'College': t.college,
         'Domain': (t.preferredDomain || '').toUpperCase(),
         'Team Size': t.teamSize || (t.members ? t.members.length + 1 : 4),
-        'Fee Amount (₹)': t.payment?.amount || (390 * (t.teamSize || 4)),
+        'Fee Amount (₹)': t.payment?.amount || (349 * (t.teamSize || 4)),
         'Payment Status': (t.payment?.status || 'pending').toUpperCase(),
         'UTR / Transaction No': t.payment?.utr || 'N/A',
         'Payer Phone': t.payment?.phone || 'N/A',
