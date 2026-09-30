@@ -8,6 +8,7 @@ bucket_name = "infinity-hackathon-bucket"
 binding = "BUCKET"
 
 [vars]
+APP_URL = "https://infinity.akao.in"
 ADMIN_SECRET = "admin123"
 COORDINATOR_PASS = "coord2026"
 JUDGES_PASS = "judge2026"
@@ -22,6 +23,7 @@ bucket_name = "infinity-hackathon-bucket"
 binding = "BUCKET"
 
 [env.production.vars]
+APP_URL = "https://infinity.akao.in"
 ADMIN_SECRET = "admin123"
 COORDINATOR_PASS = "coord2026"
 JUDGES_PASS = "judge2026"

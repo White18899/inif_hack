@@ -194,6 +194,22 @@ body.timeline-unlocked {
   pointer-events: auto;
 }
 
+.brand-crest-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid rgba(255, 208, 0, 0.75);
+  box-shadow: 0 0 14px rgba(255, 208, 0, 0.4), inset 0 0 8px rgba(0, 0, 0, 0.6);
+  flex-shrink: 0;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+}
+
+.brand-tag-link:hover .brand-crest-logo {
+  transform: scale(1.08) rotate(3deg);
+  box-shadow: 0 0 22px rgba(255, 208, 0, 0.8), 0 0 32px rgba(255, 119, 0, 0.4);
+}
+
 .brand-tag {
   display: inline-flex;
   align-items: center;
@@ -226,7 +242,7 @@ body.timeline-unlocked {
 
 .brand-title {
   font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-size: 1.45rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   color: var(--text-pure);
@@ -4924,6 +4940,11 @@ body.timeline-unlocked #sponsors-section {
     max-height: 30px !important;
     border-radius: 6px !important;
     box-sizing: border-box !important;
+  }
+
+  .brand-crest-logo {
+    width: 28px !important;
+    height: 28px !important;
   }
 }
 
