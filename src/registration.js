@@ -311,6 +311,14 @@ export function initRegistrationModule() {
       // Auto-mark receipt as attached
       isReceiptVerified = true;
       regScreenshot.classList.remove('is-invalid');
+      if (utrCheckBadge) {
+        if (regUtr && regUtr.value.trim()) {
+          verifyUtrUniqueness(regUtr.value);
+        } else {
+          utrCheckBadge.textContent = '';
+          utrCheckBadge.className = 'utr-status-badge';
+        }
+      }
 
       // 3. Display Scanning Telemetry
       if (ocrBanner) {
@@ -387,16 +395,10 @@ export function initRegistrationModule() {
           detectedUtr = twelveDigits.find(n => !isDummyUtr(n)) || null;
         }
 
-        // Try extracting payer phone number from the receipt if available
+        // Extract payer phone from receipt only if explicitly printed on receipt
         const phoneMatch = rawText.match(/(?:\+91[\s-]?)?([6-9][0-9]{9})\b/);
         if (phoneMatch && phoneMatch[1] && regPayPhone && !regPayPhone.value) {
           regPayPhone.value = phoneMatch[1];
-        }
-
-        // Fallback payer phone to leader phone if blank
-        const leaderPhoneVal = document.getElementById('reg-leader-phone')?.value.trim();
-        if (regPayPhone && !regPayPhone.value && leaderPhoneVal) {
-          regPayPhone.value = leaderPhoneVal;
         }
 
         // 3. Detect explicit non-payment content (e.g. NPTEL, student portals, code errors, github)
@@ -414,20 +416,12 @@ export function initRegistrationModule() {
           isReceiptVerified = false;
           verifiedReceiptUtr = null;
           regScreenshot.classList.add('is-invalid');
-          if (regUtr) {
-            regUtr.value = '';
-            clearInputError(regUtr);
-          }
-          if (utrCheckBadge) {
-            utrCheckBadge.textContent = '❌ Invalid screenshot!';
-            utrCheckBadge.className = 'utr-status-badge error';
-          }
           if (ocrBanner) {
             ocrBanner.className = 'ocr-detection-banner error';
             if (ocrIcon) ocrIcon.textContent = '❌';
             if (ocrTitle) ocrTitle.textContent = 'Receipt Verification FAILED';
             if (ocrBody) {
-              ocrBody.innerHTML = `<strong>Invalid Receipt:</strong> This image was identified as a non-payment screenshot (portal/code error). Please upload your genuine PhonePe, Google Pay, or Paytm receipt.`;
+              ocrBody.innerHTML = `<strong>Invalid Receipt:</strong> This image was identified as a non-payment screenshot. Please upload your genuine PhonePe, Google Pay, or Paytm receipt.`;
             }
           }
           audioEngine.playChime(220);
@@ -436,84 +430,51 @@ export function initRegistrationModule() {
         }
 
         // ==========================================
-        // OUTCOME B: Genuine Payment Receipt with Verified 12-Digit UTR
-        // ==========================================
-        if (detectedUtr) {
-          isReceiptVerified = true;
-          verifiedReceiptUtr = detectedUtr;
-          regScreenshot.classList.remove('is-invalid');
-          // Auto-fill of UTR removed: user manually enters the UTR number
-          if (regUtr && regUtr.value) {
-            verifyUtrUniqueness(regUtr.value);
-          }
-          if (ocrBanner) {
-            ocrBanner.className = 'ocr-detection-banner success';
-            if (ocrIcon) ocrIcon.textContent = '✅';
-            if (ocrTitle) ocrTitle.textContent = 'Receipt Verified';
-            if (ocrBody) {
-              ocrBody.innerHTML = `Genuine UPI receipt verified. Please enter your <strong>12-digit bank UTR number</strong> below.`;
-            }
-          }
-          audioEngine.playChime(720);
-          return;
-        }
-
-        // ==========================================
-        // OUTCOME C: Payment Receipt Confirmed (Manual UTR Entry Allowed)
+        // OUTCOME B: Genuine Payment Receipt
         // ==========================================
         isReceiptVerified = true;
-        verifiedReceiptUtr = null;
+        verifiedReceiptUtr = detectedUtr;
         regScreenshot.classList.remove('is-invalid');
+
         if (ocrBanner) {
-          ocrBanner.className = 'ocr-detection-banner info';
-          if (ocrIcon) ocrIcon.textContent = '🧾';
-          if (ocrTitle) ocrTitle.textContent = 'Receipt Attached (Manual UTR Entry)';
+          ocrBanner.className = 'ocr-detection-banner success';
+          if (ocrIcon) ocrIcon.textContent = '✅';
+          if (ocrTitle) ocrTitle.textContent = 'Receipt Verified';
           if (ocrBody) {
-            ocrBody.innerHTML = `Payment screenshot attached successfully. Please enter your <strong>12-digit UPI UTR</strong> below.`;
+            ocrBody.innerHTML = `Genuine UPI receipt verified. Please enter your <strong>12-digit bank UTR number</strong> below.`;
           }
         }
-        if (regUtr && regUtr.value) {
+
+        if (regUtr && regUtr.value.trim()) {
           verifyUtrUniqueness(regUtr.value);
+        } else if (utrCheckBadge) {
+          utrCheckBadge.textContent = '';
+          utrCheckBadge.className = 'utr-status-badge';
         }
+
+        audioEngine.playChime(720);
+        return;
       } catch (err) {
         console.warn('OCR processing warning:', err);
         // Do NOT block registration for valid images!
         isReceiptVerified = true;
         verifiedReceiptUtr = null;
         regScreenshot.classList.remove('is-invalid');
-        const fallbackPhone = document.getElementById('reg-leader-phone')?.value.trim();
-        if (regPayPhone && !regPayPhone.value && fallbackPhone) {
-          regPayPhone.value = fallbackPhone;
-        }
+
         if (ocrBanner) {
           ocrBanner.className = 'ocr-detection-banner info';
           if (ocrIcon) ocrIcon.textContent = '🧾';
-          if (ocrTitle) ocrTitle.textContent = 'Receipt Attached (Manual UTR Entry)';
+          if (ocrTitle) ocrTitle.textContent = 'Receipt Attached';
           if (ocrBody) {
-            ocrBody.innerHTML = `Payment screenshot attached. Please confirm your <strong>12-digit UPI UTR</strong> below for coordinator verification.`;
+            ocrBody.innerHTML = `Payment screenshot attached successfully. Please enter your <strong>12-digit UPI UTR</strong> below.`;
           }
         }
-        if (regUtr && regUtr.value) {
+        if (regUtr && regUtr.value.trim()) {
           verifyUtrUniqueness(regUtr.value);
+        } else if (utrCheckBadge) {
+          utrCheckBadge.textContent = '';
+          utrCheckBadge.className = 'utr-status-badge';
         }
-      }
-    });
-  }
-
-  // Auto-sync Leader Phone to Payer Phone unless manually changed
-  const regLeaderPhone = document.getElementById('reg-leader-phone');
-  let userManuallyChangedPayerPhone = false;
-
-  if (regPayPhone) {
-    regPayPhone.addEventListener('input', () => {
-      userManuallyChangedPayerPhone = regPayPhone.value.trim().length > 0;
-    });
-  }
-
-  if (regLeaderPhone) {
-    regLeaderPhone.addEventListener('input', () => {
-      if (!userManuallyChangedPayerPhone && regPayPhone) {
-        regPayPhone.value = regLeaderPhone.value;
       }
     });
   }
@@ -808,11 +769,6 @@ export function initRegistrationModule() {
         return;
       }
 
-      if (isReceiptVerified === false && screenshotFile) {
-        showError('❌ Registration Blocked: Uploaded image was identified as a non-payment screenshot. Please attach your authentic UPI payment receipt.');
-        document.getElementById('reg-screenshot')?.focus();
-        return;
-      }
 
       if (!paymentUtr) {
         showError('Please enter your payment bank UTR / transaction reference number.');
