@@ -16,6 +16,7 @@ export function initCinematicPreloader(options = {}) {
   const preloader = document.getElementById('cinematic-preloader');
   const video = document.getElementById('cinematic-video');
   const btnSkip = document.getElementById('btn-skip-intro');
+  const btnMobileEnter = document.getElementById('btn-mobile-enter');
 
   if (!preloader || !video) {
     if (typeof onComplete === 'function') onComplete();
@@ -73,9 +74,16 @@ export function initCinematicPreloader(options = {}) {
     dismiss(false);
   });
 
-  // Skip button
+  // Skip buttons
   if (btnSkip) {
     btnSkip.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dismiss(true);
+    });
+  }
+
+  if (btnMobileEnter) {
+    btnMobileEnter.addEventListener('click', (e) => {
       e.stopPropagation();
       dismiss(true);
     });

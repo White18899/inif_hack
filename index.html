@@ -55,26 +55,19 @@
 </head>
 
 <body class="theme-obsidian">
-  <!-- Site Video Loader (loading.mp4) -->
+  <!-- Site Video Loader (loading.mp4) with Mobile Holo-Theater Deck -->
   <div id="cinematic-preloader" class="cinematic-preloader" role="dialog" aria-modal="true" aria-label="Loading Infinity Hackathon">
+    <!-- Ambient Cosmic Color Aura (Eliminates empty black void on mobile) -->
+    <div class="cinematic-ambient-glow"></div>
+
     <div class="cinematic-letterbox cinematic-letterbox-top"></div>
-
-    <div class="cinematic-stage">
-      <div class="cinematic-video-wrapper">
-        <video id="cinematic-video" class="cinematic-video" playsinline preload="auto" autoplay>
-          <source src="/loading.mp4" type="video/mp4">
-        </video>
-        <div class="cinematic-vignette-ring"></div>
-      </div>
-    </div>
-
-    <div class="cinematic-letterbox cinematic-letterbox-bottom"></div>
 
     <!-- Loader Top HUD -->
     <div class="cinematic-hud-top">
       <div class="cinematic-brand-indicator">
+        <img src="/logo.jpeg" alt="Infinity Crest" class="loader-crest-icon">
         <span class="cinematic-rec-dot"></span>
-        <span class="cinematic-brand-text">INFINITY HACKATHON // LOADING</span>
+        <span class="cinematic-brand-text"><span class="txt-desktop">INFINITY HACKATHON // LOADING</span><span class="txt-mobile">INFINITY 2026</span></span>
       </div>
 
       <div class="cinematic-top-actions">
@@ -88,6 +81,37 @@
         </button>
       </div>
     </div>
+
+    <!-- Center Stage: Holo-Screen Frame -->
+    <div class="cinematic-stage">
+      <div class="cinematic-video-wrapper holo-screen-frame">
+        <div class="holo-corner top-left"></div>
+        <div class="holo-corner top-right"></div>
+        <div class="holo-corner bottom-left"></div>
+        <div class="holo-corner bottom-right"></div>
+
+        <video id="cinematic-video" class="cinematic-video" playsinline preload="auto" autoplay>
+          <source src="/loading.mp4" type="video/mp4">
+        </video>
+        <div class="cinematic-vignette-ring"></div>
+      </div>
+    </div>
+
+    <!-- Mobile Bottom Deck: Status & Thumb-Friendly Action Button -->
+    <div class="loader-mobile-deck">
+      <div class="loader-status-indicator">
+        <span class="loader-pulse-dot"></span>
+        <span class="loader-status-text">INITIALIZING 3D COSMOS...</span>
+      </div>
+      <button id="btn-mobile-enter" class="btn-mobile-enter-showcase" type="button" aria-label="Enter Hackathon Showcase">
+        <span>✦ ENTER SHOWCASE NOW</span>
+        <svg class="enter-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+    </div>
+
+    <div class="cinematic-letterbox cinematic-letterbox-bottom"></div>
   </div>
 
   <!-- 3D Canvas Viewport (Untouched, Pristine Three.js WebGL Engine) -->
