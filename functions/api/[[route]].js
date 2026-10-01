@@ -656,8 +656,8 @@ export function isDummyUtr(utr) {
   return dummies.includes(clean);
 }
 
-// Helper: Load database from R2
-async function loadDb(env) {
+// Helper: Load database from R2 with ETag and Version metadata for Concurrency Control
+async function loadDbWithMeta(env) {
   if (env && env.BUCKET) {
     try {
       const obj = await env.BUCKET.get(R2_DB_KEY);
@@ -665,17 +665,66 @@ async function loadDb(env) {
         const text = await obj.text();
         const parsed = JSON.parse(text);
         if (parsed && Array.isArray(parsed.domains) && Array.isArray(parsed.teams)) {
-          return parsed;
+          return {
+            db: parsed,
+            etag: obj.etag,
+            version: parsed._version || 0,
+          };
         }
       }
     } catch (err) {
       console.error('Error fetching database from R2:', err);
     }
   }
-  return { domains: INITIAL_DOMAINS, teams: [] };
+  return {
+    db: { domains: INITIAL_DOMAINS, teams: [], _version: 0 },
+    etag: null,
+    version: 0,
+  };
 }
 
-// Helper: Save database to R2
+// Helper: Load database from R2 (for read queries)
+async function loadDb(env) {
+  const { db } = await loadDbWithMeta(env);
+  return db;
+}
+
+// Helper: Save database to R2 with Conditional ETag Check (Optimistic Concurrency Control)
+async function saveDbConditional(env, data, expectedEtag) {
+  if (env && env.BUCKET) {
+    const putOptions = {
+      httpMetadata: {
+        contentType: 'application/json',
+      },
+      customMetadata: {
+        version: String(data._version || 0),
+        lastModified: data._lastModified || new Date().toISOString(),
+      },
+    };
+
+    if (expectedEtag) {
+      putOptions.onlyIf = { etagMatches: expectedEtag };
+    }
+
+    try {
+      const putResult = await env.BUCKET.put(R2_DB_KEY, JSON.stringify(data, null, 2), putOptions);
+      if (expectedEtag && putResult === null) {
+        return false; // Precondition failed: ETag was changed by concurrent writer
+      }
+      return true;
+    } catch (err) {
+      if (err.name === 'PreconditionFailed' || err.message?.includes('Precondition') || err.message?.includes('412')) {
+        return false;
+      }
+      console.warn('R2 conditional put fallback:', err.message);
+      await env.BUCKET.put(R2_DB_KEY, JSON.stringify(data, null, 2));
+      return true;
+    }
+  }
+  return true;
+}
+
+// Helper: Save database to R2 (Unconditional Fallback)
 async function saveDb(env, data) {
   if (env && env.BUCKET) {
     await env.BUCKET.put(R2_DB_KEY, JSON.stringify(data, null, 2), {
@@ -684,6 +733,39 @@ async function saveDb(env, data) {
       },
     });
   }
+}
+
+/**
+ * Execute an atomic read-modify-write transaction with Optimistic Concurrency Control (OCC).
+ * If a concurrent write occurs between reading and writing, it catches the conflict,
+ * backs off with jitter, re-reads the latest database state, and retries the mutation.
+ */
+export async function updateDb(env, mutatorFn, maxRetries = 10) {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const { db, etag, version } = await loadDbWithMeta(env);
+
+    // Execute mutator on fresh snapshot. If mutator throws (e.g. 409 conflict), it aborts cleanly.
+    const result = await mutatorFn(db);
+
+    // Bump monotonic version
+    db._version = (version || 0) + 1;
+    db._lastModified = new Date().toISOString();
+
+    const saved = await saveDbConditional(env, db, etag);
+    if (saved) {
+      return { result, db };
+    }
+
+    // Concurrent race condition detected: another edge worker updated R2!
+    // Truncated exponential backoff with full random jitter to desynchronize retrying workers
+    const maxBackoff = Math.min(400, 20 * Math.pow(1.5, attempt));
+    const jitter = Math.floor(Math.random() * maxBackoff) + 10;
+    await new Promise((resolve) => setTimeout(resolve, jitter));
+  }
+
+  const err = new Error('Database is experiencing high concurrent updates. Please try again.');
+  err.statusCode = 409;
+  throw err;
 }
 
 // ==========================================
@@ -1057,38 +1139,6 @@ export async function onRequest(context) {
         });
       }
 
-      const db = await loadDb(env);
-
-      // Check for duplicate participants (Intra-team & Cross-team)
-      const allParticipants = [
-        { role: 'Team Leader', name: (leaderName || '').trim(), email: cleanLeaderEmail, phone: cleanLeaderPhone },
-        ...validatedMembers.map((m, i) => ({
-          role: `Member 0${i + 2}`,
-          name: m.name,
-          email: m.email,
-          phone: m.phone,
-        })),
-      ];
-
-      const conflict = checkParticipantConflicts(db.teams, allParticipants);
-      if (conflict.conflict) {
-        return jsonResponse({
-          success: false,
-          error: conflict.message,
-        }, 409);
-      }
-
-      // Enforce unique UTR
-      const duplicateUtr = db.teams.find(
-        (t) => t.payment?.utr && t.payment.utr.trim().toLowerCase() === cleanUtr.toLowerCase()
-      );
-      if (duplicateUtr) {
-        return jsonResponse({
-          success: false,
-          error: `The payment UTR '${cleanUtr}' has already been registered with another team. Every transaction UTR must be unique.`,
-        }, 409);
-      }
-
       // Upload screenshot to R2 if provided
       let screenshotUrl = '/placeholder-receipt.png';
       if (screenshotBuffer && env.BUCKET) {
@@ -1161,18 +1211,49 @@ export async function onRequest(context) {
         status: 'confirmed',
       };
 
-      db.teams.push(newTeam);
-      await saveDb(env, db);
+      const allParticipants = [
+        { role: 'Team Leader', name: (leaderName || '').trim(), email: cleanLeaderEmail, phone: cleanLeaderPhone },
+        ...validatedMembers.map((m, i) => ({
+          role: `Member 0${i + 2}`,
+          name: m.name,
+          email: m.email,
+          phone: m.phone,
+        })),
+      ];
+
+      // Atomic Registration Transaction with OCC
+      const { result } = await updateDb(env, async (db) => {
+        // Check for duplicate participants (Intra-team & Cross-team)
+        const conflict = checkParticipantConflicts(db.teams, allParticipants);
+        if (conflict.conflict) {
+          const err = new Error(conflict.message);
+          err.statusCode = 409;
+          throw err;
+        }
+
+        // Enforce unique UTR
+        const duplicateUtr = db.teams.find(
+          (t) => t.payment?.utr && t.payment.utr.trim().toLowerCase() === cleanUtr.toLowerCase()
+        );
+        if (duplicateUtr) {
+          const err = new Error(`The payment UTR '${cleanUtr}' has already been registered with another team. Every transaction UTR must be unique.`);
+          err.statusCode = 409;
+          throw err;
+        }
+
+        db.teams.push(newTeam);
+        return { newTeam, calculatedAmount };
+      });
 
       return jsonResponse({
         success: true,
-        message: `Registration successful for ${newTeam.teamName}! Total registration fee: ₹${calculatedAmount}.`,
+        message: `Registration successful for ${result.newTeam.teamName}! Total registration fee: ₹${result.calculatedAmount}.`,
         team: {
-          id: newTeam.id,
-          teamName: newTeam.teamName,
-          preferredDomain: newTeam.preferredDomain,
-          leaderEmail: newTeam.leader.email,
-          amount: calculatedAmount,
+          id: result.newTeam.id,
+          teamName: result.newTeam.teamName,
+          preferredDomain: result.newTeam.preferredDomain,
+          leaderEmail: result.newTeam.leader.email,
+          amount: result.calculatedAmount,
         },
       });
     }
@@ -1217,8 +1298,12 @@ export async function onRequest(context) {
 
       // Auto-upgrade legacy plaintext password if verified
       if (!team.teamPassword.startsWith('pbkdf2:')) {
-        team.teamPassword = await hashPassword(password);
-        await saveDb(env, db);
+        await updateDb(env, async (db) => {
+          const t = db.teams.find((x) => x.id === team.id);
+          if (t && !t.teamPassword.startsWith('pbkdf2:')) {
+            t.teamPassword = await hashPassword(password);
+          }
+        });
       }
 
       const token = await generateTeamToken(team.id, ADMIN_SECRET);
@@ -1322,37 +1407,45 @@ export async function onRequest(context) {
         return jsonResponse({ success: false, error: 'Authentication failed.' }, 401);
       }
 
-      if (newDomainId && db.domains.some((d) => d.id === newDomainId || d.stoneId === newDomainId)) {
-        team.preferredDomain = newDomainId;
-        team.selectedProblemStatement = null;
-      }
-
-      const currentDomain = db.domains.find(
-        (d) => d.id === team.preferredDomain || d.stoneId === team.preferredDomain
-      );
-
-      if (problemStatementId && currentDomain) {
-        const ps = currentDomain.problemStatements?.find(
-          (p) => p.id === problemStatementId || p.code === problemStatementId
-        );
-        if (ps) {
-          team.selectedProblemStatement = {
-            id: ps.id,
-            code: ps.code,
-            title: ps.title,
-            category: ps.category,
-            selectedAt: new Date().toISOString(),
-          };
+      const { result } = await updateDb(env, async (db) => {
+        const team = db.teams.find((t) => t.id === id);
+        if (!team) {
+          const err = new Error('Team not found');
+          err.statusCode = 404;
+          throw err;
         }
-      }
 
-      await saveDb(env, db);
+        if (newDomainId && db.domains.some((d) => d.id === newDomainId || d.stoneId === newDomainId)) {
+          team.preferredDomain = newDomainId;
+          team.selectedProblemStatement = null;
+        }
 
-      const safeTeam = JSON.parse(JSON.stringify(team));
-      delete safeTeam.scores;
-      delete safeTeam.teamPassword;
+        const currentDomain = db.domains.find(
+          (d) => d.id === team.preferredDomain || d.stoneId === team.preferredDomain
+        );
 
-      return jsonResponse({ success: true, team: safeTeam, domainInfo: currentDomain });
+        if (problemStatementId && currentDomain) {
+          const ps = currentDomain.problemStatements?.find(
+            (p) => p.id === problemStatementId || p.code === problemStatementId
+          );
+          if (ps) {
+            team.selectedProblemStatement = {
+              id: ps.id,
+              code: ps.code,
+              title: ps.title,
+              category: ps.category,
+              selectedAt: new Date().toISOString(),
+            };
+          }
+        }
+
+        const safeTeam = JSON.parse(JSON.stringify(team));
+        delete safeTeam.scores;
+        delete safeTeam.teamPassword;
+        return { team: safeTeam, domainInfo: currentDomain };
+      });
+
+      return jsonResponse({ success: true, team: result.team, domainInfo: result.domainInfo });
     }
 
     // -------------------------------------------------------------
@@ -1419,27 +1512,33 @@ export async function onRequest(context) {
         return jsonResponse({ success: false, error: 'Missing teamId, type, or key.' }, 400);
       }
 
-      const db = await loadDb(env);
-      const team = db.teams.find((t) => t.id === teamId);
-      if (!team) return jsonResponse({ success: false, error: 'Team not found.' }, 404);
+      const { result } = await updateDb(env, async (db) => {
+        const team = db.teams.find((t) => t.id === teamId);
+        if (!team) {
+          const err = new Error('Team not found.');
+          err.statusCode = 404;
+          throw err;
+        }
 
-      if (type === 'food') {
-        if (!team.food) team.food = {};
-        team.food[key] = {
-          collected: Boolean(value),
-          time: value ? new Date().toISOString() : null,
-        };
-      } else if (type === 'review') {
-        if (!team.reviews) team.reviews = {};
-        team.reviews[key] = {
-          attended: Boolean(value),
-          time: value ? new Date().toISOString() : null,
-          notes: notes || team.reviews[key]?.notes || '',
-        };
-      }
+        if (type === 'meal' || type === 'food') {
+          if (!team.food) team.food = {};
+          team.food[key] = {
+            collected: Boolean(value),
+            time: value ? new Date().toISOString() : null,
+          };
+        } else if (type === 'review') {
+          if (!team.reviews) team.reviews = {};
+          team.reviews[key] = {
+            attended: Boolean(value),
+            time: value ? new Date().toISOString() : null,
+            notes: notes || team.reviews[key]?.notes || '',
+          };
+        }
 
-      await saveDb(env, db);
-      return jsonResponse({ success: true, team });
+        return { team };
+      });
+
+      return jsonResponse({ success: true, team: result.team });
     }
 
     // -------------------------------------------------------------
@@ -1522,18 +1621,28 @@ export async function onRequest(context) {
       const numPres = Math.min(25, Math.max(0, parseFloat(presentation) || 0));
       const total = numInno + numTech + numExec + numPres;
 
-      team.scores = {
-        innovation: numInno,
-        technical: numTech,
-        execution: numExec,
-        presentation: numPres,
-        total,
-        remarks: remarks || '',
-        updatedAt: new Date().toISOString(),
-      };
+      const { result } = await updateDb(env, async (db) => {
+        const team = db.teams.find((t) => t.id === teamId);
+        if (!team) {
+          const err = new Error('Team not found');
+          err.statusCode = 404;
+          throw err;
+        }
 
-      await saveDb(env, db);
-      return jsonResponse({ success: true, teamId, scores: team.scores });
+        team.scores = {
+          innovation: numInno,
+          technical: numTech,
+          execution: numExec,
+          presentation: numPres,
+          total,
+          remarks: remarks || '',
+          updatedAt: new Date().toISOString(),
+        };
+
+        return { teamId, scores: team.scores };
+      });
+
+      return jsonResponse({ success: true, teamId: result.teamId, scores: result.scores });
     }
 
     // -------------------------------------------------------------
@@ -1647,11 +1756,66 @@ export async function onRequest(context) {
         },
       };
 
-      await saveDb(env, db);
-      const returnTeam = { ...db.teams[idx] };
-      delete returnTeam.teamPassword;
-      returnTeam.hasPassword = Boolean(db.teams[idx].teamPassword);
-      return jsonResponse({ success: true, team: returnTeam });
+      const { result } = await updateDb(env, async (db) => {
+        const idx = db.teams.findIndex((t) => t.id === id);
+        if (idx === -1) {
+          const err = new Error('Team not found');
+          err.statusCode = 404;
+          throw err;
+        }
+
+        const existing = db.teams[idx];
+        const updatedPayment = updates.payment ? {
+          ...existing.payment,
+          ...updates.payment,
+          screenshotUrl: updates.payment.screenshotUrl ? sanitizeUrl(updates.payment.screenshotUrl) : existing.payment?.screenshotUrl,
+          utr: updates.payment.utr ? stripHtmlTags(updates.payment.utr) : existing.payment?.utr,
+        } : existing.payment;
+
+        let updatedTeamPassword = existing.teamPassword;
+        if (updates.teamPassword && typeof updates.teamPassword === 'string' && updates.teamPassword.trim()) {
+          updatedTeamPassword = await hashPassword(updates.teamPassword.trim());
+        }
+
+        db.teams[idx] = {
+          ...existing,
+          teamName: updates.teamName !== undefined ? stripHtmlTags(updates.teamName) : existing.teamName,
+          college: updates.college !== undefined ? stripHtmlTags(updates.college) : existing.college,
+          preferredDomain: updates.preferredDomain !== undefined ? stripHtmlTags(updates.preferredDomain) : existing.preferredDomain,
+          teamSize: updates.teamSize !== undefined ? updates.teamSize : existing.teamSize,
+          techStack: updates.techStack !== undefined ? (Array.isArray(updates.techStack) ? updates.techStack.map(s => stripHtmlTags(s)) : stripHtmlTags(updates.techStack)) : existing.techStack,
+          teamPassword: updatedTeamPassword,
+          roomAllocated: updates.roomAllocated !== undefined ? stripHtmlTags(updates.roomAllocated) : existing.roomAllocated,
+          selectedProblemStatement: updates.selectedProblemStatement !== undefined ? updates.selectedProblemStatement : existing.selectedProblemStatement,
+          leader: {
+            ...existing.leader,
+            ...(updates.leader || {}),
+            name: updates.leader?.name ? stripHtmlTags(updates.leader.name) : existing.leader?.name,
+          },
+          members: updates.members !== undefined ? (Array.isArray(updates.members) ? updates.members.map(m => ({ ...m, name: stripHtmlTags(m.name) })) : updates.members) : existing.members,
+          payment: updatedPayment,
+          reviews: {
+            ...existing.reviews,
+            ...(updates.reviews || {}),
+          },
+          food: {
+            ...existing.food,
+            ...(updates.food || {}),
+          },
+          scores: {
+            ...existing.scores,
+            ...(updates.scores || {}),
+            remarks: updates.scores?.remarks ? stripHtmlTags(updates.scores.remarks) : existing.scores?.remarks,
+          },
+        };
+
+        const returnTeam = { ...db.teams[idx] };
+        delete returnTeam.teamPassword;
+        returnTeam.hasPassword = Boolean(db.teams[idx].teamPassword);
+        return { team: returnTeam };
+      });
+
+      return jsonResponse({ success: true, team: result.team });
     }
 
     // -------------------------------------------------------------
@@ -1659,15 +1823,19 @@ export async function onRequest(context) {
     // -------------------------------------------------------------
     if (pathname.startsWith('/api/admin/teams/') && method === 'DELETE') {
       const id = pathname.replace('/api/admin/teams/', '').trim();
-      const db = await loadDb(env);
-      const prevLen = db.teams.length;
-      db.teams = db.teams.filter((t) => t.id !== id);
+      const { result } = await updateDb(env, async (db) => {
+        const prevLen = db.teams.length;
+        db.teams = db.teams.filter((t) => t.id !== id);
 
-      if (db.teams.length !== prevLen) {
-        await saveDb(env, db);
-        return jsonResponse({ success: true, message: `Team ${id} removed.` });
-      }
-      return jsonResponse({ success: false, error: 'Team not found' }, 404);
+        if (db.teams.length === prevLen) {
+          const err = new Error('Team not found');
+          err.statusCode = 404;
+          throw err;
+        }
+        return { message: `Team ${id} removed.` };
+      });
+
+      return jsonResponse({ success: true, message: result.message });
     }
 
     // -------------------------------------------------------------
@@ -1675,16 +1843,17 @@ export async function onRequest(context) {
     // -------------------------------------------------------------
     if (pathname === '/api/admin/domains' && method === 'PUT') {
       const updatedDomain = await request.json();
-      const db = await loadDb(env);
-      const idx = db.domains.findIndex((d) => d.id === updatedDomain.id || d.stoneId === updatedDomain.id);
-      if (idx >= 0) {
-        db.domains[idx] = { ...db.domains[idx], ...updatedDomain };
-        await saveDb(env, db);
-        return jsonResponse({ success: true, domain: db.domains[idx] });
-      }
-      db.domains.push(updatedDomain);
-      await saveDb(env, db);
-      return jsonResponse({ success: true, domain: updatedDomain });
+      const { result } = await updateDb(env, async (db) => {
+        const idx = db.domains.findIndex((d) => d.id === updatedDomain.id || d.stoneId === updatedDomain.id);
+        if (idx >= 0) {
+          db.domains[idx] = { ...db.domains[idx], ...updatedDomain };
+          return { domain: db.domains[idx] };
+        }
+        db.domains.push(updatedDomain);
+        return { domain: updatedDomain };
+      });
+
+      return jsonResponse({ success: true, domain: result.domain });
     }
 
     // -------------------------------------------------------------
@@ -1786,6 +1955,6 @@ export async function onRequest(context) {
     return jsonResponse({ success: false, error: 'Endpoint not found' }, 404);
   } catch (err) {
     console.error('Pages function error:', err);
-    return jsonResponse({ success: false, error: err.message }, 500);
+    return jsonResponse({ success: false, error: err.message }, err.statusCode || 500);
   }
 }

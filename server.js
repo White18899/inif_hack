@@ -485,11 +485,24 @@ export async function loadDb() {
   return initial;
 }
 
-// Save Database (Local Cache + R2)
+// Save Database (Atomic Local Write + R2 Sync)
 export async function saveDb(data) {
   ensureDataDir();
-  fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
 
+  // 1. Safe atomic file write: write to temp file, then atomically rename
+  const tempFile = path.join(DATA_DIR, `.db.${Date.now()}.${Math.random().toString(36).slice(2)}.tmp`);
+  try {
+    fs.writeFileSync(tempFile, JSON.stringify(data, null, 2), 'utf-8');
+    fs.renameSync(tempFile, DB_FILE);
+  } catch (err) {
+    if (fs.existsSync(tempFile)) {
+      try { fs.unlinkSync(tempFile); } catch (_) {}
+    }
+    // Fallback to direct write if rename fails
+    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
+  }
+
+  // 2. Sync to R2
   if (isR2Enabled && s3Client) {
     try {
       await s3Client.send(new PutObjectCommand({
@@ -502,6 +515,52 @@ export async function saveDb(data) {
       console.warn('[R2 Sync Error]:', err.message);
     }
   }
+}
+
+// ==========================================
+// CONCURRENCY & TRANSACTION MUTEX
+// ==========================================
+class AsyncLock {
+  constructor() {
+    this.queue = Promise.resolve();
+  }
+
+  acquire() {
+    let release;
+    const waitPromise = new Promise(resolve => {
+      release = resolve;
+    });
+    const ticket = this.queue.then(() => release);
+    this.queue = this.queue.then(() => waitPromise).catch(() => {});
+    return ticket;
+  }
+}
+
+const dbLock = new AsyncLock();
+
+export async function withDbLock(fn) {
+  const release = await dbLock.acquire();
+  try {
+    return await fn();
+  } finally {
+    release();
+  }
+}
+
+/**
+ * Execute an atomic read-modify-write transaction on the database.
+ * Serializes concurrent execution, fetches the freshest state, applies the mutator,
+ * increments the database version, and saves the state atomically.
+ */
+export async function updateDb(mutatorFn) {
+  return withDbLock(async () => {
+    const db = await loadDb();
+    const result = await mutatorFn(db);
+    db._version = (db._version || 0) + 1;
+    db._lastModified = new Date().toISOString();
+    await saveDb(db);
+    return { result, db };
+  });
 }
 
 // Multer Storage for Payment Proof Screenshots
@@ -962,38 +1021,6 @@ app.post('/api/register', upload.single('paymentScreenshot'), async (req, res) =
       });
     }
 
-    const db = await loadDb();
-
-    // Check for duplicate participants (Intra-team & Cross-team)
-    const allParticipants = [
-      { role: 'Team Leader', name: leaderName.trim(), email: cleanLeaderEmail, phone: cleanLeaderPhone },
-      ...validatedMembers.map((m, i) => ({
-        role: `Member 0${i + 2}`,
-        name: m.name,
-        email: m.email,
-        phone: m.phone,
-      })),
-    ];
-
-    const conflict = checkParticipantConflicts(db.teams, allParticipants);
-    if (conflict.conflict) {
-      return res.status(409).json({
-        success: false,
-        error: conflict.message,
-      });
-    }
-
-    // Enforce strictly UNIQUE UTR across all teams
-    const duplicateUtr = db.teams.find(
-      (t) => t.payment && t.payment.utr && t.payment.utr.trim().toLowerCase() === cleanUtr.toLowerCase()
-    );
-    if (duplicateUtr) {
-      return res.status(409).json({
-        success: false,
-        error: `The payment UTR '${cleanUtr}' has already been registered with another team. Every transaction UTR must be unique.`,
-      });
-    }
-
     // Calculate dynamic fee at ₹349 per member
     const calculatedAmount = 349 * parsedSize; // 3 => ₹1,047; 4 => ₹1,396
 
@@ -1062,21 +1089,55 @@ app.post('/api/register', upload.single('paymentScreenshot'), async (req, res) =
       status: 'confirmed',
     };
 
-    db.teams.push(newTeam);
-    await saveDb(db);
+    const allParticipants = [
+      { role: 'Team Leader', name: leaderName.trim(), email: cleanLeaderEmail, phone: cleanLeaderPhone },
+      ...validatedMembers.map((m, i) => ({
+        role: `Member 0${i + 2}`,
+        name: m.name,
+        email: m.email,
+        phone: m.phone,
+      })),
+    ];
+
+    // Atomic Registration Transaction
+    const { result } = await updateDb(async (db) => {
+      // Check for duplicate participants (Intra-team & Cross-team)
+      const conflict = checkParticipantConflicts(db.teams, allParticipants);
+      if (conflict.conflict) {
+        const err = new Error(conflict.message);
+        err.statusCode = 409;
+        throw err;
+      }
+
+      // Enforce strictly UNIQUE UTR across all teams
+      const duplicateUtr = db.teams.find(
+        (t) => t.payment && t.payment.utr && t.payment.utr.trim().toLowerCase() === cleanUtr.toLowerCase()
+      );
+      if (duplicateUtr) {
+        const err = new Error(`The payment UTR '${cleanUtr}' has already been registered with another team. Every transaction UTR must be unique.`);
+        err.statusCode = 409;
+        throw err;
+      }
+
+      db.teams.push(newTeam);
+      return { newTeam, calculatedAmount };
+    });
 
     res.json({
       success: true,
-      message: `Registration successful for ${newTeam.teamName}! Total registration fee: ₹${calculatedAmount}.`,
+      message: `Registration successful for ${result.newTeam.teamName}! Total registration fee: ₹${result.calculatedAmount}.`,
       team: {
-        id: newTeam.id,
-        teamName: newTeam.teamName,
-        preferredDomain: newTeam.preferredDomain,
-        leaderEmail: newTeam.leader.email,
-        amount: calculatedAmount,
+        id: result.newTeam.id,
+        teamName: result.newTeam.teamName,
+        preferredDomain: result.newTeam.preferredDomain,
+        leaderEmail: result.newTeam.leader.email,
+        amount: result.calculatedAmount,
       },
     });
   } catch (err) {
+    if (err.statusCode) {
+      return res.status(err.statusCode).json({ success: false, error: err.message });
+    }
     console.error('Registration error:', err);
     res.status(500).json({ success: false, error: err.message });
   }
@@ -1118,8 +1179,12 @@ app.post('/api/teams/login', async (req, res) => {
 
     // Transparently upgrade legacy plaintext password to PBKDF2 if needed
     if (!team.teamPassword.startsWith('pbkdf2:')) {
-      team.teamPassword = hashPassword(password);
-      await saveDb(db);
+      await updateDb(async (db) => {
+        const t = db.teams.find((x) => x.id === team.id);
+        if (t && !t.teamPassword.startsWith('pbkdf2:')) {
+          t.teamPassword = hashPassword(password);
+        }
+      });
     }
 
     const secret = process.env.ADMIN_SECRET;
@@ -1209,68 +1274,76 @@ app.post('/api/teams/update-selection', async (req, res) => {
     if (!secret) {
       return res.status(500).json({ success: false, error: 'Server authentication secret is not configured.' });
     }
-    let team = null;
 
-    if (email) {
-      const cleanEmail = email.trim().toLowerCase();
-      team = db.teams.find((t) => t.leader && t.leader.email && t.leader.email.trim().toLowerCase() === cleanEmail);
-    }
-
-    if (!team && tokenToUse) {
-      try {
-        const decoded = Buffer.from(tokenToUse, 'base64').toString('utf8');
-        const [role, tId] = decoded.split(':');
-        if (role === 'team' && tId) {
-          team = db.teams.find((t) => t.id === tId);
-        }
-      } catch (e) {}
-    }
-
-    if (!team) {
-      return res.status(404).json({ success: false, error: 'Team not found.' });
-    }
-
-    const isAuth = (tokenToUse && verifyTeamToken(tokenToUse, team.id, secret)) ||
-                   (password && verifyPassword(password, team.teamPassword));
-
-    if (!isAuth) {
-      return res.status(401).json({ success: false, error: 'Authentication failed.' });
-    }
-
-    // Change domain if specified
-    if (newDomainId && db.domains.some((d) => d.id === newDomainId || d.stoneId === newDomainId)) {
-      team.preferredDomain = newDomainId;
-      team.selectedProblemStatement = null;
-    }
-
-    const currentDomain = db.domains.find(
-      (d) => d.id === team.preferredDomain || d.stoneId === team.preferredDomain
-    );
-
-    // Select 1 Problem Statement if specified
-    if (problemStatementId && currentDomain) {
-      const ps = currentDomain.problemStatements?.find(
-        (p) => p.id === problemStatementId || p.code === problemStatementId
-      );
-      if (ps) {
-        team.selectedProblemStatement = {
-          id: ps.id,
-          code: ps.code,
-          title: ps.title,
-          category: ps.category,
-          selectedAt: new Date().toISOString(),
-        };
+    const { result } = await updateDb(async (db) => {
+      let team = null;
+      if (email) {
+        const cleanEmail = email.trim().toLowerCase();
+        team = db.teams.find((t) => t.leader && t.leader.email && t.leader.email.trim().toLowerCase() === cleanEmail);
       }
-    }
 
-    await saveDb(db);
+      if (!team && tokenToUse) {
+        try {
+          const decoded = Buffer.from(tokenToUse, 'base64').toString('utf8');
+          const [role, tId] = decoded.split(':');
+          if (role === 'team' && tId) {
+            team = db.teams.find((t) => t.id === tId);
+          }
+        } catch (e) {}
+      }
 
-    const safeTeam = JSON.parse(JSON.stringify(team));
-    delete safeTeam.scores;
-    delete safeTeam.teamPassword;
+      if (!team) {
+        const err = new Error('Team not found.');
+        err.statusCode = 404;
+        throw err;
+      }
 
-    res.json({ success: true, team: safeTeam, domainInfo: currentDomain });
+      const isAuth = (tokenToUse && verifyTeamToken(tokenToUse, team.id, secret)) ||
+                     (password && verifyPassword(password, team.teamPassword));
+
+      if (!isAuth) {
+        const err = new Error('Authentication failed.');
+        err.statusCode = 401;
+        throw err;
+      }
+
+      // Change domain if specified
+      if (newDomainId && db.domains.some((d) => d.id === newDomainId || d.stoneId === newDomainId)) {
+        team.preferredDomain = newDomainId;
+        team.selectedProblemStatement = null;
+      }
+
+      const currentDomain = db.domains.find(
+        (d) => d.id === team.preferredDomain || d.stoneId === team.preferredDomain
+      );
+
+      // Select 1 Problem Statement if specified
+      if (problemStatementId && currentDomain) {
+        const ps = currentDomain.problemStatements?.find(
+          (p) => p.id === problemStatementId || p.code === problemStatementId
+        );
+        if (ps) {
+          team.selectedProblemStatement = {
+            id: ps.id,
+            code: ps.code,
+            title: ps.title,
+            category: ps.category,
+            selectedAt: new Date().toISOString(),
+          };
+        }
+      }
+
+      const safeTeam = JSON.parse(JSON.stringify(team));
+      delete safeTeam.scores;
+      delete safeTeam.teamPassword;
+      return { team: safeTeam, domainInfo: currentDomain };
+    });
+
+    res.json({ success: true, team: result.team, domainInfo: result.domainInfo });
   } catch (err) {
+    if (err.statusCode) {
+      return res.status(err.statusCode).json({ success: false, error: err.message });
+    }
     res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -1425,28 +1498,37 @@ app.post('/api/coordinator/mark', requireCoordinatorAuth, async (req, res) => {
       return res.status(400).json({ success: false, error: 'Missing teamId, type, or key.' });
     }
 
-    const db = await loadDb();
-    const team = db.teams.find(t => t.id === teamId);
-    if (!team) return res.status(404).json({ success: false, error: 'Team not found.' });
+    const { result } = await updateDb(async (db) => {
+      const team = db.teams.find(t => t.id === teamId);
+      if (!team) {
+        const err = new Error('Team not found.');
+        err.statusCode = 404;
+        throw err;
+      }
 
-    if (type === 'food') {
-      if (!team.food) team.food = {};
-      team.food[key] = {
-        collected: Boolean(value),
-        time: value ? new Date().toISOString() : null,
-      };
-    } else if (type === 'review') {
-      if (!team.reviews) team.reviews = {};
-      team.reviews[key] = {
-        attended: Boolean(value),
-        time: value ? new Date().toISOString() : null,
-        notes: notes || team.reviews[key]?.notes || '',
-      };
-    }
+      if (type === 'food' || type === 'meal') {
+        if (!team.food) team.food = {};
+        team.food[key] = {
+          collected: Boolean(value),
+          time: value ? new Date().toISOString() : null,
+        };
+      } else if (type === 'review') {
+        if (!team.reviews) team.reviews = {};
+        team.reviews[key] = {
+          attended: Boolean(value),
+          time: value ? new Date().toISOString() : null,
+          notes: notes || team.reviews[key]?.notes || '',
+        };
+      }
 
-    await saveDb(db);
-    res.json({ success: true, team });
+      return { team };
+    });
+
+    res.json({ success: true, team: result.team });
   } catch (err) {
+    if (err.statusCode) {
+      return res.status(err.statusCode).json({ success: false, error: err.message });
+    }
     res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -1511,29 +1593,38 @@ app.post('/api/judges/score', requireJudgeAuth, async (req, res) => {
     const { teamId, innovation, technical, execution, presentation, remarks } = req.body;
     if (!teamId) return res.status(400).json({ success: false, error: 'teamId is required.' });
 
-    const db = await loadDb();
-    const team = db.teams.find(t => t.id === teamId);
-    if (!team) return res.status(404).json({ success: false, error: 'Team not found.' });
-
     const numInno = Math.min(25, Math.max(0, parseFloat(innovation) || 0));
     const numTech = Math.min(25, Math.max(0, parseFloat(technical) || 0));
     const numExec = Math.min(25, Math.max(0, parseFloat(execution) || 0));
     const numPres = Math.min(25, Math.max(0, parseFloat(presentation) || 0));
     const total = numInno + numTech + numExec + numPres;
 
-    team.scores = {
-      innovation: numInno,
-      technical: numTech,
-      execution: numExec,
-      presentation: numPres,
-      total,
-      remarks: remarks || '',
-      updatedAt: new Date().toISOString()
-    };
+    const { result } = await updateDb(async (db) => {
+      const team = db.teams.find(t => t.id === teamId);
+      if (!team) {
+        const err = new Error('Team not found.');
+        err.statusCode = 404;
+        throw err;
+      }
 
-    await saveDb(db);
-    res.json({ success: true, teamId, scores: team.scores });
+      team.scores = {
+        innovation: numInno,
+        technical: numTech,
+        execution: numExec,
+        presentation: numPres,
+        total,
+        remarks: remarks || '',
+        updatedAt: new Date().toISOString()
+      };
+
+      return { teamId, scores: team.scores };
+    });
+
+    res.json({ success: true, teamId: result.teamId, scores: result.scores });
   } catch (err) {
+    if (err.statusCode) {
+      return res.status(err.statusCode).json({ success: false, error: err.message });
+    }
     res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -1592,64 +1683,70 @@ app.put('/api/admin/teams/:id', requireAdminAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const updates = req.body;
-    const db = await loadDb();
-    const idx = db.teams.findIndex((t) => t.id === id);
-
-    if (idx === -1) {
-      return res.status(404).json({ success: false, error: `Team ${id} not found.` });
-    }
-
-    const existing = db.teams[idx];
-    const updatedPayment = updates.payment ? {
-      ...existing.payment,
-      ...updates.payment,
-      screenshotUrl: updates.payment.screenshotUrl ? sanitizeUrl(updates.payment.screenshotUrl) : existing.payment?.screenshotUrl,
-      utr: updates.payment.utr ? stripHtmlTags(updates.payment.utr) : existing.payment?.utr,
-    } : existing.payment;
-
-    let updatedTeamPassword = existing.teamPassword;
-    if (updates.teamPassword && typeof updates.teamPassword === 'string' && updates.teamPassword.trim()) {
-      updatedTeamPassword = hashPassword(updates.teamPassword.trim());
-    }
-
-    db.teams[idx] = {
-      ...existing,
-      teamName: updates.teamName !== undefined ? stripHtmlTags(updates.teamName) : existing.teamName,
-      college: updates.college !== undefined ? stripHtmlTags(updates.college) : existing.college,
-      preferredDomain: updates.preferredDomain !== undefined ? stripHtmlTags(updates.preferredDomain) : existing.preferredDomain,
-      teamSize: updates.teamSize !== undefined ? updates.teamSize : existing.teamSize,
-      techStack: updates.techStack !== undefined ? (Array.isArray(updates.techStack) ? updates.techStack.map(s => stripHtmlTags(s)) : stripHtmlTags(updates.techStack)) : existing.techStack,
-      teamPassword: updatedTeamPassword,
-      roomAllocated: updates.roomAllocated !== undefined ? stripHtmlTags(updates.roomAllocated) : existing.roomAllocated,
-      selectedProblemStatement: updates.selectedProblemStatement !== undefined ? updates.selectedProblemStatement : existing.selectedProblemStatement,
-      leader: {
-        ...existing.leader,
-        ...(updates.leader || {}),
-        name: updates.leader?.name ? stripHtmlTags(updates.leader.name) : existing.leader?.name,
-      },
-      members: updates.members !== undefined ? (Array.isArray(updates.members) ? updates.members.map(m => ({ ...m, name: stripHtmlTags(m.name) })) : updates.members) : existing.members,
-      payment: updatedPayment,
-      reviews: {
-        ...existing.reviews,
-        ...(updates.reviews || {}),
-      },
-      food: {
-        ...existing.food,
-        ...(updates.food || {}),
-      },
-      scores: {
-        ...existing.scores,
-        ...(updates.scores || {}),
-        remarks: updates.scores?.remarks ? stripHtmlTags(updates.scores.remarks) : existing.scores?.remarks,
+    const { result } = await updateDb(async (db) => {
+      const idx = db.teams.findIndex((t) => t.id === id);
+      if (idx === -1) {
+        const err = new Error(`Team ${id} not found.`);
+        err.statusCode = 404;
+        throw err;
       }
-    };
 
-    await saveDb(db);
-    const returnTeam = { ...db.teams[idx] };
-    delete returnTeam.teamPassword;
-    returnTeam.hasPassword = Boolean(db.teams[idx].teamPassword);
-    res.json({ success: true, team: returnTeam });
+      const existing = db.teams[idx];
+      const updatedPayment = updates.payment ? {
+        ...existing.payment,
+        ...updates.payment,
+        screenshotUrl: updates.payment.screenshotUrl ? sanitizeUrl(updates.payment.screenshotUrl) : existing.payment?.screenshotUrl,
+        utr: updates.payment.utr ? stripHtmlTags(updates.payment.utr) : existing.payment?.utr,
+      } : existing.payment;
+
+      let updatedTeamPassword = existing.teamPassword;
+      if (updates.teamPassword && typeof updates.teamPassword === 'string' && updates.teamPassword.trim()) {
+        updatedTeamPassword = hashPassword(updates.teamPassword.trim());
+      }
+
+      db.teams[idx] = {
+        ...existing,
+        teamName: updates.teamName !== undefined ? stripHtmlTags(updates.teamName) : existing.teamName,
+        college: updates.college !== undefined ? stripHtmlTags(updates.college) : existing.college,
+        preferredDomain: updates.preferredDomain !== undefined ? stripHtmlTags(updates.preferredDomain) : existing.preferredDomain,
+        teamSize: updates.teamSize !== undefined ? updates.teamSize : existing.teamSize,
+        techStack: updates.techStack !== undefined ? (Array.isArray(updates.techStack) ? updates.techStack.map(s => stripHtmlTags(s)) : stripHtmlTags(updates.techStack)) : existing.techStack,
+        teamPassword: updatedTeamPassword,
+        roomAllocated: updates.roomAllocated !== undefined ? stripHtmlTags(updates.roomAllocated) : existing.roomAllocated,
+        selectedProblemStatement: updates.selectedProblemStatement !== undefined ? updates.selectedProblemStatement : existing.selectedProblemStatement,
+        leader: {
+          ...existing.leader,
+          ...(updates.leader || {}),
+          name: updates.leader?.name ? stripHtmlTags(updates.leader.name) : existing.leader?.name,
+        },
+        members: updates.members !== undefined ? (Array.isArray(updates.members) ? updates.members.map(m => ({ ...m, name: stripHtmlTags(m.name) })) : updates.members) : existing.members,
+        payment: updatedPayment,
+        reviews: {
+          ...existing.reviews,
+          ...(updates.reviews || {}),
+        },
+        food: {
+          ...existing.food,
+          ...(updates.food || {}),
+        },
+        scores: {
+          ...existing.scores,
+          ...(updates.scores || {}),
+          remarks: updates.scores?.remarks ? stripHtmlTags(updates.scores.remarks) : existing.scores?.remarks,
+        }
+      };
+
+      const returnTeam = { ...db.teams[idx] };
+      delete returnTeam.teamPassword;
+      returnTeam.hasPassword = Boolean(db.teams[idx].teamPassword);
+      return { team: returnTeam };
+    });
+
+    res.json({ success: true, team: result.team });
   } catch (err) {
+    if (err.statusCode) {
+      return res.status(err.statusCode).json({ success: false, error: err.message });
+    }
     res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -1658,15 +1755,21 @@ app.put('/api/admin/teams/:id', requireAdminAuth, async (req, res) => {
 app.delete('/api/admin/teams/:id', requireAdminAuth, async (req, res) => {
   try {
     const { id } = req.params;
-    const db = await loadDb();
-    const prevLen = db.teams.length;
-    db.teams = db.teams.filter((t) => t.id !== id);
-    if (db.teams.length !== prevLen) {
-      await saveDb(db);
-      return res.json({ success: true, message: `Team ${id} removed.` });
-    }
-    res.status(404).json({ success: false, error: 'Team not found' });
+    const { result } = await updateDb(async (db) => {
+      const prevLen = db.teams.length;
+      db.teams = db.teams.filter((t) => t.id !== id);
+      if (db.teams.length === prevLen) {
+        const err = new Error('Team not found');
+        err.statusCode = 404;
+        throw err;
+      }
+      return { message: `Team ${id} removed.` };
+    });
+    res.json({ success: true, message: result.message });
   } catch (err) {
+    if (err.statusCode) {
+      return res.status(err.statusCode).json({ success: false, error: err.message });
+    }
     res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -1675,18 +1778,21 @@ app.delete('/api/admin/teams/:id', requireAdminAuth, async (req, res) => {
 app.put('/api/admin/domains', requireAdminAuth, async (req, res) => {
   try {
     const updatedDomain = req.body;
-    const db = await loadDb();
-    const idx = db.domains.findIndex((d) => d.id === updatedDomain.id || d.stoneId === updatedDomain.id);
-    if (idx >= 0) {
-      db.domains[idx] = { ...db.domains[idx], ...updatedDomain };
-      await saveDb(db);
-      return res.json({ success: true, domain: db.domains[idx] });
-    }
-    // If not existing, push new domain
-    db.domains.push(updatedDomain);
-    await saveDb(db);
-    res.json({ success: true, domain: updatedDomain });
+    const { result } = await updateDb(async (db) => {
+      const idx = db.domains.findIndex((d) => d.id === updatedDomain.id || d.stoneId === updatedDomain.id);
+      if (idx >= 0) {
+        db.domains[idx] = { ...db.domains[idx], ...updatedDomain };
+        return { domain: db.domains[idx] };
+      }
+      // If not existing, push new domain
+      db.domains.push(updatedDomain);
+      return { domain: updatedDomain };
+    });
+    res.json({ success: true, domain: result.domain });
   } catch (err) {
+    if (err.statusCode) {
+      return res.status(err.statusCode).json({ success: false, error: err.message });
+    }
     res.status(500).json({ success: false, error: err.message });
   }
 });
