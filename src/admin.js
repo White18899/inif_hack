@@ -13,6 +13,16 @@ function escapeHTML(str) {
     .replace(/'/g, '&#039;');
 }
 
+function safeUrl(url) {
+  if (!url || typeof url !== 'string') return '';
+  const trimmed = url.trim();
+  // Strictly permit only valid http/https or relative uploads paths
+  if (/^https?:\/\/[^\s"'<>]+$/i.test(trimmed) || /^\/uploads\/[a-zA-Z0-9_\-\.]+$/i.test(trimmed)) {
+    return escapeHTML(trimmed);
+  }
+  return '';
+}
+
 function getAdminToken() {
   try {
     const saved = sessionStorage.getItem('infinity_admin_auth');
@@ -255,7 +265,7 @@ function authHeaders(extra = {}) {
             <td>
               <div class="font-mono" style="font-size:0.72rem;">${escapeHTML(pay.utr || 'N/A')}</div>
               <div style="font-size:0.68rem; color:#888;">Phone: ${escapeHTML(pay.phone || t.leader?.phone || 'N/A')}</div>
-              ${pay.screenshotUrl ? `<a href="${encodeURI(pay.screenshotUrl)}" target="_blank" style="font-size:0.68rem; color:var(--cyan);">View Receipt ↗</a>` : ''}
+              ${safeUrl(pay.screenshotUrl) ? `<a href="${safeUrl(pay.screenshotUrl)}" target="_blank" rel="noopener noreferrer" style="font-size:0.68rem; color:var(--cyan);">View Receipt ↗</a>` : (pay.screenshotUrl ? `<span style="font-size:0.68rem; color:#888;">Receipt Attached</span>` : '')}
             </td>
             <td>
               <span class="font-mono" style="font-weight:700;">${foodCount} / 5</span>
@@ -510,18 +520,18 @@ function authHeaders(extra = {}) {
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:12px;">
               <div>
                 <h4 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
-                  <span>${dom.domainName}</span>
-                  <span style="font-family:'JetBrains Mono'; font-size:0.75rem; color:${accent}; font-weight:700;">(${dom.stoneName})</span>
+                  <span>${escapeHTML(dom.domainName)}</span>
+                  <span style="font-family:'JetBrains Mono'; font-size:0.75rem; color:${accent}; font-weight:700;">(${escapeHTML(dom.stoneName)})</span>
                 </h4>
-                <div style="font-size:0.75rem; color:var(--text-muted);">${dom.tagline || ''}</div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">${escapeHTML(dom.tagline || '')}</div>
               </div>
 
               <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-                <button class="btn-toggle-add-ps" data-domain-id="${dom.id}" style="padding:6px 12px; border-radius:6px; background:rgba(255,255,255,0.06); border:1px solid ${accent}50; color:${accent}; font-family:'JetBrains Mono',monospace; font-size:0.72rem; font-weight:700; cursor:pointer; transition:all 0.2s;">
+                <button class="btn-toggle-add-ps" data-domain-id="${escapeHTML(dom.id)}" style="padding:6px 12px; border-radius:6px; background:rgba(255,255,255,0.06); border:1px solid ${accent}50; color:${accent}; font-family:'JetBrains Mono',monospace; font-size:0.72rem; font-weight:700; cursor:pointer; transition:all 0.2s;">
                   + ADD STATEMENT
                 </button>
                 <label class="switch-wrap">
-                  <input type="checkbox" class="toggle-release-ps" data-domain-id="${dom.id}" ${isReleased ? 'checked' : ''}>
+                  <input type="checkbox" class="toggle-release-ps" data-domain-id="${escapeHTML(dom.id)}" ${isReleased ? 'checked' : ''}>
                   <span style="font-family:'JetBrains Mono'; font-size:0.72rem; font-weight:700; color:${isReleased ? 'var(--green)' : 'var(--gold)'};">
                     ${isReleased ? 'RELEASED (LIVE)' : 'LOCKED (HIDDEN)'}
                   </span>
@@ -530,23 +540,23 @@ function authHeaders(extra = {}) {
             </div>
 
             <!-- Expandable Add Problem Statement Panel -->
-            <div id="add-panel-${dom.id}" style="display:none; margin: 12px 0 16px 0; padding:16px; border-radius:10px; background:rgba(6,6,12,0.95); border:1px solid ${accent}60; box-shadow:0 8px 25px rgba(0,0,0,0.6);">
+            <div id="add-panel-${escapeHTML(dom.id)}" style="display:none; margin: 12px 0 16px 0; padding:16px; border-radius:10px; background:rgba(6,6,12,0.95); border:1px solid ${accent}60; box-shadow:0 8px 25px rgba(0,0,0,0.6);">
               <div style="font-family:'Syne',sans-serif; font-size:0.86rem; font-weight:700; color:${accent}; margin-bottom:12px; display:flex; align-items:center; gap:6px;">
-                <span>✦</span> NEW PROBLEM STATEMENT // ${dom.stoneName.toUpperCase()} (${dom.domainName})
+                <span>✦</span> NEW PROBLEM STATEMENT // ${escapeHTML(dom.stoneName.toUpperCase())} (${escapeHTML(dom.domainName)})
               </div>
 
               <div class="edit-grid-3" style="margin-bottom:10px;">
                 <div class="form-group" style="margin:0;">
                   <label class="form-label">CHALLENGE CODE</label>
-                  <input type="text" id="new-code-${dom.id}" class="form-input font-mono" value="${nextCode}" style="padding:8px 10px; font-size:0.82rem;">
+                  <input type="text" id="new-code-${escapeHTML(dom.id)}" class="form-input font-mono" value="${escapeHTML(nextCode)}" style="padding:8px 10px; font-size:0.82rem;">
                 </div>
                 <div class="form-group" style="margin:0;">
                   <label class="form-label">PROBLEM TITLE</label>
-                  <input type="text" id="new-title-${dom.id}" class="form-input" placeholder="e.g. Distributed Telemetry Mesh Engine" style="padding:8px 10px; font-size:0.82rem;">
+                  <input type="text" id="new-title-${escapeHTML(dom.id)}" class="form-input" placeholder="e.g. Distributed Telemetry Mesh Engine" style="padding:8px 10px; font-size:0.82rem;">
                 </div>
                 <div class="form-group" style="margin:0;">
                   <label class="form-label">DIFFICULTY</label>
-                  <select id="new-diff-${dom.id}" class="form-input custom-select" style="padding:8px 10px; font-size:0.82rem;">
+                  <select id="new-diff-${escapeHTML(dom.id)}" class="form-input custom-select" style="padding:8px 10px; font-size:0.82rem;">
                     <option value="Advanced" selected>Advanced</option>
                     <option value="Hardcore">Hardcore</option>
                     <option value="Intermediate">Intermediate</option>
@@ -557,25 +567,25 @@ function authHeaders(extra = {}) {
               <div class="edit-grid-2" style="margin-bottom:10px;">
                 <div class="form-group" style="margin:0;">
                   <label class="form-label">CATEGORY / TRACK</label>
-                  <input type="text" id="new-cat-${dom.id}" class="form-input" value="${dom.domainName} & Systems" style="padding:8px 10px; font-size:0.82rem;">
+                  <input type="text" id="new-cat-${escapeHTML(dom.id)}" class="form-input" value="${escapeHTML(dom.domainName)} & Systems" style="padding:8px 10px; font-size:0.82rem;">
                 </div>
                 <div class="form-group" style="margin:0;">
                   <label class="form-label">DELIVERABLES (COMMA-SEPARATED)</label>
-                  <input type="text" id="new-deliv-${dom.id}" class="form-input" placeholder="Interactive UI visualizer, Core architecture daemon, Benchmark testbench" style="padding:8px 10px; font-size:0.82rem;">
+                  <input type="text" id="new-deliv-${escapeHTML(dom.id)}" class="form-input" placeholder="Interactive UI visualizer, Core architecture daemon, Benchmark testbench" style="padding:8px 10px; font-size:0.82rem;">
                 </div>
               </div>
 
               <div class="form-group" style="margin-bottom:12px;">
                 <label class="form-label">PROBLEM STATEMENT DESCRIPTION</label>
-                <textarea id="new-desc-${dom.id}" class="form-input" rows="3" placeholder="Provide background context, technical specifications, and key engineering expectations..." style="padding:8px 10px; font-size:0.82rem;"></textarea>
+                <textarea id="new-desc-${escapeHTML(dom.id)}" class="form-input" rows="3" placeholder="Provide background context, technical specifications, and key engineering expectations..." style="padding:8px 10px; font-size:0.82rem;"></textarea>
               </div>
 
               <div style="display:flex; justify-content:flex-end; gap:10px; flex-wrap:wrap;">
-                <button class="btn-cancel-add-ps" data-domain-id="${dom.id}" style="padding:7px 14px; border-radius:6px; background:transparent; border:1px solid var(--border-subtle); color:var(--text-muted); font-size:0.75rem; cursor:pointer;">
+                <button class="btn-cancel-add-ps" data-domain-id="${escapeHTML(dom.id)}" style="padding:7px 14px; border-radius:6px; background:transparent; border:1px solid var(--border-subtle); color:var(--text-muted); font-size:0.75rem; cursor:pointer;">
                   Cancel
                 </button>
-                <button class="btn-save-new-ps" data-domain-id="${dom.id}" style="padding:7px 18px; border-radius:6px; background:${accent}; color:#000; font-family:'Syne',sans-serif; font-size:0.8rem; font-weight:800; border:none; cursor:pointer; box-shadow:0 0 12px ${accent}40;">
-                  SAVE STATEMENT TO ${dom.stoneName.toUpperCase()}
+                <button class="btn-save-new-ps" data-domain-id="${escapeHTML(dom.id)}" style="padding:7px 18px; border-radius:6px; background:${accent}; color:#000; font-family:'Syne',sans-serif; font-size:0.8rem; font-weight:800; border:none; cursor:pointer; box-shadow:0 0 12px ${accent}40;">
+                  SAVE STATEMENT TO ${escapeHTML(dom.stoneName.toUpperCase())}
                 </button>
               </div>
             </div>
@@ -598,23 +608,23 @@ function authHeaders(extra = {}) {
                     <div style="padding:10px 14px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:8px; display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
                       <div style="flex:1;">
                         <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px; flex-wrap:wrap;">
-                          <span style="color:${accent}; font-family:'JetBrains Mono'; font-weight:700; font-size:0.75rem;">${p.code}:</span>
-                          <strong style="font-size:0.82rem; color:#fff;">${p.title}</strong>
+                          <span style="color:${accent}; font-family:'JetBrains Mono'; font-weight:700; font-size:0.75rem;">${escapeHTML(p.code)}:</span>
+                          <strong style="font-size:0.82rem; color:#fff;">${escapeHTML(p.title)}</strong>
                           <span style="font-size:0.65rem; padding:2px 6px; border-radius:4px; background:rgba(255,255,255,0.06); color:#aaa; font-family:'JetBrains Mono';">
-                            ${p.difficulty || 'Advanced'}
+                            ${escapeHTML(p.difficulty || 'Advanced')}
                           </span>
                         </div>
-                        <div style="font-size:0.74rem; color:#888; line-height:1.4;">${p.description}</div>
+                        <div style="font-size:0.74rem; color:#888; line-height:1.4;">${escapeHTML(p.description)}</div>
                         ${(p.deliverables && p.deliverables.length > 0) ? `
                           <div style="margin-top:6px; display:flex; gap:6px; flex-wrap:wrap;">
                             ${p.deliverables.map(d => `
-                              <span style="font-size:0.65rem; padding:1px 6px; border-radius:3px; background:rgba(255,255,255,0.04); color:#aaa;">✦ ${d}</span>
+                              <span style="font-size:0.65rem; padding:1px 6px; border-radius:3px; background:rgba(255,255,255,0.04); color:#aaa;">✦ ${escapeHTML(d)}</span>
                             `).join('')}
                           </div>
                         ` : ''}
                       </div>
 
-                      <button class="btn-del-ps" data-domain-id="${dom.id}" data-ps-id="${p.id || p.code}" title="Remove this problem statement" style="padding:4px 8px; border-radius:4px; background:rgba(255,42,75,0.1); border:1px solid var(--red); color:var(--red); font-size:0.68rem; cursor:pointer; white-space:nowrap;">
+                      <button class="btn-del-ps" data-domain-id="${escapeHTML(dom.id)}" data-ps-id="${escapeHTML(p.id || p.code)}" title="Remove this problem statement" style="padding:4px 8px; border-radius:4px; background:rgba(255,42,75,0.1); border:1px solid var(--red); color:var(--red); font-size:0.68rem; cursor:pointer; white-space:nowrap;">
                         ✕ REMOVE
                       </button>
                     </div>

@@ -2,6 +2,16 @@ let currentTeam = null;
     let currentDomain = null;
     let authCredentials = { email: '', password: '' };
 
+    function escapeHTML(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
     const secLogin = document.getElementById('sec-login');
     const secDash = document.getElementById('sec-dashboard');
     const formLogin = document.getElementById('form-leader-login');
@@ -129,9 +139,9 @@ let currentTeam = null;
       // Payment Status
       const payBadge = document.getElementById('dash-payment-badge');
       if (currentTeam.payment?.status === 'verified') {
-        payBadge.innerHTML = `<div class="status-badge status-verified">✓ PAYMENT VERIFIED (UTR: ${currentTeam.payment.utr})</div>`;
+        payBadge.innerHTML = `<div class="status-badge status-verified">✓ PAYMENT VERIFIED (UTR: ${escapeHTML(currentTeam.payment.utr || 'N/A')})</div>`;
       } else {
-        payBadge.innerHTML = `<div class="status-badge status-pending">⏳ PAYMENT UNDER VERIFICATION (UTR: ${currentTeam.payment?.utr || 'N/A'})</div>`;
+        payBadge.innerHTML = `<div class="status-badge status-pending">⏳ PAYMENT UNDER VERIFICATION (UTR: ${escapeHTML(currentTeam.payment?.utr || 'N/A')})</div>`;
       }
 
       // Review Statuses
@@ -151,8 +161,8 @@ let currentTeam = null;
       rosterList.innerHTML = `
         <div class="member-row">
           <div>
-            <strong>${currentTeam.leader?.name || 'Leader'}</strong>
-            <div style="font-size:0.7rem; color:#999;">${currentTeam.leader?.email} • ${currentTeam.leader?.phone}</div>
+            <strong>${escapeHTML(currentTeam.leader?.name || 'Leader')}</strong>
+            <div style="font-size:0.7rem; color:#999;">${escapeHTML(currentTeam.leader?.email || '')} • ${escapeHTML(currentTeam.leader?.phone || '')}</div>
           </div>
           <span class="m-role">TEAM LEADER</span>
         </div>
@@ -161,8 +171,8 @@ let currentTeam = null;
         rosterList.innerHTML += `
           <div class="member-row">
             <div>
-              <strong>${m.name || 'Member ' + (idx + 2)}</strong>
-              <div style="font-size:0.7rem; color:#999;">${m.email} • ${m.phone}</div>
+              <strong>${escapeHTML(m.name || 'Member ' + (idx + 2))}</strong>
+              <div style="font-size:0.7rem; color:#999;">${escapeHTML(m.email || '')} • ${escapeHTML(m.phone || '')}</div>
             </div>
             <span class="m-role">MEMBER 0${idx + 2}</span>
           </div>
@@ -200,7 +210,7 @@ let currentTeam = null;
             <div class="lock-icon">🔒</div>
             <h4 class="lock-title">PROBLEM STATEMENTS LOCKED</h4>
             <p class="lock-sub">
-              Classified problem statements for the <strong>${currentDomain?.domainName || ''}</strong> domain will be unlocked by the organizer command post 1 to 2 days prior to hackathon kickoff.
+              Classified problem statements for the <strong>${escapeHTML(currentDomain?.domainName || '')}</strong> domain will be unlocked by the organizer command post 1 to 2 days prior to hackathon kickoff.
             </p>
           </div>
         `;
@@ -222,12 +232,12 @@ let currentTeam = null;
         html += `
           <div class="ps-card ${isSelected ? 'selected' : ''}">
             <div class="ps-meta-row">
-              <span class="ps-code">${ps.code}</span>
-              <span class="ps-diff">${ps.difficulty}</span>
+              <span class="ps-code">${escapeHTML(ps.code)}</span>
+              <span class="ps-diff">${escapeHTML(ps.difficulty)}</span>
             </div>
-            <h4 class="ps-title">${ps.title}</h4>
-            <p class="ps-desc">${ps.description}</p>
-            <button class="btn-select-ps ${isSelected ? 'active' : ''}" data-ps-id="${ps.id}">
+            <h4 class="ps-title">${escapeHTML(ps.title)}</h4>
+            <p class="ps-desc">${escapeHTML(ps.description)}</p>
+            <button class="btn-select-ps ${isSelected ? 'active' : ''}" data-ps-id="${escapeHTML(ps.id)}">
               ${isSelected ? '✓ CHOSEN PROBLEM STATEMENT' : 'SELECT THIS STATEMENT'}
             </button>
           </div>

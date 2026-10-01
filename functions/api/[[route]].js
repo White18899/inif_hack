@@ -350,6 +350,20 @@ async function verifyAdminAuth(request, url, secret) {
   return verifyRoleAuth(request, url, 'admin', secret);
 }
 
+function stripHtmlTags(str) {
+  if (!str || typeof str !== 'string') return '';
+  return str.replace(/<[^>]*>/g, '').trim();
+}
+
+function sanitizeUrl(url) {
+  if (!url || typeof url !== 'string') return '';
+  const trimmed = url.trim();
+  if (/^https?:\/\/[^\s"'<>]+$/i.test(trimmed) || /^\/uploads\/[a-zA-Z0-9_\-\.]+$/i.test(trimmed)) {
+    return trimmed;
+  }
+  return '/placeholder-receipt.png';
+}
+
 function isValidEmail(email) {
   if (!email || typeof email !== 'string') return false;
   const clean = email.trim();
@@ -818,24 +832,28 @@ export async function onRequest(context) {
       const teamId = `INF-${Math.floor(1000 + Math.random() * 9000)}`;
       const newTeam = {
         id: teamId,
-        teamName: teamName.trim(),
-        college: college.trim(),
-        preferredDomain: preferredDomain.trim().toLowerCase(),
-        techStack: parsedTechStack,
+        teamName: stripHtmlTags(teamName),
+        college: stripHtmlTags(college),
+        preferredDomain: stripHtmlTags(preferredDomain).toLowerCase(),
+        techStack: parsedTechStack.map(s => stripHtmlTags(s)),
         teamSize: parsedSize,
         teamPassword: teamPassword.trim(),
         leader: {
-          name: leaderName ? leaderName.trim() : '',
+          name: leaderName ? stripHtmlTags(leaderName) : '',
           email: cleanLeaderEmail,
           phone: cleanLeaderPhone,
         },
-        members: validatedMembers,
+        members: validatedMembers.map(m => ({
+          name: stripHtmlTags(m.name),
+          email: m.email,
+          phone: m.phone,
+        })),
         roomAllocated: 'TBA (Lab Block 3)',
         selectedProblemStatement: null,
         payment: {
-          utr: cleanUtr,
-          phone: paymentPhone ? paymentPhone.trim() : cleanLeaderPhone,
-          screenshotUrl,
+          utr: stripHtmlTags(cleanUtr),
+          phone: paymentPhone ? stripHtmlTags(paymentPhone) : cleanLeaderPhone,
+          screenshotUrl: sanitizeUrl(screenshotUrl),
           submittedAt: new Date().toISOString(),
           amount: calculatedAmount,
           status: 'pending',
@@ -1154,25 +1172,30 @@ export async function onRequest(context) {
       }
 
       const existing = db.teams[idx];
+      const updatedPayment = updates.payment ? {
+        ...existing.payment,
+        ...updates.payment,
+        screenshotUrl: updates.payment.screenshotUrl ? sanitizeUrl(updates.payment.screenshotUrl) : existing.payment?.screenshotUrl,
+        utr: updates.payment.utr ? stripHtmlTags(updates.payment.utr) : existing.payment?.utr,
+      } : existing.payment;
+
       db.teams[idx] = {
         ...existing,
-        teamName: updates.teamName !== undefined ? updates.teamName : existing.teamName,
-        college: updates.college !== undefined ? updates.college : existing.college,
-        preferredDomain: updates.preferredDomain !== undefined ? updates.preferredDomain : existing.preferredDomain,
+        teamName: updates.teamName !== undefined ? stripHtmlTags(updates.teamName) : existing.teamName,
+        college: updates.college !== undefined ? stripHtmlTags(updates.college) : existing.college,
+        preferredDomain: updates.preferredDomain !== undefined ? stripHtmlTags(updates.preferredDomain) : existing.preferredDomain,
         teamSize: updates.teamSize !== undefined ? updates.teamSize : existing.teamSize,
-        techStack: updates.techStack !== undefined ? updates.techStack : existing.techStack,
+        techStack: updates.techStack !== undefined ? (Array.isArray(updates.techStack) ? updates.techStack.map(s => stripHtmlTags(s)) : stripHtmlTags(updates.techStack)) : existing.techStack,
         teamPassword: updates.teamPassword !== undefined ? updates.teamPassword : existing.teamPassword,
-        roomAllocated: updates.roomAllocated !== undefined ? updates.roomAllocated : existing.roomAllocated,
+        roomAllocated: updates.roomAllocated !== undefined ? stripHtmlTags(updates.roomAllocated) : existing.roomAllocated,
         selectedProblemStatement: updates.selectedProblemStatement !== undefined ? updates.selectedProblemStatement : existing.selectedProblemStatement,
         leader: {
           ...existing.leader,
           ...(updates.leader || {}),
+          name: updates.leader?.name ? stripHtmlTags(updates.leader.name) : existing.leader?.name,
         },
-        members: updates.members !== undefined ? updates.members : existing.members,
-        payment: {
-          ...existing.payment,
-          ...(updates.payment || {}),
-        },
+        members: updates.members !== undefined ? (Array.isArray(updates.members) ? updates.members.map(m => ({ ...m, name: stripHtmlTags(m.name) })) : updates.members) : existing.members,
+        payment: updatedPayment,
         reviews: {
           ...existing.reviews,
           ...(updates.reviews || {}),
@@ -1184,6 +1207,7 @@ export async function onRequest(context) {
         scores: {
           ...existing.scores,
           ...(updates.scores || {}),
+          remarks: updates.scores?.remarks ? stripHtmlTags(updates.scores.remarks) : existing.scores?.remarks,
         },
       };
 
