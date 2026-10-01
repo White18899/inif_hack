@@ -1,46 +1,30 @@
 /**
- * Cinematic Marvel-Style Intro Preloader
+ * Site Video Loader (loading.mp4)
  * Features:
- * - High-definition 1080p 21:9 Cinemascope video preloader
- * - Session-aware: Plays automatically on first visit per session
- * - Smooth fade-out transition revealing the 3D WebGL cosmos
- * - Skip intro button with keyboard shortcut (ESC / SPACE)
- * - Dynamic progress bar & timecode display
- * - Synchronized cosmic convergence audio surge on logo lockup
- * - Replayable anytime via header and mobile menu
- * - Fail-safe auto-fallback if browser blocks or delays video
+ * - High-definition full-screen cinematic video loader
+ * - Always unmuted video playback (with auto-unmute on first user touch fallback)
+ * - Clean presentation: zero timeline scrubbers, zero timecodes
+ * - Sleek minimal [ SKIP ] button for rapid access
+ * - Cosmic audio surge on logo reveal and smooth fade-out into 3D showcase
  */
 
 import { audioEngine } from './audio.js';
 
 export function initCinematicPreloader(options = {}) {
-  const { onComplete, onReplay } = options;
+  const { onComplete } = options;
 
   const preloader = document.getElementById('cinematic-preloader');
   const video = document.getElementById('cinematic-video');
   const btnSkip = document.getElementById('btn-skip-intro');
-  const progressFill = document.getElementById('cinematic-progress-fill');
-  const timecodeDisplay = document.getElementById('cinematic-timecode');
-  const btnAudio = document.getElementById('btn-intro-audio');
-  const btnReplayNav = document.getElementById('btn-replay-intro');
-  const btnReplayMobile = document.getElementById('btn-mobile-replay-intro');
 
   if (!preloader || !video) {
     if (typeof onComplete === 'function') onComplete();
-    return { playIntro: () => {}, dismiss: () => {} };
+    return { dismiss: () => {} };
   }
 
   let isDismissed = false;
   let hasTriggeredClimaxAudio = false;
   let safetyTimeout = null;
-
-  const formatTime = (seconds) => {
-    if (isNaN(seconds) || seconds < 0) return '00:00';
-    const s = Math.floor(seconds);
-    const m = Math.floor(s / 60);
-    const rem = s % 60;
-    return `${m.toString().padStart(2, '0')}:${rem.toString().padStart(2, '0')}`;
-  };
 
   const dismiss = (triggeredByEvent = false) => {
     if (isDismissed) return;
@@ -51,20 +35,13 @@ export function initCinematicPreloader(options = {}) {
       safetyTimeout = null;
     }
 
-    try {
-      sessionStorage.setItem('inif_intro_seen', 'true');
-    } catch (e) {
-      // Ignore private browsing storage quota errors
-    }
-
     preloader.classList.add('fade-out');
 
-    // Trigger completion callback (reveals 3D stones convergence)
+    // Reveal 3D showcase & convergence
     if (typeof onComplete === 'function') {
       onComplete();
     }
 
-    // Play tactile entry click if dismissed by button/key
     if (triggeredByEvent) {
       audioEngine.playClick();
     }
@@ -79,64 +56,24 @@ export function initCinematicPreloader(options = {}) {
     }, 850);
   };
 
-  const playIntro = (force = false) => {
-    isDismissed = false;
-    hasTriggeredClimaxAudio = false;
-
-    preloader.style.display = 'flex';
-    // Force reflow
-    void preloader.offsetWidth;
-    preloader.classList.remove('fade-out');
-    document.documentElement.classList.remove('intro-already-seen');
-
-    if (progressFill) progressFill.style.width = '0%';
-    if (timecodeDisplay) timecodeDisplay.textContent = '00:00 / 00:16';
-
-    video.currentTime = 0;
-    video.muted = true; // Muted by default to ensure autoplay across all mobile/desktop policies
-
-    const playPromise = video.play();
-    if (playPromise !== undefined) {
-      playPromise.catch((error) => {
-        console.warn('Cinematic preloader autoplay deferred or restricted:', error);
-        // If autoplay failed on first visit without user interaction, auto-dismiss cleanly
-        if (!force) {
-          dismiss(false);
-        }
-      });
-    }
-
-    if (typeof onReplay === 'function') {
-      onReplay();
-    }
-  };
-
-  // Video progress & climax trigger
+  // Video climax trigger (cosmic surge when INFINITY HACKATHON title crystallizes)
   video.addEventListener('timeupdate', () => {
     if (!video.duration || isDismissed) return;
 
-    const progress = (video.currentTime / video.duration) * 100;
-    if (progressFill) {
-      progressFill.style.width = `${progress}%`;
-    }
-
-    if (timecodeDisplay) {
-      timecodeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
-    }
-
-    // Climax surge: When the Marvel logo flips settle into INFINITY HACKATHON (~13.2s)
     if (video.currentTime >= 13.2 && !hasTriggeredClimaxAudio) {
       hasTriggeredClimaxAudio = true;
+      audioEngine.init();
+      audioEngine.resume();
       audioEngine.playConvergenceChord();
     }
   });
 
-  // Video finish
+  // When video completes loading
   video.addEventListener('ended', () => {
     dismiss(false);
   });
 
-  // Skip button click
+  // Skip button
   if (btnSkip) {
     btnSkip.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -144,7 +81,7 @@ export function initCinematicPreloader(options = {}) {
     });
   }
 
-  // Keyboard accessibility: ESC or SPACE to skip
+  // Keyboard shortcut: ESC or SPACE to skip loader
   window.addEventListener('keydown', (e) => {
     if (!isDismissed && preloader.style.display !== 'none') {
       if (e.key === 'Escape' || e.code === 'Space') {
@@ -154,65 +91,49 @@ export function initCinematicPreloader(options = {}) {
     }
   });
 
-  // Audio button toggle during intro
-  if (btnAudio) {
-    btnAudio.addEventListener('click', (e) => {
-      e.stopPropagation();
-      audioEngine.init();
-      audioEngine.resume();
-      const isMuted = audioEngine.toggleMute();
-      btnAudio.classList.toggle('active', isMuted);
-      const icon = btnAudio.querySelector('.intro-audio-icon');
-      if (icon) icon.textContent = isMuted ? '🔊' : '🔇';
-      audioEngine.playStoneChime('reality');
-    });
-  }
+  // Always Unmuted Playback Configuration
+  video.muted = false;
+  video.volume = 1.0;
+  audioEngine.isMuted = false;
 
-  // Hook Replay triggers from navigation
-  if (btnReplayNav) {
-    btnReplayNav.addEventListener('click', (e) => {
-      e.preventDefault();
-      audioEngine.playClick();
-      playIntro(true);
-    });
-  }
+  const attemptPlayback = () => {
+    const playPromise = video.play();
+    if (playPromise !== undefined) {
+      playPromise.catch((error) => {
+        console.warn('Unmuted autoplay prevented by browser policy; queuing audio on interaction:', error);
+        // Browser requires user gesture before playing unmuted audio
+        video.muted = true;
+        video.play().catch(() => {});
 
-  if (btnReplayMobile) {
-    btnReplayMobile.addEventListener('click', (e) => {
-      e.preventDefault();
-      const mobileDrawer = document.getElementById('mobile-nav-drawer');
-      if (mobileDrawer) mobileDrawer.classList.remove('is-open');
-      audioEngine.playClick();
-      playIntro(true);
-    });
-  }
+        const unmuteOnInteraction = () => {
+          video.muted = false;
+          video.volume = 1.0;
+          audioEngine.init();
+          audioEngine.resume();
+          window.removeEventListener('pointerdown', unmuteOnInteraction);
+          window.removeEventListener('keydown', unmuteOnInteraction);
+          window.removeEventListener('touchstart', unmuteOnInteraction);
+          window.removeEventListener('click', unmuteOnInteraction);
+        };
 
-  // Session check: has the user already seen the intro during this browser session?
-  let hasSeenIntro = false;
-  try {
-    hasSeenIntro = sessionStorage.getItem('inif_intro_seen') === 'true';
-  } catch (e) {
-    hasSeenIntro = false;
-  }
-
-  if (hasSeenIntro) {
-    isDismissed = true;
-    preloader.style.display = 'none';
-    if (typeof onComplete === 'function') {
-      onComplete();
+        window.addEventListener('pointerdown', unmuteOnInteraction, { once: true, passive: true });
+        window.addEventListener('keydown', unmuteOnInteraction, { once: true });
+        window.addEventListener('touchstart', unmuteOnInteraction, { once: true, passive: true });
+        window.addEventListener('click', unmuteOnInteraction, { once: true });
+      });
     }
-  } else {
-    // First visit: launch preloader
-    playIntro(false);
+  };
 
-    // Safety fallback: if video doesn't start within 3.5 seconds (network freeze or low battery mode), fail safe
-    safetyTimeout = setTimeout(() => {
-      if (!isDismissed && video.currentTime === 0) {
-        console.warn('Cinematic preloader video safety timeout reached. Transitioning to showcase.');
-        dismiss(false);
-      }
-    }, 3800);
-  }
+  preloader.style.display = 'flex';
+  attemptPlayback();
 
-  return { playIntro, dismiss };
+  // Safety watchdog: If network or video decode halts for >4s, seamlessly transition to site
+  safetyTimeout = setTimeout(() => {
+    if (!isDismissed && video.currentTime === 0) {
+      console.warn('Site loader safety timeout reached; proceeding to 3D showcase.');
+      dismiss(false);
+    }
+  }, 4200);
+
+  return { dismiss };
 }

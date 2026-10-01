@@ -53,17 +53,11 @@ class InfinityScrollShowcase {
     // Initial Presentation of Specimen 1 (Mind Stone // Intelligence)
     this.displayStone(0, false);
 
-    // Initialize Cinematic Marvel Intro Preloader
+    // Initialize Site Video Loader (loading.mp4)
     this.cinematic = initCinematicPreloader({
       onComplete: () => {
         // Trigger the 3D Six Infinity Stones convergence sequence to reveal the cosmos
         this.triggerConvergence(false);
-      },
-      onReplay: () => {
-        // If convergence or interaction was active, reset to initial specimen
-        if (this.isConvergenceActive) {
-          this.endConvergence();
-        }
       }
     });
   }

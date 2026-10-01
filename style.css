@@ -5375,12 +5375,8 @@ body.timeline-unlocked #sponsors-section {
 }
 
 /* ==========================================================================
-   CINEMATIC MARVEL-STYLE INTRO PRELOADER
+   SITE VIDEO LOADER (loading.mp4)
    ========================================================================== */
-html.intro-already-seen #cinematic-preloader {
-  display: none !important;
-}
-
 .cinematic-preloader {
   position: fixed;
   inset: 0;
@@ -5467,7 +5463,7 @@ html.intro-already-seen #cinematic-preloader {
   mix-blend-mode: multiply;
 }
 
-/* Cinematic HUD: Top Bar */
+/* Loader HUD: Top Bar */
 .cinematic-hud-top {
   position: absolute;
   top: clamp(28px, 6vh, 70px);
@@ -5520,32 +5516,7 @@ html.intro-already-seen #cinematic-preloader {
   gap: 12px;
 }
 
-/* Sound Toggle */
-.cinematic-audio-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background: rgba(18, 18, 24, 0.7);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 9999px;
-  color: rgba(255, 255, 255, 0.75);
-  font-family: var(--font-mono, monospace);
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.cinematic-audio-toggle:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
-/* Skip Intro Button */
+/* Skip Loader Button */
 .btn-skip-intro {
   display: inline-flex;
   align-items: center;
@@ -5593,72 +5564,9 @@ html.intro-already-seen #cinematic-preloader {
   transform: translateY(0) scale(0.98);
 }
 
-/* Cinematic HUD: Bottom Bar */
-.cinematic-hud-bottom {
-  position: absolute;
-  bottom: clamp(28px, 6vh, 70px);
-  left: clamp(20px, 4vw, 56px);
-  right: clamp(20px, 4vw, 56px);
-  z-index: 30;
-  pointer-events: none;
-}
-
-.cinematic-progress-track {
-  width: 100%;
-  height: 3px;
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 3px;
-  overflow: hidden;
-  margin-bottom: 8px;
-  backdrop-filter: blur(6px);
-}
-
-.cinematic-progress-fill {
-  width: 0%;
-  height: 100%;
-  background: linear-gradient(90deg, #ff3366, #ff7b00, #ffc800);
-  box-shadow: 0 0 14px rgba(255, 51, 102, 0.8);
-  transition: width 0.1s linear;
-}
-
-.cinematic-meta-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-family: var(--font-mono, 'JetBrains Mono', monospace);
-  font-size: 0.66rem;
-  letter-spacing: 0.14em;
-  color: rgba(255, 255, 255, 0.5);
-  text-transform: uppercase;
-}
-
-/* Replay Button in Nav & Drawers */
-.btn-replay-intro {
-  background: transparent !important;
-  border: none !important;
-  cursor: pointer !important;
-  color: #ff3366 !important;
-  font-weight: 700 !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 5px !important;
-  transition: all 0.2s ease !important;
-}
-
-.btn-replay-intro:hover {
-  color: #ff6688 !important;
-  text-shadow: 0 0 12px rgba(255, 51, 102, 0.6) !important;
-}
-
 @media (max-width: 768px) {
   .cinematic-hud-top {
     top: 20px;
-    left: 16px;
-    right: 16px;
-  }
-
-  .cinematic-hud-bottom {
-    bottom: 20px;
     left: 16px;
     right: 16px;
   }
@@ -5675,14 +5583,6 @@ html.intro-already-seen #cinematic-preloader {
 
   .btn-skip-intro .skip-key-hint {
     display: none;
-  }
-
-  .cinematic-cue-text {
-    display: none;
-  }
-
-  .cinematic-meta-row {
-    justify-content: flex-end;
   }
 }
 
