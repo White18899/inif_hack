@@ -13,6 +13,7 @@ import { TIMELINE_EVENTS } from './timelineData.js';
 import { initRegistrationModule } from './registration.js';
 import { TechText } from './techText.js';
 import { initCinematicPreloader } from './cinematicPreloader.js';
+import { initMoltenMetal } from './moltenMetal.js';
 
 class InfinityScrollShowcase {
   constructor() {
@@ -28,6 +29,7 @@ class InfinityScrollShowcase {
     this.clock = new THREE.Clock();
     this.infoCard = document.getElementById('info-card');
 
+    this.initMoltenMetalBg();
     this.initThree();
     this.initCosmicEnvironment();
     this.initStones();
@@ -67,11 +69,41 @@ class InfinityScrollShowcase {
   }
 
   /* --------------------------------------------------------------------------
+     0. REACT BITS: MOLTEN METAL SHADER CAUSTIC BACKGROUND
+     -------------------------------------------------------------------------- */
+  initMoltenMetalBg() {
+    const bgContainer = document.getElementById('molten-metal-bg');
+    if (!bgContainer) return;
+
+    this.moltenMetal = initMoltenMetal(bgContainer, {
+      color1: '#5227FF',
+      color2: '#FF9FFC',
+      color3: '#FFFFFF',
+      speed: 0.35,
+      scale: 4,
+      detail: 3,
+      glow: 1.6,
+      coreSize: 0.1,
+      swirl: 1,
+      fold: -0.2,
+      blackPoint: 0.05,
+      brightness: 1.3,
+      colorMode: 'molten',
+      grain: true,
+      grainIntensity: 0.05,
+      mouseInteraction: true,
+      mouseStrength: 0.3,
+      opacity: 1.0,
+      backgroundColor: '#030305'
+    });
+  }
+
+  /* --------------------------------------------------------------------------
      1. THREE.JS SCENE SETUP
      -------------------------------------------------------------------------- */
   initThree() {
     this.scene = new THREE.Scene();
-    this.scene.fog = new THREE.FogExp2(0x030305, 0.024);
+    this.scene.fog = new THREE.FogExp2(0x030305, 0.008);
 
     this.camera = new THREE.PerspectiveCamera(
       42,
@@ -86,8 +118,9 @@ class InfinityScrollShowcase {
     this.renderer = new THREE.WebGLRenderer({
       powerPreference: 'high-performance',
       antialias: true,
-      alpha: false
+      alpha: true
     });
+    this.renderer.setClearColor(0x000000, 0);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -291,7 +324,8 @@ class InfinityScrollShowcase {
      -------------------------------------------------------------------------- */
   initPostProcessing() {
     this.composer = new EffectComposer(this.renderer);
-    const renderPass = new RenderPass(this.scene, this.camera);
+    const renderPass = new RenderPass(this.scene, this.camera, null, new THREE.Color(0x000000), 0);
+    renderPass.clearAlpha = 0;
     this.composer.addPass(renderPass);
 
     this.bloomPass = new UnrealBloomPass(
@@ -1126,6 +1160,12 @@ class InfinityScrollShowcase {
     if (btnWield) {
       btnWield.setAttribute('data-stone-id', stone.id);
       btnWield.style.setProperty('--btn-glow', stone.colorHex);
+    }
+
+    // Harmonize Molten Metal caustic midtone with active stone's energy aura
+    if (this.moltenMetal) {
+      const midColor = stone.index === 1 ? '#FF9FFC' : (stone.colorHex || '#FF9FFC');
+      this.moltenMetal.updateColors('#5227FF', midColor, '#FFFFFF');
     }
   }
 

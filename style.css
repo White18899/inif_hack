@@ -134,6 +134,26 @@ body.timeline-unlocked {
   overflow-y: auto !important;
 }
 
+/* ==========================================================================
+   REACT BITS: MOLTEN METAL SHADER BACKGROUND
+   ========================================================================== */
+.molten-metal-container {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  background: var(--bg-deep, #030305);
+}
+
+.molten-metal-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
 /* 3D WebGL Canvas Layer */
 #webgl-container {
   position: fixed;
@@ -146,10 +166,12 @@ body.timeline-unlocked {
   cursor: grab;
   touch-action: pan-y !important;
   overflow: hidden !important;
+  background: transparent !important;
 }
 
 #webgl-container canvas {
   touch-action: pan-y !important;
+  background: transparent !important;
 }
 
 #webgl-container:active {
@@ -164,9 +186,9 @@ body.timeline-unlocked {
   z-index: 2;
   background: radial-gradient(
     circle at 50% 50%,
-    transparent 35%,
-    rgba(3, 3, 5, 0.45) 75%,
-    rgba(2, 2, 3, 0.9) 100%
+    transparent 45%,
+    rgba(3, 3, 5, 0.35) 80%,
+    rgba(2, 2, 3, 0.85) 100%
   );
 }
 
