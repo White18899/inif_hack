@@ -4583,65 +4583,6 @@ body.timeline-unlocked #sponsors-section {
   color: #ffd000;
 }
 
-.contact-coordinator-item {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 10px 14px;
-  background: rgba(0, 210, 255, 0.06);
-  border: 1px solid rgba(0, 210, 255, 0.25);
-  border-radius: 10px;
-  transition: all 0.2s ease;
-}
-
-.contact-coordinator-item:hover {
-  background: rgba(0, 210, 255, 0.12);
-  border-color: rgba(0, 210, 255, 0.45);
-  box-shadow: 0 4px 16px rgba(0, 210, 255, 0.15);
-}
-
-.coordinator-label {
-  font-family: var(--font-mono, monospace);
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  color: #00d2ff;
-  text-transform: uppercase;
-}
-
-.coordinator-person {
-  font-size: 0.92rem;
-  font-weight: 600;
-  color: #ffffff;
-  letter-spacing: 0.01em;
-}
-
-.contact-val-highlight {
-  font-family: var(--font-mono, monospace);
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: #00d2ff !important;
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-.contact-val-highlight:hover {
-  color: #ffd000 !important;
-}
-
-.hotline-tag {
-  font-size: 0.65rem;
-  color: #00d2ff;
-  font-family: var(--font-mono, monospace);
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  margin-left: 6px;
-  background: rgba(0, 210, 255, 0.12);
-  border: 1px solid rgba(0, 210, 255, 0.25);
-  padding: 1px 6px;
-  border-radius: 4px;
-}
-
 /* Site Footer */
 .site-footer {
   position: relative;
