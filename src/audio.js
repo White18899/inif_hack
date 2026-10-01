@@ -3,11 +3,10 @@
 class CosmicAudioEngine {
   constructor() {
     this.ctx = null;
-    this.isMuted = false; // Unmuted by default as requested
+    this.isMuted = false;
     this.droneGain = null;
     this.masterGain = null;
     this.compressor = null;
-    this.bitsInterval = null;
     this.droneOscs = [];
     this.stoneFrequencies = {
       space: [261.63, 523.25, 1046.50], // C4, C5, C6 (Crystalline Open)
@@ -41,7 +40,7 @@ class CosmicAudioEngine {
       this.masterGain.connect(this.compressor);
       this.compressor.connect(this.ctx.destination);
 
-      // Start warm ambient celestial space pad and subtle idle bits sequencer
+      // Start warm ambient celestial space pad (pure, smooth, zero clicking or bits)
       this.startAmbientDrone();
       this.initialized = true;
     } catch (e) {
@@ -72,151 +71,68 @@ class CosmicAudioEngine {
   startAmbientDrone() {
     if (!this.ctx) return;
 
-    // Clean up any previous drone oscillators
     this.stopAmbientDrone();
 
-    // 1. Warm celestial harmonic foundation (C3 = 130.81 Hz, G3 = 196.00 Hz)
+    const now = this.ctx.currentTime;
+
+    // Pure warm sine oscillators (C3 = 130.81 Hz, G3 = 196.00 Hz)
     const osc1 = this.ctx.createOscillator();
     osc1.type = 'sine';
-    osc1.frequency.setValueAtTime(130.81, this.ctx.currentTime);
+    osc1.frequency.setValueAtTime(130.81, now);
 
     const osc2 = this.ctx.createOscillator();
     osc2.type = 'sine';
-    osc2.frequency.setValueAtTime(196.00, this.ctx.currentTime);
+    osc2.frequency.setValueAtTime(196.00, now);
 
-    // Ethereal subtle octave (C4 = 261.63 Hz)
-    const osc3 = this.ctx.createOscillator();
-    osc3.type = 'triangle';
-    osc3.frequency.setValueAtTime(261.63, this.ctx.currentTime);
-
-    // Warm Lowpass Filter with gentle resonance
+    // Warm Lowpass Filter (220 Hz) for a silky smooth celestial atmosphere
     const filter = this.ctx.createBiquadFilter();
     filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(280, this.ctx.currentTime);
-    filter.Q.setValueAtTime(1.2, this.ctx.currentTime);
+    filter.frequency.setValueAtTime(220, now);
+    filter.Q.setValueAtTime(0.7, now);
 
-    // LFO for slow, gentle celestial breathing (~10 second period)
+    // Gentle LFO for slow breathing (~12 second cycle)
     const lfo = this.ctx.createOscillator();
     lfo.type = 'sine';
-    lfo.frequency.setValueAtTime(0.1, this.ctx.currentTime);
+    lfo.frequency.setValueAtTime(0.08, now);
 
     const lfoGain = this.ctx.createGain();
-    lfoGain.gain.setValueAtTime(45, this.ctx.currentTime);
+    lfoGain.gain.setValueAtTime(25, now);
     lfo.connect(lfoGain);
     lfoGain.connect(filter.frequency);
 
     this.droneGain = this.ctx.createGain();
-    this.droneGain.gain.setValueAtTime(0.14, this.ctx.currentTime);
+    this.droneGain.gain.setValueAtTime(0.001, now);
+    // Smooth linear ramp fade-in over 1.2s to prevent any clicks or pops
+    this.droneGain.gain.linearRampToValueAtTime(0.12, now + 1.2);
 
     osc1.connect(filter);
     osc2.connect(filter);
-    osc3.connect(filter);
     filter.connect(this.droneGain);
     this.droneGain.connect(this.masterGain);
 
-    osc1.start();
-    osc2.start();
-    osc3.start();
-    lfo.start();
+    osc1.start(now);
+    osc2.start(now);
+    lfo.start(now);
 
-    this.droneOscs = [osc1, osc2, osc3, lfo];
-
-    // 2. Start the rhythmic cybernetic idle bits sequencer
-    this.startIdleBits();
+    this.droneOscs = [osc1, osc2, lfo];
   }
 
   stopAmbientDrone() {
     if (this.droneOscs && this.droneOscs.length) {
       this.droneOscs.forEach(osc => {
-        try { osc.stop(); osc.disconnect(); } catch (_) {}
+        try {
+          osc.stop();
+          osc.disconnect();
+        } catch (_) {}
       });
       this.droneOscs = [];
     }
-    this.stopIdleBits();
-  }
-
-  /* --------------------------------------------------------------------------
-     RHYTHMIC IDLE BITS SEQUENCER
-     Generates gentle, ethereal sci-fi micro-pulses in pentatonic harmony
-     -------------------------------------------------------------------------- */
-  startIdleBits() {
-    if (!this.ctx) return;
-    this.stopIdleBits();
-
-    // Pentatonic notes derived from the 6 Infinity Stones frequencies
-    const bitScale = [
-      523.25, // C5 (Space)
-      587.33, // D5 (Mind)
-      659.25, // E5 (Reality)
-      739.99, // F#5 (Power)
-      783.99, // G5 (Time)
-      880.00, // A5 (Soul)
-      1046.50 // C6 (Space Octave)
-    ];
-
-    let step = 0;
-    // 16-step rhythmic pattern (1 = single bit pulse, 2 = accented bit, 0 = space)
-    const pattern = [1, 0, 1, 0, 2, 0, 0, 1, 0, 1, 1, 0, 2, 0, 1, 0];
-
-    this.bitsInterval = setInterval(() => {
-      if (!this.ctx || this.isMuted || this.ctx.state !== 'running') return;
-
-      const trigger = pattern[step % pattern.length];
-      if (trigger > 0) {
-        // Melodic sequence progression based on step count
-        const noteIdx = (step * 2 + Math.floor(step / 4)) % bitScale.length;
-        const freq = bitScale[noteIdx];
-        const gainVal = trigger === 2 ? 0.045 : 0.028;
-
-        this.playIdleBit(freq, gainVal);
-
-        // For accented pulse (2), trigger a delicate octave echo 90ms later
-        if (trigger === 2) {
-          setTimeout(() => {
-            if (!this.isMuted && this.ctx && this.ctx.state === 'running') {
-              this.playIdleBit(freq * 1.5, 0.018);
-            }
-          }, 90);
-        }
-      }
-      step++;
-    }, 290); // ~103 BPM cosmic ambient pulse tempo
-  }
-
-  stopIdleBits() {
-    if (this.bitsInterval) {
-      clearInterval(this.bitsInterval);
-      this.bitsInterval = null;
+    if (this.droneGain) {
+      try {
+        this.droneGain.disconnect();
+      } catch (_) {}
+      this.droneGain = null;
     }
-  }
-
-  playIdleBit(freq, gainLevel = 0.035) {
-    if (!this.ctx || this.isMuted || this.ctx.state !== 'running') return;
-    try {
-      const now = this.ctx.currentTime;
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
-      const filter = this.ctx.createBiquadFilter();
-
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, now);
-
-      filter.type = 'bandpass';
-      filter.frequency.setValueAtTime(freq, now);
-      filter.Q.setValueAtTime(5.0, now);
-
-      // Fast, non-clicking attack (8ms) and soft organic decay (130ms)
-      gain.gain.setValueAtTime(0, now);
-      gain.gain.linearRampToValueAtTime(gainLevel, now + 0.008);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
-
-      osc.connect(filter);
-      filter.connect(gain);
-      gain.connect(this.masterGain);
-
-      osc.start(now);
-      osc.stop(now + 0.16);
-    } catch (_) {}
   }
 
   playStoneChime(stoneId) {
