@@ -279,8 +279,8 @@ function handleOptions() {
   });
 }
 
-// Helper: Generate signed HMAC admin clearance token
-async function generateAdminToken(secret) {
+// Helper: Generate signed HMAC role clearance token (admin, coordinator, judge)
+async function generateRoleToken(role, secret) {
   const ts = Date.now().toString();
   const encoder = new TextEncoder();
   const key = await crypto.subtle.importKey(
@@ -290,24 +290,42 @@ async function generateAdminToken(secret) {
     false,
     ['sign']
   );
-  const sigBuffer = await crypto.subtle.sign('HMAC', key, encoder.encode(`admin:${ts}`));
+  const sigBuffer = await crypto.subtle.sign('HMAC', key, encoder.encode(`${role}:${ts}`));
   const sigHex = Array.from(new Uint8Array(sigBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-  return btoa(`${ts}:${sigHex}`);
+  return btoa(`${role}:${ts}:${sigHex}`);
 }
 
-// Helper: Verify admin authorization token or secret
-async function verifyAdminAuth(request, url, secret) {
+async function generateAdminToken(secret) {
+  return generateRoleToken('admin', secret);
+}
+
+// Helper: Verify role authorization token or secret
+async function verifyRoleAuth(request, url, role, secret) {
   const authHeader = request.headers.get('Authorization') || '';
   const tokenFromHeader = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : authHeader.trim();
   const tokenFromQuery = (url.searchParams.get('token') || '').trim();
   const token = tokenFromHeader || tokenFromQuery;
 
   if (!token) return false;
-  if (token === secret) return true; // Direct admin secret supported
+  if (token === secret) return true; // Direct role secret / passphrase fallback
 
   try {
     const decoded = atob(token);
-    const [ts, sigHex] = decoded.split(':');
+    const parts = decoded.split(':');
+    let tokRole = '';
+    let ts = '';
+    let sigHex = '';
+
+    if (parts.length === 3) {
+      [tokRole, ts, sigHex] = parts;
+      if (tokRole !== role) return false;
+    } else if (parts.length === 2 && role === 'admin') {
+      [ts, sigHex] = parts;
+      tokRole = 'admin';
+    } else {
+      return false;
+    }
+
     if (!ts || !sigHex || sigHex.length !== 64) return false;
 
     const age = Date.now() - parseInt(ts, 10);
@@ -322,10 +340,14 @@ async function verifyAdminAuth(request, url, secret) {
       ['verify']
     );
     const sigBytes = new Uint8Array(sigHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
-    return await crypto.subtle.verify('HMAC', key, sigBytes, encoder.encode(`admin:${ts}`));
+    return await crypto.subtle.verify('HMAC', key, sigBytes, encoder.encode(`${role}:${ts}`));
   } catch (e) {
     return false;
   }
+}
+
+async function verifyAdminAuth(request, url, secret) {
+  return verifyRoleAuth(request, url, 'admin', secret);
 }
 
 function isValidEmail(email) {
@@ -950,10 +972,20 @@ export async function onRequest(context) {
     if (pathname === '/api/coordinator/login' && method === 'POST') {
       const { password } = (await request.json().catch(() => ({}))) || {};
       if (password === COORDINATOR_PASS) {
-        const token = btoa(`coordinator_${Date.now()}`);
+        const token = await generateRoleToken('coordinator', COORDINATOR_PASS);
         return jsonResponse({ success: true, token, message: 'Coordinator clearance granted.' });
       }
       return jsonResponse({ success: false, error: 'Invalid coordinator password.' }, 401);
+    }
+
+    // -------------------------------------------------------------
+    // Coordinator Authorization Barrier: Guard coordinator actions
+    // -------------------------------------------------------------
+    if (pathname.startsWith('/api/coordinator/') && pathname !== '/api/coordinator/login') {
+      const isAuthorized = await verifyRoleAuth(request, url, 'coordinator', COORDINATOR_PASS);
+      if (!isAuthorized) {
+        return jsonResponse({ success: false, error: 'Unauthorized: Valid Coordinator clearance required.' }, 401);
+      }
     }
 
     // -------------------------------------------------------------
@@ -1008,10 +1040,20 @@ export async function onRequest(context) {
     if (pathname === '/api/judges/login' && method === 'POST') {
       const { password } = (await request.json().catch(() => ({}))) || {};
       if (password === JUDGES_PASS) {
-        const token = btoa(`judge_${Date.now()}`);
+        const token = await generateRoleToken('judge', JUDGES_PASS);
         return jsonResponse({ success: true, token, message: 'Judge clearance granted.' });
       }
       return jsonResponse({ success: false, error: 'Invalid judges password.' }, 401);
+    }
+
+    // -------------------------------------------------------------
+    // Judges Authorization Barrier: Guard judges actions
+    // -------------------------------------------------------------
+    if (pathname.startsWith('/api/judges/') && pathname !== '/api/judges/login') {
+      const isAuthorized = await verifyRoleAuth(request, url, 'judge', JUDGES_PASS);
+      if (!isAuthorized) {
+        return jsonResponse({ success: false, error: 'Unauthorized: Valid Judge clearance required.' }, 401);
+      }
     }
 
     // -------------------------------------------------------------

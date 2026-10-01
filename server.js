@@ -945,18 +945,105 @@ app.post('/api/teams/update-selection', async (req, res) => {
   }
 });
 
+// ==========================================
+// Cryptographic Token Generation & Role Verification
+// ==========================================
+function generateRoleToken(role, secret) {
+  const ts = Date.now().toString();
+  const signature = crypto.createHmac('sha256', secret).update(`${role}:${ts}`).digest('hex');
+  return Buffer.from(`${role}:${ts}:${signature}`).toString('base64');
+}
+
+function verifyRoleToken(token, role, secret) {
+  if (!token) return false;
+  if (token === secret) return true; // Direct role secret / passphrase fallback
+  try {
+    const decoded = Buffer.from(token, 'base64').toString('utf8');
+    const parts = decoded.split(':');
+    let tokRole = '';
+    let ts = '';
+    let sig = '';
+
+    if (parts.length === 3) {
+      [tokRole, ts, sig] = parts;
+      if (tokRole !== role) return false;
+    } else if (parts.length === 2 && role === 'admin') {
+      // Legacy admin format ts:sig
+      [ts, sig] = parts;
+      tokRole = 'admin';
+    } else {
+      return false;
+    }
+
+    if (!ts || !sig || sig.length !== 64) return false;
+
+    const age = Date.now() - parseInt(ts, 10);
+    if (isNaN(age) || age < 0 || age > 24 * 60 * 60 * 1000) return false; // 24-hour expiration
+
+    const expectedSig = crypto.createHmac('sha256', secret).update(`${role}:${ts}`).digest('hex');
+    return crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expectedSig));
+  } catch (e) {
+    return false;
+  }
+}
+
+function generateAdminToken(secret) {
+  return generateRoleToken('admin', secret);
+}
+
+function verifyAdminToken(token, secret) {
+  return verifyRoleToken(token, 'admin', secret);
+}
+
+function extractBearerOrQueryToken(req) {
+  const authHeader = req.headers['authorization'] || '';
+  const tokenFromHeader = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : authHeader.trim();
+  const tokenFromQuery = (req.query.token || '').toString().trim();
+  return tokenFromHeader || tokenFromQuery;
+}
+
+function requireCoordinatorAuth(req, res, next) {
+  const secret = process.env.COORDINATOR_PASS || 'coord2026';
+  const token = extractBearerOrQueryToken(req);
+
+  if (!token || !verifyRoleToken(token, 'coordinator', secret)) {
+    return res.status(401).json({ success: false, error: 'Unauthorized: Valid Coordinator clearance required.' });
+  }
+  next();
+}
+
+function requireJudgeAuth(req, res, next) {
+  const secret = process.env.JUDGES_PASS || 'judge2026';
+  const token = extractBearerOrQueryToken(req);
+
+  if (!token || !verifyRoleToken(token, 'judge', secret)) {
+    return res.status(401).json({ success: false, error: 'Unauthorized: Valid Judge clearance required.' });
+  }
+  next();
+}
+
+function requireAdminAuth(req, res, next) {
+  const secret = process.env.ADMIN_SECRET || 'admin123';
+  const token = extractBearerOrQueryToken(req);
+
+  if (!token || !verifyAdminToken(token, secret)) {
+    return res.status(401).json({ success: false, error: 'Unauthorized: Valid Admin Authorization required.' });
+  }
+  next();
+}
+
 // 6. Coordinator Authentication & Data
 app.post('/api/coordinator/login', (req, res) => {
   const { password } = req.body || {};
   const secret = process.env.COORDINATOR_PASS || 'coord2026';
   if (password === secret) {
-    const token = Buffer.from(`coordinator_${Date.now()}`).toString('base64');
+    const token = generateRoleToken('coordinator', secret);
     return res.json({ success: true, token, message: 'Coordinator clearance granted.' });
   }
   return res.status(401).json({ success: false, error: 'Invalid coordinator password.' });
 });
 
-app.get('/api/coordinator/teams', async (req, res) => {
+app.get('/api/coordinator/teams', requireCoordinatorAuth, async (req, res) => {
   try {
     const db = await loadDb();
     // Coordinators can view teams, reviews, and food status
@@ -972,8 +1059,8 @@ app.get('/api/coordinator/teams', async (req, res) => {
   }
 });
 
-// Coordinator Mark Food or Review
-app.post('/api/coordinator/mark', async (req, res) => {
+// Coordinator Mark Food or Review (Protected)
+app.post('/api/coordinator/mark', requireCoordinatorAuth, async (req, res) => {
   try {
     const { teamId, type, key, value, notes } = req.body;
     if (!teamId || !type || !key) {
@@ -1011,13 +1098,13 @@ app.post('/api/judges/login', (req, res) => {
   const { password } = req.body || {};
   const secret = process.env.JUDGES_PASS || 'judge2026';
   if (password === secret) {
-    const token = Buffer.from(`judge_${Date.now()}`).toString('base64');
+    const token = generateRoleToken('judge', secret);
     return res.json({ success: true, token, message: 'Judge clearance granted.' });
   }
   return res.status(401).json({ success: false, error: 'Invalid judges password.' });
 });
 
-app.get('/api/judges/teams', async (req, res) => {
+app.get('/api/judges/teams', requireJudgeAuth, async (req, res) => {
   try {
     const db = await loadDb();
     // Judges can view teams, domains, problem statement, and scores
@@ -1041,8 +1128,8 @@ app.get('/api/judges/teams', async (req, res) => {
   }
 });
 
-// Judges Submit Marks (STRICTLY HIDDEN FROM TEAMS)
-app.post('/api/judges/score', async (req, res) => {
+// Judges Submit Marks (STRICTLY HIDDEN FROM TEAMS) (Protected)
+app.post('/api/judges/score', requireJudgeAuth, async (req, res) => {
   try {
     const { teamId, innovation, technical, execution, presentation, remarks } = req.body;
     if (!teamId) return res.status(400).json({ success: false, error: 'teamId is required.' });
@@ -1075,43 +1162,6 @@ app.post('/api/judges/score', async (req, res) => {
 });
 
 // 8. Admin Authentication & Authorization
-function generateAdminToken(secret) {
-  const ts = Date.now().toString();
-  const signature = crypto.createHmac('sha256', secret).update(`admin:${ts}`).digest('hex');
-  return Buffer.from(`${ts}:${signature}`).toString('base64');
-}
-
-function verifyAdminToken(token, secret) {
-  if (!token) return false;
-  if (token === secret) return true; // Direct admin secret supported
-  try {
-    const decoded = Buffer.from(token, 'base64').toString('utf8');
-    const [ts, sig] = decoded.split(':');
-    if (!ts || !sig || sig.length !== 64) return false;
-
-    const age = Date.now() - parseInt(ts, 10);
-    if (isNaN(age) || age < 0 || age > 24 * 60 * 60 * 1000) return false; // 24-hour expiration
-
-    const expectedSig = crypto.createHmac('sha256', secret).update(`admin:${ts}`).digest('hex');
-    return crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expectedSig));
-  } catch (e) {
-    return false;
-  }
-}
-
-function requireAdminAuth(req, res, next) {
-  const secret = process.env.ADMIN_SECRET || 'admin123';
-  const authHeader = req.headers['authorization'] || '';
-  const tokenFromHeader = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : authHeader.trim();
-  const tokenFromQuery = (req.query.token || '').toString().trim();
-  const token = tokenFromHeader || tokenFromQuery;
-
-  if (!token || !verifyAdminToken(token, secret)) {
-    return res.status(401).json({ success: false, error: 'Unauthorized: Valid Admin Authorization required.' });
-  }
-  next();
-}
-
 app.post('/api/admin/login', (req, res) => {
   try {
     const { password } = req.body || {};

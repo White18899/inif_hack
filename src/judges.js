@@ -9,6 +9,35 @@ let allTeams = [];
     const btnLogout = document.getElementById('btn-logout');
     const btnRefresh = document.getElementById('btn-refresh');
 
+    function escapeHTML(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function getAuthToken() {
+      try {
+        const raw = sessionStorage.getItem('infinity_judge_auth');
+        if (!raw) return '';
+        const parsed = JSON.parse(raw);
+        return parsed.token || parsed.password || '';
+      } catch (e) {
+        return '';
+      }
+    }
+
+    function authHeaders(extra = {}) {
+      const token = getAuthToken();
+      return {
+        ...extra,
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      };
+    }
+
     btnRefresh.addEventListener('click', async () => {
       btnRefresh.classList.add('spinning');
       try {
@@ -53,7 +82,7 @@ let allTeams = [];
           throw new Error(data.error || 'Invalid judges passphrase.');
         }
 
-        sessionStorage.setItem('infinity_judge_auth', JSON.stringify({ password }));
+        sessionStorage.setItem('infinity_judge_auth', JSON.stringify({ token: data.token, password }));
         secLogin.style.display = 'none';
         secDash.style.display = 'block';
         btnLogout.style.display = 'inline-block';
@@ -95,7 +124,18 @@ let allTeams = [];
 
     async function loadTeams() {
       try {
-        const res = await fetch('/api/judges/teams');
+        const res = await fetch('/api/judges/teams', {
+          headers: authHeaders()
+        });
+        if (res.status === 401) {
+          sessionStorage.removeItem('infinity_judge_auth');
+          secDash.style.display = 'none';
+          secLogin.style.display = 'block';
+          btnLogout.style.display = 'none';
+          loginErr.textContent = 'Judge session expired. Please enter passphrase.';
+          loginErr.style.display = 'block';
+          return;
+        }
         const data = await res.json();
         allTeams = data.teams || [];
         renderTeams();
@@ -125,18 +165,18 @@ let allTeams = [];
             <div>
               <div class="t-header">
                 <div>
-                  <h4 class="t-name">${t.teamName}</h4>
-                  <div class="t-college">${t.college}</div>
+                  <h4 class="t-name">${escapeHTML(t.teamName)}</h4>
+                  <div class="t-college">${escapeHTML(t.college)}</div>
                 </div>
-                <span class="t-id">${t.id}</span>
+                <span class="t-id">${escapeHTML(t.id)}</span>
               </div>
 
               <div class="t-ps-box">
-                ${ps ? `<span class="t-ps-code">${ps.code}:</span> ${ps.title}` : '<span style="color:#888;">No Problem Statement Locked Yet</span>'}
+                ${ps ? `<span class="t-ps-code">${escapeHTML(ps.code)}:</span> ${escapeHTML(ps.title)}` : '<span style="color:#888;">No Problem Statement Locked Yet</span>'}
               </div>
 
               <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:10px;">
-                <strong>Domain:</strong> ${(t.preferredDomain || 'MIND').toUpperCase()} • <strong>Tech:</strong> ${Array.isArray(t.techStack) ? t.techStack.join(', ') : (t.techStack || 'Standard')}
+                <strong>Domain:</strong> ${escapeHTML((t.preferredDomain || 'MIND').toUpperCase())} • <strong>Tech:</strong> ${Array.isArray(t.techStack) ? escapeHTML(t.techStack.join(', ')) : escapeHTML(t.techStack || 'Standard')}
               </div>
             </div>
 
@@ -145,7 +185,7 @@ let allTeams = [];
                 <span style="font-size:0.65rem; color:var(--text-muted); font-family:'JetBrains Mono';">CURRENT MARKS:</span>
                 <div class="score-val">${total > 0 ? `${total} / 100` : '<span style="color:#666; font-size:1rem;">UNRATED</span>'}</div>
               </div>
-              <button class="btn-eval" data-team-id="${t.id}">
+              <button class="btn-eval" data-team-id="${escapeHTML(t.id)}">
                 ${total > 0 ? 'EDIT SCORES' : 'EVALUATE SQUAD'}
               </button>
             </div>
@@ -211,7 +251,7 @@ let allTeams = [];
       try {
         const res = await fetch('/api/judges/score', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: authHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify({
             teamId: activeEvaluatingTeam.id,
             innovation: inno,
@@ -221,6 +261,11 @@ let allTeams = [];
             remarks: remarks,
           }),
         });
+        if (res.status === 401) {
+          alert('Judge session expired. Please log in again.');
+          window.location.reload();
+          return;
+        }
         const data = await res.json();
         if (data.success) {
           activeEvaluatingTeam.scores = data.scores;

@@ -9,6 +9,35 @@ let allTeams = [];
     const btnLogout = document.getElementById('btn-logout');
     const btnRefresh = document.getElementById('btn-refresh');
 
+    function escapeHTML(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function getAuthToken() {
+      try {
+        const raw = sessionStorage.getItem('infinity_coord_auth');
+        if (!raw) return '';
+        const parsed = JSON.parse(raw);
+        return parsed.token || parsed.password || '';
+      } catch (e) {
+        return '';
+      }
+    }
+
+    function authHeaders(extra = {}) {
+      const token = getAuthToken();
+      return {
+        ...extra,
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      };
+    }
+
     btnRefresh.addEventListener('click', async () => {
       btnRefresh.classList.add('spinning');
       try {
@@ -44,7 +73,7 @@ let allTeams = [];
           throw new Error(data.error || 'Invalid coordinator passphrase.');
         }
 
-        sessionStorage.setItem('infinity_coord_auth', JSON.stringify({ password }));
+        sessionStorage.setItem('infinity_coord_auth', JSON.stringify({ token: data.token, password }));
         secLogin.style.display = 'none';
         secDash.style.display = 'block';
         btnLogout.style.display = 'inline-block';
@@ -86,7 +115,18 @@ let allTeams = [];
 
     async function loadTeams() {
       try {
-        const res = await fetch('/api/coordinator/teams');
+        const res = await fetch('/api/coordinator/teams', {
+          headers: authHeaders()
+        });
+        if (res.status === 401) {
+          sessionStorage.removeItem('infinity_coord_auth');
+          secDash.style.display = 'none';
+          secLogin.style.display = 'block';
+          btnLogout.style.display = 'none';
+          loginErr.textContent = 'Coordinator session expired. Please enter passphrase.';
+          loginErr.style.display = 'block';
+          return;
+        }
         const data = await res.json();
         allTeams = data.teams || [];
         renderTable();
@@ -124,8 +164,8 @@ let allTeams = [];
       const filtered = allTeams.filter(t => {
         const matchDomain = activeFilter === 'all' || (t.preferredDomain && t.preferredDomain.toLowerCase() === activeFilter);
         const matchSearch = !q ||
-          t.teamName.toLowerCase().includes(q) ||
-          t.id.toLowerCase().includes(q) ||
+          (t.teamName && t.teamName.toLowerCase().includes(q)) ||
+          (t.id && t.id.toLowerCase().includes(q)) ||
           (t.college && t.college.toLowerCase().includes(q)) ||
           (t.leader?.email && t.leader.email.toLowerCase().includes(q));
         return matchDomain && matchSearch;
@@ -142,35 +182,35 @@ let allTeams = [];
         const rev = t.reviews || {};
 
         html += `
-          <tr data-team-id="${t.id}">
+          <tr data-team-id="${escapeHTML(t.id)}">
             <td>
-              <div class="team-cell-title">${t.teamName} <span class="font-mono" style="color:var(--cyan); font-size:0.7rem;">(${t.id})</span></div>
-              <div class="team-cell-sub">${t.college} • Leader: ${t.leader?.name || 'N/A'} (${t.leader?.phone || ''})</div>
+              <div class="team-cell-title">${escapeHTML(t.teamName)} <span class="font-mono" style="color:var(--cyan); font-size:0.7rem;">(${escapeHTML(t.id)})</span></div>
+              <div class="team-cell-sub">${escapeHTML(t.college)} • Leader: ${escapeHTML(t.leader?.name || 'N/A')} (${escapeHTML(t.leader?.phone || '')})</div>
             </td>
             <td>
-              <span class="portal-badge">${(t.preferredDomain || 'MIND').toUpperCase()}</span>
-              <div class="team-cell-sub">${t.roomAllocated || 'Lab Block 3'}</div>
+              <span class="portal-badge">${escapeHTML((t.preferredDomain || 'MIND').toUpperCase())}</span>
+              <div class="team-cell-sub">${escapeHTML(t.roomAllocated || 'Lab Block 3')}</div>
             </td>
             <td>
               <div class="chip-group">
                 <label class="check-chip ${food.highTea?.collected ? 'checked' : ''}">
-                  <input type="checkbox" data-team="${t.id}" data-type="food" data-key="highTea" ${food.highTea?.collected ? 'checked' : ''}>
+                  <input type="checkbox" data-team="${escapeHTML(t.id)}" data-type="food" data-key="highTea" ${food.highTea?.collected ? 'checked' : ''}>
                   High Tea
                 </label>
                 <label class="check-chip ${food.dinner?.collected ? 'checked' : ''}">
-                  <input type="checkbox" data-team="${t.id}" data-type="food" data-key="dinner" ${food.dinner?.collected ? 'checked' : ''}>
+                  <input type="checkbox" data-team="${escapeHTML(t.id)}" data-type="food" data-key="dinner" ${food.dinner?.collected ? 'checked' : ''}>
                   Dinner
                 </label>
                 <label class="check-chip ${food.midnightFuel?.collected ? 'checked' : ''}">
-                  <input type="checkbox" data-team="${t.id}" data-type="food" data-key="midnightFuel" ${food.midnightFuel?.collected ? 'checked' : ''}>
+                  <input type="checkbox" data-team="${escapeHTML(t.id)}" data-type="food" data-key="midnightFuel" ${food.midnightFuel?.collected ? 'checked' : ''}>
                   Midnight
                 </label>
                 <label class="check-chip ${food.breakfast?.collected ? 'checked' : ''}">
-                  <input type="checkbox" data-team="${t.id}" data-type="food" data-key="breakfast" ${food.breakfast?.collected ? 'checked' : ''}>
+                  <input type="checkbox" data-team="${escapeHTML(t.id)}" data-type="food" data-key="breakfast" ${food.breakfast?.collected ? 'checked' : ''}>
                   Breakfast
                 </label>
                 <label class="check-chip ${food.lunch?.collected ? 'checked' : ''}">
-                  <input type="checkbox" data-team="${t.id}" data-type="food" data-key="lunch" ${food.lunch?.collected ? 'checked' : ''}>
+                  <input type="checkbox" data-team="${escapeHTML(t.id)}" data-type="food" data-key="lunch" ${food.lunch?.collected ? 'checked' : ''}>
                   Lunch
                 </label>
               </div>
@@ -178,15 +218,15 @@ let allTeams = [];
             <td>
               <div class="chip-group">
                 <label class="check-chip ${rev.r1?.attended ? 'checked' : ''}">
-                  <input type="checkbox" data-team="${t.id}" data-type="review" data-key="r1" ${rev.r1?.attended ? 'checked' : ''}>
+                  <input type="checkbox" data-team="${escapeHTML(t.id)}" data-type="review" data-key="r1" ${rev.r1?.attended ? 'checked' : ''}>
                   R1: Idea
                 </label>
                 <label class="check-chip ${rev.r2?.attended ? 'checked' : ''}">
-                  <input type="checkbox" data-team="${t.id}" data-type="review" data-key="r2" ${rev.r2?.attended ? 'checked' : ''}>
+                  <input type="checkbox" data-team="${escapeHTML(t.id)}" data-type="review" data-key="r2" ${rev.r2?.attended ? 'checked' : ''}>
                   R2: Logic
                 </label>
                 <label class="check-chip ${rev.r3?.attended ? 'checked' : ''}">
-                  <input type="checkbox" data-team="${t.id}" data-type="review" data-key="r3" ${rev.r3?.attended ? 'checked' : ''}>
+                  <input type="checkbox" data-team="${escapeHTML(t.id)}" data-type="review" data-key="r3" ${rev.r3?.attended ? 'checked' : ''}>
                   R3: Pitch
                 </label>
               </div>
@@ -208,11 +248,16 @@ let allTeams = [];
           label.classList.toggle('checked', value);
 
           try {
-            await fetch('/api/coordinator/mark', {
+            const res = await fetch('/api/coordinator/mark', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: authHeaders({ 'Content-Type': 'application/json' }),
               body: JSON.stringify({ teamId, type, key, value }),
             });
+            if (res.status === 401) {
+              alert('Coordinator session expired. Please log in again.');
+              window.location.reload();
+              return;
+            }
             // Update local state
             const target = allTeams.find(t => t.id === teamId);
             if (target) {
