@@ -9,9 +9,6 @@ binding = "BUCKET"
 
 [vars]
 APP_URL = "https://infinity.akao.in"
-ADMIN_SECRET = "admin123"
-COORDINATOR_PASS = "coord2026"
-JUDGES_PASS = "judge2026"
 CLOUDFLARE_R2_PUBLIC_DOMAIN = "https://pub-aa1b426e7ec64c31a70bdd49676fdec1.r2.dev"
 
 [env.production]
@@ -24,7 +21,5 @@ binding = "BUCKET"
 
 [env.production.vars]
 APP_URL = "https://infinity.akao.in"
-ADMIN_SECRET = "admin123"
-COORDINATOR_PASS = "coord2026"
-JUDGES_PASS = "judge2026"
 CLOUDFLARE_R2_PUBLIC_DOMAIN = "https://pub-aa1b426e7ec64c31a70bdd49676fdec1.r2.dev"
+

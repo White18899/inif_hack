@@ -643,9 +643,9 @@ export async function onRequest(context) {
     return handleOptions();
   }
 
-  const ADMIN_SECRET = env.ADMIN_SECRET || 'admin123';
-  const COORDINATOR_PASS = env.COORDINATOR_PASS || 'coord2026';
-  const JUDGES_PASS = env.JUDGES_PASS || 'judge2026';
+  const ADMIN_SECRET = env.ADMIN_SECRET || '';
+  const COORDINATOR_PASS = env.COORDINATOR_PASS || '';
+  const JUDGES_PASS = env.JUDGES_PASS || '';
   const PUBLIC_DOMAIN = env.CLOUDFLARE_R2_PUBLIC_DOMAIN || 'https://pub-aa1b426e7ec64c31a70bdd49676fdec1.r2.dev';
 
   try {
@@ -1179,6 +1179,12 @@ export async function onRequest(context) {
     // -------------------------------------------------------------
     if (pathname === '/api/coordinator/login' && method === 'POST') {
       const { password } = (await request.json().catch(() => ({}))) || {};
+      if (!COORDINATOR_PASS) {
+        return jsonResponse({ success: false, error: 'Coordinator authentication is not configured.' }, 500);
+      }
+      if (!password) {
+        return jsonResponse({ success: false, error: 'Passcode is required.' }, 400);
+      }
       if (password === COORDINATOR_PASS) {
         const token = await generateRoleToken('coordinator', COORDINATOR_PASS);
         return jsonResponse({ success: true, token, message: 'Coordinator clearance granted.' });
@@ -1247,6 +1253,12 @@ export async function onRequest(context) {
     // -------------------------------------------------------------
     if (pathname === '/api/judges/login' && method === 'POST') {
       const { password } = (await request.json().catch(() => ({}))) || {};
+      if (!JUDGES_PASS) {
+        return jsonResponse({ success: false, error: 'Judge authentication is not configured.' }, 500);
+      }
+      if (!password) {
+        return jsonResponse({ success: false, error: 'Passcode is required.' }, 400);
+      }
       if (password === JUDGES_PASS) {
         const token = await generateRoleToken('judge', JUDGES_PASS);
         return jsonResponse({ success: true, token, message: 'Judge clearance granted.' });
@@ -1322,6 +1334,9 @@ export async function onRequest(context) {
     // -------------------------------------------------------------
     if (pathname === '/api/admin/login' && method === 'POST') {
       const { password } = (await request.json().catch(() => ({}))) || {};
+      if (!ADMIN_SECRET) {
+        return jsonResponse({ success: false, error: 'Admin authentication is not configured.' }, 500);
+      }
       if (!password) return jsonResponse({ success: false, error: 'Passphrase is required.' }, 400);
       if (password === ADMIN_SECRET) {
         const token = await generateAdminToken(ADMIN_SECRET);

@@ -949,7 +949,10 @@ app.post('/api/teams/login', async (req, res) => {
       await saveDb(db);
     }
 
-    const secret = process.env.ADMIN_SECRET || 'admin123';
+    const secret = process.env.ADMIN_SECRET;
+    if (!secret) {
+      return res.status(500).json({ success: false, error: 'Server authentication secret is not configured.' });
+    }
     const token = generateTeamToken(team.id, secret);
 
     // Map stone or domain
@@ -988,7 +991,10 @@ app.get('/api/teams/me', async (req, res) => {
       return res.status(401).json({ success: false, error: 'Invalid token format.' });
     }
 
-    const secret = process.env.ADMIN_SECRET || 'admin123';
+    const secret = process.env.ADMIN_SECRET;
+    if (!secret) {
+      return res.status(500).json({ success: false, error: 'Server authentication secret is not configured.' });
+    }
     if (!verifyTeamToken(token, teamId, secret)) {
       return res.status(401).json({ success: false, error: 'Invalid or expired team token.' });
     }
@@ -1026,7 +1032,10 @@ app.post('/api/teams/update-selection', async (req, res) => {
     }
 
     const db = await loadDb();
-    const secret = process.env.ADMIN_SECRET || 'admin123';
+    const secret = process.env.ADMIN_SECRET;
+    if (!secret) {
+      return res.status(500).json({ success: false, error: 'Server authentication secret is not configured.' });
+    }
     let team = null;
 
     if (email) {
@@ -1151,7 +1160,10 @@ function extractBearerOrQueryToken(req) {
 }
 
 function requireCoordinatorAuth(req, res, next) {
-  const secret = process.env.COORDINATOR_PASS || 'coord2026';
+  const secret = process.env.COORDINATOR_PASS;
+  if (!secret) {
+    return res.status(500).json({ success: false, error: 'Coordinator authentication is not configured.' });
+  }
   const token = extractBearerOrQueryToken(req);
 
   if (!token || !verifyRoleToken(token, 'coordinator', secret)) {
@@ -1161,7 +1173,10 @@ function requireCoordinatorAuth(req, res, next) {
 }
 
 function requireJudgeAuth(req, res, next) {
-  const secret = process.env.JUDGES_PASS || 'judge2026';
+  const secret = process.env.JUDGES_PASS;
+  if (!secret) {
+    return res.status(500).json({ success: false, error: 'Judge authentication is not configured.' });
+  }
   const token = extractBearerOrQueryToken(req);
 
   if (!token || !verifyRoleToken(token, 'judge', secret)) {
@@ -1171,7 +1186,10 @@ function requireJudgeAuth(req, res, next) {
 }
 
 function requireAdminAuth(req, res, next) {
-  const secret = process.env.ADMIN_SECRET || 'admin123';
+  const secret = process.env.ADMIN_SECRET;
+  if (!secret) {
+    return res.status(500).json({ success: false, error: 'Admin authentication is not configured.' });
+  }
   const token = extractBearerOrQueryToken(req);
 
   if (!token || !verifyAdminToken(token, secret)) {
@@ -1183,7 +1201,13 @@ function requireAdminAuth(req, res, next) {
 // 6. Coordinator Authentication & Data
 app.post('/api/coordinator/login', (req, res) => {
   const { password } = req.body || {};
-  const secret = process.env.COORDINATOR_PASS || 'coord2026';
+  const secret = process.env.COORDINATOR_PASS;
+  if (!secret) {
+    return res.status(500).json({ success: false, error: 'Coordinator authentication is not configured.' });
+  }
+  if (!password) {
+    return res.status(400).json({ success: false, error: 'Passcode is required.' });
+  }
   if (password === secret) {
     const token = generateRoleToken('coordinator', secret);
     return res.json({ success: true, token, message: 'Coordinator clearance granted.' });
@@ -1244,7 +1268,13 @@ app.post('/api/coordinator/mark', requireCoordinatorAuth, async (req, res) => {
 // 7. Judges Authentication & Data
 app.post('/api/judges/login', (req, res) => {
   const { password } = req.body || {};
-  const secret = process.env.JUDGES_PASS || 'judge2026';
+  const secret = process.env.JUDGES_PASS;
+  if (!secret) {
+    return res.status(500).json({ success: false, error: 'Judge authentication is not configured.' });
+  }
+  if (!password) {
+    return res.status(400).json({ success: false, error: 'Passcode is required.' });
+  }
   if (password === secret) {
     const token = generateRoleToken('judge', secret);
     return res.json({ success: true, token, message: 'Judge clearance granted.' });
@@ -1313,7 +1343,10 @@ app.post('/api/judges/score', requireJudgeAuth, async (req, res) => {
 app.post('/api/admin/login', (req, res) => {
   try {
     const { password } = req.body || {};
-    const secret = process.env.ADMIN_SECRET || 'admin123';
+    const secret = process.env.ADMIN_SECRET;
+    if (!secret) {
+      return res.status(500).json({ success: false, error: 'Admin authentication is not configured.' });
+    }
 
     if (!password) return res.status(400).json({ success: false, error: 'Passphrase is required.' });
     if (password === secret) {
