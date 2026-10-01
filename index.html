@@ -44,6 +44,8 @@
     rel="stylesheet">
 
   <link rel="stylesheet" href="/style.css">
+  <!-- Tesseract AI OCR Engine for Client-Side Receipt Text Extraction -->
+  <script defer src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script>
     if ('scrollRestoration' in history) {
       history.scrollRestoration = 'manual';
@@ -1064,15 +1066,15 @@
                 <label class="form-label" for="reg-screenshot">PAYMENT SCREENSHOT <span class="req">*</span></label>
                 <input type="file" id="reg-screenshot" class="form-file-input"
                   accept="image/png, image/jpeg, image/jpg, image/webp" required>
-                <div class="file-help-text">Upload Google Pay, PhonePe, or Paytm receipt screenshot.</div>
+                <div class="file-help-text">Upload Google Pay, PhonePe, or Paytm receipt screenshot (Max: 20MB).</div>
               </div>
 
               <!-- Client Preview & Auto-Detection Status -->
               <div class="ocr-detection-banner" id="ocr-banner" style="display: none;">
-                <div class="ocr-icon">⚡</div>
+                <div class="ocr-icon" id="ocr-icon">⚡</div>
                 <div>
-                  <div class="ocr-title">Auto-Identified Payment Telemetry</div>
-                  <div class="ocr-body" id="ocr-body">Extracting 12-digit UTR and Phone...</div>
+                  <div class="ocr-title" id="ocr-title">Payment Receipt Verification</div>
+                  <div class="ocr-body" id="ocr-body">Extracting 12-digit UTR...</div>
                 </div>
               </div>
 

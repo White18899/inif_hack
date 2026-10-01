@@ -560,6 +560,12 @@ export async function onRequest(context) {
 
         const file = formData.get('paymentScreenshot');
         if (file && typeof file === 'object' && file.size > 0) {
+          if (file.size > 20 * 1024 * 1024) {
+            return jsonResponse({
+              success: false,
+              error: `Payment screenshot exceeds the 20MB limit (${(file.size / (1024 * 1024)).toFixed(1)}MB). Please upload an image under 20MB.`,
+            }, 400);
+          }
           screenshotBuffer = await file.arrayBuffer();
           screenshotMime = file.type || 'image/png';
           if (file.name && file.name.includes('.')) {
@@ -586,6 +592,21 @@ export async function onRequest(context) {
 
       if (!teamName || !college || !preferredDomain || !teamPassword || !leaderName || !leaderEmail || !leaderPhone || !paymentUtr) {
         return jsonResponse({ success: false, error: 'Missing mandatory registration fields. All leader and squad details are required.' }, 400);
+      }
+
+      const cleanUtr = (paymentUtr || '').trim();
+      if (cleanUtr.length < 10 || cleanUtr.length > 22 || !/^[A-Za-z0-9]+$/.test(cleanUtr)) {
+        return jsonResponse({
+          success: false,
+          error: `Invalid Payment UTR format: '${paymentUtr}'. Standard UPI UTR / Transaction Reference Number must be 12 digits.`,
+        }, 400);
+      }
+
+      if (!screenshotBuffer) {
+        return jsonResponse({
+          success: false,
+          error: 'Payment confirmation screenshot is required. Please upload your payment receipt (Max 20MB).',
+        }, 400);
       }
 
       const cleanLeaderEmail = (leaderEmail || '').trim().toLowerCase();

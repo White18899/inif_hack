@@ -22,6 +22,8 @@ export function initRegistrationModule() {
   const regScreenshot = document.getElementById('reg-screenshot');
   const ocrBanner = document.getElementById('ocr-banner');
   const ocrBody = document.getElementById('ocr-body');
+  const ocrIcon = document.getElementById('ocr-icon');
+  const ocrTitle = document.getElementById('ocr-title');
   const regUtr = document.getElementById('reg-utr');
   const regPayPhone = document.getElementById('reg-pay-phone');
   const utrCheckBadge = document.getElementById('utr-check-badge');
@@ -206,43 +208,140 @@ export function initRegistrationModule() {
     });
   }
 
-  // Payment Screenshot Upload & Client OCR / Telemetry Extraction Simulation
+  // Helper to load Tesseract OCR engine dynamically on demand
+  async function loadTesseractOCR() {
+    if (window.Tesseract) return window.Tesseract;
+    return new Promise((resolve, reject) => {
+      const existing = document.querySelector('script[src*="tesseract"]');
+      if (existing) {
+        if (window.Tesseract) return resolve(window.Tesseract);
+        existing.addEventListener('load', () => resolve(window.Tesseract));
+        existing.addEventListener('error', () => reject(new Error('Failed to load OCR engine')));
+        return;
+      }
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+      s.onload = () => resolve(window.Tesseract);
+      s.onerror = () => reject(new Error('Failed to load OCR engine'));
+      document.head.appendChild(s);
+    });
+  }
+
+  const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20 MB Limit
+  const ALLOWED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+
+  // Payment Screenshot Upload & Client AI OCR Telemetry Extraction
   if (regScreenshot) {
-    regScreenshot.addEventListener('change', (e) => {
+    regScreenshot.addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (!file) return;
 
-      if (ocrBanner && ocrBody) {
-        ocrBanner.style.display = 'flex';
-        ocrBody.innerHTML = `<span class="ocr-scanning">Scanning ${file.name} for 12-digit UTR and Phone...</span>`;
+      // 1. Enforce 20MB Upload Limit
+      if (file.size > MAX_FILE_SIZE) {
+        const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+        showError(`❌ File size (${sizeMb} MB) exceeds the 20MB limit. Please upload an image under 20MB.`);
+        regScreenshot.value = '';
+        if (ocrBanner) ocrBanner.style.display = 'none';
+        return;
       }
 
-      // Simulate OCR and regex detection from receipt metadata
-      setTimeout(() => {
-        // Try extracting 12-digit pattern from file name or generate a plausible reference
-        const digits = file.name.match(/\d{10,12}/);
-        let detectedUtr = digits ? digits[0] : '';
-        if (!detectedUtr || detectedUtr.length < 12) {
-          // Generate 12-digit transaction ID starting with 4 (standard Indian UPI format)
-          detectedUtr = '4' + Math.floor(10000000000 + Math.random() * 90000000000).toString();
+      // 2. Enforce Image File Type
+      if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+        showError(`❌ Invalid file format (${file.type || 'unknown'}). Please upload a PNG, JPG, or WEBP receipt screenshot.`);
+        regScreenshot.value = '';
+        if (ocrBanner) ocrBanner.style.display = 'none';
+        return;
+      }
+
+      // 3. Display Scanning Telemetry
+      if (ocrBanner) {
+        ocrBanner.style.display = 'flex';
+        ocrBanner.className = 'ocr-detection-banner scanning';
+        if (ocrIcon) ocrIcon.textContent = '🔍';
+        if (ocrTitle) ocrTitle.textContent = 'Scanning Receipt With AI OCR...';
+        if (ocrBody) ocrBody.innerHTML = `<span class="ocr-scanning">Reading image pixels for 12-digit UPI UTR...</span>`;
+      }
+
+      try {
+        const Tesseract = await loadTesseractOCR();
+        if (!Tesseract || !Tesseract.recognize) throw new Error('OCR not available');
+
+        // OCR recognize with 12s timeout race
+        const recognizePromise = Tesseract.recognize(file, 'eng', {
+          logger: m => {
+            if (m.status === 'recognizing text' && m.progress) {
+              const pct = Math.round(m.progress * 100);
+              if (ocrBody) ocrBody.innerHTML = `<span class="ocr-scanning">Reading receipt text: ${pct}%...</span>`;
+            }
+          }
+        });
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('OCR Timeout')), 12000));
+        const result = await Promise.race([recognizePromise, timeoutPromise]);
+
+        const rawText = (result?.data?.text || '').trim();
+        const lower = rawText.toLowerCase();
+
+        // Check for labeled 12-digit UTR patterns (e.g. UTR: 412345678901, UPI Ref: 412345678901)
+        const labeledMatch = rawText.match(/(?:utr|upi\s*ref(?:erence)?|rrn|txn\s*(?:id|no)?|transaction\s*(?:id|ref|no)?)[\s:.-]*([0-9]{12})\b/i);
+        const twelveDigits = rawText.match(/\b([0-9]{12})\b/g) || [];
+
+        // Check for payment confirmation keywords
+        const paymentKeywords = [
+          'upi', 'gpay', 'google pay', 'phonepe', 'paytm', 'paid', 'payment',
+          'successful', 'completed', 'transfer', 'transferred', 'credited', 'debited',
+          'banking', 'bank', 'utr', 'rrn', 'ref no', 'ref number', 'transaction id',
+          'txn id', 'inr', '₹', 'bhim', 'cred', 'payment to', 'state bank', 'hdfc', 'icici', 'axis'
+        ];
+        const isPaymentImage = paymentKeywords.some(kw => lower.includes(kw));
+
+        let detectedUtr = null;
+        if (labeledMatch && labeledMatch[1]) {
+          detectedUtr = labeledMatch[1];
+        } else if (twelveDigits.length > 0) {
+          detectedUtr = twelveDigits.find(n => !/^(\d)\1{11}$/.test(n)) || twelveDigits[0];
         }
 
-        const leaderPhoneVal = document.getElementById('reg-leader-phone')?.value?.trim();
-        const detectedPhone = leaderPhoneVal || '9' + Math.floor(100000000 + Math.random() * 900000000).toString();
-
-        if (regUtr && (!regUtr.value || regUtr.value.length < 6)) {
-          regUtr.value = detectedUtr;
-          verifyUtrUniqueness(detectedUtr);
+        if (detectedUtr) {
+          // Genuine 12-digit UTR found in receipt!
+          if (regUtr) {
+            regUtr.value = detectedUtr;
+            verifyUtrUniqueness(detectedUtr);
+          }
+          if (ocrBanner) {
+            ocrBanner.className = 'ocr-detection-banner success';
+            if (ocrIcon) ocrIcon.textContent = '✅';
+            if (ocrTitle) ocrTitle.textContent = '12-Digit UTR Detected';
+            if (ocrBody) ocrBody.innerHTML = `Auto-identified UTR: <strong>${detectedUtr}</strong> from receipt text. Please verify it matches your payment app.`;
+          }
+          audioEngine.playChime(720);
+        } else if (!isPaymentImage && twelveDigits.length === 0) {
+          // Non-payment image uploaded (e.g. NPTEL error screenshot, meme, random photo)
+          if (ocrBanner) {
+            ocrBanner.className = 'ocr-detection-banner error';
+            if (ocrIcon) ocrIcon.textContent = '⚠️';
+            if (ocrTitle) ocrTitle.textContent = 'Non-Payment Image Detected';
+            if (ocrBody) ocrBody.innerHTML = `This screenshot does not appear to contain a UPI payment receipt or 12-digit UTR. Please upload your actual GPay, PhonePe, or Paytm receipt and manually enter your 12-digit UTR below.`;
+          }
+          audioEngine.playChime(220);
+        } else {
+          // Payment receipt detected, but 12-digit UTR was blurry or couldn't be parsed
+          if (ocrBanner) {
+            ocrBanner.className = 'ocr-detection-banner warning';
+            if (ocrIcon) ocrIcon.textContent = 'ℹ️';
+            if (ocrTitle) ocrTitle.textContent = 'Receipt Detected (Manual UTR Required)';
+            if (ocrBody) ocrBody.innerHTML = `Payment receipt detected, but the 12-digit UTR was not clearly legible. Please manually type the 12-digit UTR from your payment app below.`;
+          }
         }
-        if (regPayPhone && !regPayPhone.value) {
-          regPayPhone.value = detectedPhone;
+      } catch (err) {
+        console.warn('OCR processing notice:', err);
+        // Fallback: File is accepted, but require manual entry without inventing any fake number!
+        if (ocrBanner) {
+          ocrBanner.className = 'ocr-detection-banner info';
+          if (ocrIcon) ocrIcon.textContent = '📎';
+          if (ocrTitle) ocrTitle.textContent = 'Payment Receipt Attached';
+          if (ocrBody) ocrBody.innerHTML = `Receipt attached (${(file.size / (1024 * 1024)).toFixed(1)}MB). Please manually enter your 12-digit UPI UTR / Reference number below.`;
         }
-
-        if (ocrBody) {
-          ocrBody.innerHTML = `Identified UTR: <strong>${detectedUtr}</strong> | Payer Phone: <strong>${detectedPhone}</strong> (Verified from receipt)`;
-        }
-        audioEngine.playChime(720);
-      }, 600);
+      }
     });
   }
 
@@ -529,8 +628,23 @@ export function initRegistrationModule() {
         return;
       }
 
-      if (!paymentUtr || paymentUtr.length < 6) {
-        showError('Please enter a valid 12-digit payment bank UTR / transaction number.');
+      if (screenshotFile.size > MAX_FILE_SIZE) {
+        const sizeMb = (screenshotFile.size / (1024 * 1024)).toFixed(1);
+        showError(`Payment screenshot file size (${sizeMb} MB) exceeds the 20MB limit. Please upload an image under 20MB.`);
+        document.getElementById('reg-screenshot')?.focus();
+        return;
+      }
+
+      if (!paymentUtr) {
+        showError('Please enter your 12-digit payment bank UTR / transaction number.');
+        document.getElementById('reg-utr')?.focus();
+        return;
+      }
+
+      const cleanUtr = paymentUtr.trim();
+      const UTR_REGEX = /^([0-9]{12}|[A-Za-z0-9]{10,22})$/;
+      if (!UTR_REGEX.test(cleanUtr)) {
+        showError('Invalid UTR format. Standard UPI Transaction ID / UTR must be 12 digits (found in your GPay / PhonePe / Paytm receipt).');
         document.getElementById('reg-utr')?.focus();
         return;
       }

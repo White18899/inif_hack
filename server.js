@@ -22,8 +22,8 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
-app.use(express.json({ limit: '15mb' }));
-app.use(express.urlencoded({ extended: true, limit: '15mb' }));
+app.use(express.json({ limit: '25mb' }));
+app.use(express.urlencoded({ extended: true, limit: '25mb' }));
 
 // Static files (dist if built, otherwise public/assets)
 app.use(express.static(path.join(__dirname, 'public')));
@@ -373,7 +373,7 @@ if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 const storage = multer.memoryStorage();
 const upload = multer({
   storage,
-  limits: { fileSize: 12 * 1024 * 1024 }, // 12MB limit
+  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB upload limit
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) {
       cb(null, true);
@@ -648,6 +648,21 @@ app.post('/api/register', upload.single('paymentScreenshot'), async (req, res) =
       });
     }
 
+    const cleanUtr = paymentUtr.trim();
+    if (cleanUtr.length < 10 || cleanUtr.length > 22 || !/^[A-Za-z0-9]+$/.test(cleanUtr)) {
+      return res.status(400).json({
+        success: false,
+        error: `Invalid Payment UTR format: '${paymentUtr}'. Standard UPI UTR / Transaction Reference Number must be 12 digits.`,
+      });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: 'Payment confirmation screenshot is required. Please upload your payment receipt (Max 20MB).',
+      });
+    }
+
     // Process screenshot file
     let screenshotUrl = '/placeholder-receipt.png';
     if (req.file) {
@@ -712,7 +727,6 @@ app.post('/api/register', upload.single('paymentScreenshot'), async (req, res) =
       });
     }
 
-    const cleanUtr = paymentUtr.trim();
     const db = await loadDb();
 
     // Check for duplicate participants (Intra-team & Cross-team)
