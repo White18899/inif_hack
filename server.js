@@ -22,7 +22,59 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+// ==========================================
+// CORS SECURITY POLICY
+// ==========================================
+export const ALLOWED_ORIGINS = [
+  'https://infinity.akao.in',
+  'https://infinity-hackathon-2026.pages.dev',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+];
+
+export function isAllowedOrigin(origin, appUrl = process.env.APP_URL) {
+  if (!origin) return true; // Direct same-origin or non-browser requests
+  const cleanOrigin = origin.toLowerCase().trim();
+  if (appUrl && cleanOrigin === appUrl.toLowerCase().replace(/\/$/, '')) {
+    return true;
+  }
+  if (ALLOWED_ORIGINS.some(o => o.toLowerCase() === cleanOrigin)) {
+    return true;
+  }
+  if (/^https:\/\/[a-z0-9-]+\.infinity-hackathon-2026\.pages\.dev$/.test(cleanOrigin)) {
+    return true;
+  }
+  return false;
+}
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (isAllowedOrigin(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Cross-origin request blocked by CORS security policy.'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: true,
+  maxAge: 86400,
+};
+
+app.use(cors(corsOptions));
+
+// Explicit CORS Error Interceptor
+app.use((err, req, res, next) => {
+  if (err && err.message && err.message.includes('CORS security policy')) {
+    return res.status(403).json({
+      success: false,
+      error: 'Cross-origin request blocked by CORS security policy.'
+    });
+  }
+  next(err);
+});
 app.use(express.json({ limit: '25mb' }));
 app.use(express.urlencoded({ extended: true, limit: '25mb' }));
 
@@ -499,6 +551,16 @@ async function uploadToR2(buffer, key, contentType) {
 // ==========================================
 // API ROUTES
 // ==========================================
+
+// 0. Health Check
+app.get('/api/health', (req, res) => {
+  res.json({
+    success: true,
+    status: 'operational',
+    server: 'node-express',
+    timestamp: new Date().toISOString(),
+  });
+});
 
 // 1. Get Domains & Problem Statements
 app.get('/api/domains', async (req, res) => {

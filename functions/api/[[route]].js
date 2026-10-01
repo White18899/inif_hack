@@ -252,30 +252,83 @@ const INITIAL_DOMAINS = [
 
 const R2_DB_KEY = 'state/database.json';
 
+// ==========================================
+// CORS SECURITY POLICY
+// ==========================================
+const ALLOWED_ORIGINS = [
+  'https://infinity.akao.in',
+  'https://infinity-hackathon-2026.pages.dev',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+];
+
+export function isAllowedOrigin(origin, env = {}) {
+  if (!origin) return true; // Direct same-origin or non-browser requests
+  const cleanOrigin = origin.toLowerCase().trim();
+  const appUrl = (env.APP_URL || '').toLowerCase().replace(/\/$/, '');
+  if (appUrl && cleanOrigin === appUrl) {
+    return true;
+  }
+  if (ALLOWED_ORIGINS.some(o => o.toLowerCase() === cleanOrigin)) {
+    return true;
+  }
+  if (/^https:\/\/[a-z0-9-]+\.infinity-hackathon-2026\.pages\.dev$/.test(cleanOrigin)) {
+    return true;
+  }
+  return false;
+}
+
+function getCorsHeaders(request, env = {}) {
+  const origin = request ? request.headers.get('Origin') : null;
+  const headers = {
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+    'Access-Control-Allow-Credentials': 'true',
+    'Access-Control-Max-Age': '86400',
+    'Vary': 'Origin',
+  };
+  if (origin && isAllowedOrigin(origin, env)) {
+    headers['Access-Control-Allow-Origin'] = origin;
+  }
+  return headers;
+}
+
 // Helper: JSON response with CORS and Rate Limit headers
-function jsonResponse(data, status = 200, extraHeaders = {}) {
+function makeJsonResponse(data, status = 200, extraHeaders = {}, request = null, env = {}) {
+  const corsHeaders = request ? getCorsHeaders(request, env) : {};
   return new Response(JSON.stringify(data), {
     status,
     headers: {
       'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       'X-RateLimit-Limit': '120',
+      ...corsHeaders,
       ...extraHeaders,
     },
   });
 }
 
 // Helper: CORS preflight
-function handleOptions() {
+function handleOptions(request, env = {}) {
+  const origin = request.headers.get('Origin');
+  if (origin && !isAllowedOrigin(origin, env)) {
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'Cross-origin request blocked by CORS security policy.'
+    }), {
+      status: 403,
+      headers: {
+        'Content-Type': 'application/json',
+        'Vary': 'Origin',
+      },
+    });
+  }
+
   return new Response(null, {
     status: 204,
     headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      'Access-Control-Max-Age': '86400',
+      ...getCorsHeaders(request, env),
     },
   });
 }
@@ -704,11 +757,30 @@ export async function onRequest(context) {
   const url = new URL(request.url);
   const pathname = url.pathname;
   const method = request.method.toUpperCase();
+  const origin = request.headers.get('Origin');
+
+  // Verify origin if present
+  if (origin && !isAllowedOrigin(origin, env)) {
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'Cross-origin request blocked by CORS security policy.'
+    }), {
+      status: 403,
+      headers: {
+        'Content-Type': 'application/json',
+        'Vary': 'Origin',
+      },
+    });
+  }
 
   // 1. CORS Preflight
   if (method === 'OPTIONS') {
-    return handleOptions();
+    return handleOptions(request, env);
   }
+
+  // Scoped jsonResponse automatically binding request and env for CORS
+  const jsonResponse = (data, status = 200, extraHeaders = {}) =>
+    makeJsonResponse(data, status, extraHeaders, request, env);
 
   const clientIp = getClientIp(request);
 
@@ -1705,7 +1777,7 @@ export async function onRequest(context) {
         headers: {
           'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
           'Content-Disposition': `attachment; filename="infinity_hackathon_export_${Date.now()}.xlsx"`,
-          'Access-Control-Allow-Origin': '*',
+          ...getCorsHeaders(request, env),
         },
       });
     }
