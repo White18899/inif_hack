@@ -396,6 +396,14 @@ function checkParticipantConflicts(existingTeams, participants, currentTeamId = 
   return { conflict: false };
 }
 
+export function isDummyUtr(utr) {
+  if (!utr || typeof utr !== 'string') return true;
+  const clean = utr.trim();
+  if (/^(\d)\1+$/.test(clean)) return true; // 000000000000, 111111111111
+  const dummies = ['123456789012', '12345678901', '012345678901', '987654321098', '112233445566', '998877665544', '123456123456'];
+  return dummies.includes(clean);
+}
+
 // Helper: Load database from R2
 async function loadDb(env) {
   if (env && env.BUCKET) {
@@ -484,11 +492,15 @@ export async function onRequest(context) {
       const utr = (url.searchParams.get('utr') || '').trim();
       if (!utr) return jsonResponse({ exists: false });
 
+      if (isDummyUtr(utr)) {
+        return jsonResponse({ exists: false, isDummy: true, error: 'Fake or dummy UTR' });
+      }
+
       const db = await loadDb(env);
       const existing = db.teams.find(
         (t) => t.payment?.utr && t.payment.utr.trim().toLowerCase() === utr.toLowerCase()
       );
-      return jsonResponse({ exists: Boolean(existing), utr });
+      return jsonResponse({ exists: Boolean(existing), utr, isDummy: false });
     }
 
     // -------------------------------------------------------------
@@ -595,10 +607,10 @@ export async function onRequest(context) {
       }
 
       const cleanUtr = (paymentUtr || '').trim();
-      if (cleanUtr.length < 10 || cleanUtr.length > 22 || !/^[A-Za-z0-9]+$/.test(cleanUtr)) {
+      if (cleanUtr.length < 10 || cleanUtr.length > 22 || !/^[A-Za-z0-9]+$/.test(cleanUtr) || isDummyUtr(cleanUtr)) {
         return jsonResponse({
           success: false,
-          error: `Invalid Payment UTR format: '${paymentUtr}'. Standard UPI UTR / Transaction Reference Number must be 12 digits.`,
+          error: `Invalid or fake Payment UTR: '${paymentUtr}'. Authentic 12-digit UPI reference number required.`,
         }, 400);
       }
 
