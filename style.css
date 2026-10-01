@@ -310,47 +310,51 @@ body.timeline-unlocked {
 }
 
 .hud-btn-audio {
-  position: relative;
-  height: 24px !important;
-  min-height: 24px !important;
-  max-height: 24px !important;
-  padding: 0 7px !important;
-  gap: 4px !important;
-  border-radius: 5px !important;
-  background: rgba(14, 14, 20, 0.75) !important;
-  border: 1px solid rgba(255, 255, 255, 0.16) !important;
-  backdrop-filter: blur(12px) !important;
-  transition: all 0.2s var(--transition-smooth) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 4px 6px !important;
+  height: auto !important;
+  min-height: unset !important;
+  max-height: unset !important;
+  width: auto !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-radius: 0 !important;
+  cursor: pointer !important;
+  transition: transform 0.2s ease, color 0.2s ease, filter 0.2s ease !important;
 }
 
 .hud-btn-audio .icon {
-  width: 11px !important;
-  height: 11px !important;
-}
-
-.hud-btn-audio .btn-text {
-  font-family: var(--font-mono) !important;
-  font-size: 0.58rem !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.08em !important;
+  width: 17px !important;
+  height: 17px !important;
+  display: block;
 }
 
 .hud-btn-audio:hover {
-  background: rgba(255, 255, 255, 0.12) !important;
-  border-color: rgba(0, 210, 255, 0.6) !important;
-  transform: translateY(-1px);
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  transform: scale(1.15) !important;
 }
 
 .hud-btn-audio.audio-unmuted {
-  border-color: rgba(0, 210, 255, 0.45) !important;
-  box-shadow: 0 0 10px rgba(0, 210, 255, 0.18) !important;
-  color: #00d2ff !important;
+  color: #ffffff !important;
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.45)) !important;
 }
 
 .hud-btn-audio.audio-muted {
-  border-color: rgba(255, 255, 255, 0.1) !important;
-  color: #71717a !important;
-  box-shadow: none !important;
+  color: rgba(255, 255, 255, 0.38) !important;
+  filter: none !important;
+  opacity: 0.65;
+}
+
+.hud-btn-audio.audio-muted:hover {
+  opacity: 1;
+  color: #ffffff !important;
 }
 
 .audio-muted .audio-wave,
