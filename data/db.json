@@ -1395,8 +1395,178 @@
       },
       "createdAt": "2026-10-01T06:46:50.767Z",
       "status": "confirmed"
+    },
+    {
+      "id": "INF-4029",
+      "teamName": "hi",
+      "college": "hi",
+      "preferredDomain": "mind",
+      "techStack": [],
+      "teamSize": 3,
+      "teamPassword": "pbkdf2:100000:a77d83205320398269039bf358ba33c1:4bdc574d73ab5ee55669b086108b8b54ddd18506c893709c2b787784545e533c",
+      "leader": {
+        "name": "hi",
+        "email": "hi@gmail.com",
+        "phone": "1234567890"
+      },
+      "members": [
+        {
+          "name": "hi",
+          "email": "h1i@gmail.com",
+          "phone": "1234567894"
+        },
+        {
+          "name": "hi",
+          "email": "h2i@gmail.com",
+          "phone": "1234567896"
+        }
+      ],
+      "roomAllocated": "TBA (Lab Block 3)",
+      "selectedProblemStatement": null,
+      "payment": {
+        "utr": "614824672882",
+        "phone": "1234567890",
+        "screenshotUrl": "https://pub-aa1b426e7ec64c31a70bdd49676fdec1.r2.dev/receipts/1790842530968-b1jqem.jpeg",
+        "submittedAt": "2026-10-01T08:15:32.042Z",
+        "amount": 1047,
+        "status": "pending"
+      },
+      "reviews": {
+        "r1": {
+          "attended": false,
+          "time": null,
+          "notes": ""
+        },
+        "r2": {
+          "attended": false,
+          "time": null,
+          "notes": ""
+        },
+        "r3": {
+          "attended": false,
+          "time": null,
+          "notes": ""
+        }
+      },
+      "food": {
+        "highTea": {
+          "collected": false,
+          "time": null
+        },
+        "dinner": {
+          "collected": false,
+          "time": null
+        },
+        "midnightFuel": {
+          "collected": false,
+          "time": null
+        },
+        "breakfast": {
+          "collected": false,
+          "time": null
+        },
+        "lunch": {
+          "collected": false,
+          "time": null
+        }
+      },
+      "scores": {
+        "innovation": 0,
+        "technical": 0,
+        "execution": 0,
+        "presentation": 0,
+        "total": 0,
+        "remarks": ""
+      },
+      "createdAt": "2026-10-01T08:15:32.042Z",
+      "status": "confirmed"
+    },
+    {
+      "id": "INF-4789",
+      "teamName": "h11",
+      "college": "h11",
+      "preferredDomain": "mind",
+      "techStack": [],
+      "teamSize": 3,
+      "teamPassword": "pbkdf2:100000:ea63c4ce7815e94a2929982598f5c7d1:5a5821ae79d250792eb79a25291a1b438707b5953dee09089bf4e236b627119f",
+      "leader": {
+        "name": "h11",
+        "email": "h1@gmail.com",
+        "phone": "1234567891"
+      },
+      "members": [
+        {
+          "name": "hi",
+          "email": "i@gmail.com",
+          "phone": "1234554321"
+        },
+        {
+          "name": "hi",
+          "email": "h@gmail.com",
+          "phone": "2345665432"
+        }
+      ],
+      "roomAllocated": "TBA (Lab Block 3)",
+      "selectedProblemStatement": null,
+      "payment": {
+        "utr": "912498993636",
+        "phone": "1234567891",
+        "screenshotUrl": "https://pub-aa1b426e7ec64c31a70bdd49676fdec1.r2.dev/receipts/1790842782542-v8yknn.jpeg",
+        "submittedAt": "2026-10-01T08:19:43.295Z",
+        "amount": 1047,
+        "status": "pending"
+      },
+      "reviews": {
+        "r1": {
+          "attended": false,
+          "time": null,
+          "notes": ""
+        },
+        "r2": {
+          "attended": false,
+          "time": null,
+          "notes": ""
+        },
+        "r3": {
+          "attended": false,
+          "time": null,
+          "notes": ""
+        }
+      },
+      "food": {
+        "highTea": {
+          "collected": false,
+          "time": null
+        },
+        "dinner": {
+          "collected": false,
+          "time": null
+        },
+        "midnightFuel": {
+          "collected": false,
+          "time": null
+        },
+        "breakfast": {
+          "collected": false,
+          "time": null
+        },
+        "lunch": {
+          "collected": false,
+          "time": null
+        }
+      },
+      "scores": {
+        "innovation": 0,
+        "technical": 0,
+        "execution": 0,
+        "presentation": 0,
+        "total": 0,
+        "remarks": ""
+      },
+      "createdAt": "2026-10-01T08:19:43.295Z",
+      "status": "confirmed"
     }
   ],
-  "_version": 11,
-  "_lastModified": "2026-10-01T07:04:08.394Z"
+  "_version": 13,
+  "_lastModified": "2026-10-01T08:19:43.740Z"
 }
