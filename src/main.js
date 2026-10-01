@@ -12,6 +12,7 @@ import { audioEngine } from './audio.js';
 import { TIMELINE_EVENTS } from './timelineData.js';
 import { initRegistrationModule } from './registration.js';
 import { TechText } from './techText.js';
+import { initCinematicPreloader } from './cinematicPreloader.js';
 
 class InfinityScrollShowcase {
   constructor() {
@@ -52,8 +53,19 @@ class InfinityScrollShowcase {
     // Initial Presentation of Specimen 1 (Mind Stone // Intelligence)
     this.displayStone(0, false);
 
-    // Auto-play convergence visual animation on initial page load (silent)
-    this.triggerConvergence(false);
+    // Initialize Cinematic Marvel Intro Preloader
+    this.cinematic = initCinematicPreloader({
+      onComplete: () => {
+        // Trigger the 3D Six Infinity Stones convergence sequence to reveal the cosmos
+        this.triggerConvergence(false);
+      },
+      onReplay: () => {
+        // If convergence or interaction was active, reset to initial specimen
+        if (this.isConvergenceActive) {
+          this.endConvergence();
+        }
+      }
+    });
   }
 
   isMobile() {

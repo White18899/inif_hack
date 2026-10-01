@@ -51,12 +51,73 @@
     }
     window.scrollTo(0, 0);
   </script>
-  <script type="module" crossorigin src="/assets/main-Q6BFn6Cd.js"></script>
+  <script type="module" crossorigin src="/assets/main-CUsvNtwA.js"></script>
   <link rel="modulepreload" crossorigin href="/assets/modulepreload-polyfill-B5Qt9EMX.js">
-  <link rel="stylesheet" crossorigin href="/assets/main-DHBj9fSa.css">
+  <link rel="stylesheet" crossorigin href="/assets/main-BxKtZ2WP.css">
 </head>
 
 <body class="theme-obsidian">
+  <!-- Instant Preloader Guard Check to prevent layout flashes -->
+  <script>
+    try {
+      if (sessionStorage.getItem('inif_intro_seen') === 'true') {
+        document.documentElement.classList.add('intro-already-seen');
+      }
+    } catch(e) {}
+  </script>
+
+  <!-- Cinematic Marvel-Style Intro Preloader (First Visit Showcase) -->
+  <div id="cinematic-preloader" class="cinematic-preloader" role="dialog" aria-modal="true" aria-label="Marvel Studios Intro Presentation">
+    <div class="cinematic-letterbox cinematic-letterbox-top"></div>
+
+    <div class="cinematic-stage">
+      <div class="cinematic-video-wrapper">
+        <video id="cinematic-video" class="cinematic-video" playsinline muted preload="auto">
+          <source src="/loading.mp4" type="video/mp4">
+        </video>
+        <div class="cinematic-vignette-ring"></div>
+      </div>
+    </div>
+
+    <div class="cinematic-letterbox cinematic-letterbox-bottom"></div>
+
+    <!-- Cinematic Top HUD Controls -->
+    <div class="cinematic-hud-top">
+      <div class="cinematic-brand-indicator">
+        <span class="cinematic-rec-dot"></span>
+        <span class="cinematic-brand-text">INFINITY STUDIOS // PRESENTATION</span>
+      </div>
+
+      <div class="cinematic-top-actions">
+        <!-- Audio Mode Indicator -->
+        <button id="btn-intro-audio" class="cinematic-audio-toggle" type="button" aria-label="Toggle Intro Sound">
+          <span class="intro-audio-icon">🔇</span>
+          <span class="intro-audio-text">SOUND</span>
+        </button>
+
+        <!-- Skip Button -->
+        <button id="btn-skip-intro" class="btn-skip-intro" type="button" aria-label="Skip Marvel Intro">
+          <span class="skip-text">SKIP INTRO</span>
+          <span class="skip-key-hint">ESC</span>
+          <svg class="skip-arrow" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M5.5 4v16l10-8-10-8zm11 0v16h2V4h-2z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Cinematic Bottom HUD Track & Timecode -->
+    <div class="cinematic-hud-bottom">
+      <div class="cinematic-progress-track">
+        <div id="cinematic-progress-fill" class="cinematic-progress-fill"></div>
+      </div>
+      <div class="cinematic-meta-row">
+        <span class="cinematic-cue-text">A 3D MARVEL-INSPIRED INTRO • FORGE THE UNIVERSE</span>
+        <span class="cinematic-timecode" id="cinematic-timecode">00:00 / 00:16</span>
+      </div>
+    </div>
+  </div>
+
   <!-- 3D Canvas Viewport (Untouched, Pristine Three.js WebGL Engine) -->
   <div id="webgl-container"></div>
 
@@ -73,6 +134,7 @@
 
     <!-- Navigation Menu Links -->
     <nav class="hud-nav" aria-label="Main Navigation">
+      <button id="btn-replay-intro" class="nav-link btn-replay-intro" type="button" title="Watch Marvel Studios Intro">🎬 INTRO</button>
       <a href="#showcase-section" class="nav-link">DOMAINS</a>
       <a href="#sponsors-section" class="nav-link">SPONSORS</a>
       <a href="#timeline-section" class="nav-link">SCHEDULE</a>
@@ -1059,6 +1121,7 @@
         <span class="mono-label">// SQUAD PORTAL</span>
         <div class="mobile-portals-grid" style="grid-template-columns: 1fr;">
           <a href="/leader.html" class="m-portal-item" style="justify-content: center;">TEAM LEADER PORTAL</a>
+          <button id="btn-mobile-replay-intro" class="m-portal-item" type="button" style="justify-content: center; margin-top: 8px; color: #ff3366; border-color: rgba(255, 51, 102, 0.3); background: rgba(255, 51, 102, 0.06); font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; cursor: pointer;">🎬 REPLAY MARVEL INTRO</button>
         </div>
       </div>
       <div class="mobile-drawer-audio">
