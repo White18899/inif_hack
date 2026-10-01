@@ -1522,6 +1522,23 @@ class InfinityScrollShowcase {
     window.addEventListener('touchstart', unlockAudio, { once: true, passive: true });
     window.addEventListener('wheel', unlockAudio, { once: true, passive: true });
     window.addEventListener('click', unlockAudio, { once: true });
+
+    // Pause audio when switching tabs / minimizing window, resume when returning
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        audioEngine.suspend();
+      } else {
+        audioEngine.resume();
+      }
+    });
+
+    // Terminate audio immediately on navigation or tab close
+    window.addEventListener('pagehide', () => {
+      audioEngine.destroy();
+    });
+    window.addEventListener('beforeunload', () => {
+      audioEngine.destroy();
+    });
   }
 
   /* --------------------------------------------------------------------------

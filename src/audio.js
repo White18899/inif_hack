@@ -117,6 +117,29 @@ class CosmicAudioEngine {
     this.droneOscs = [osc1, osc2, lfo];
   }
 
+  suspend() {
+    if (this.ctx && this.ctx.state === 'running') {
+      this.ctx.suspend();
+    }
+  }
+
+  resume() {
+    if (!this.isMuted && this.ctx && this.ctx.state === 'suspended') {
+      this.ctx.resume();
+    }
+  }
+
+  destroy() {
+    this.stopAmbientDrone();
+    if (this.ctx) {
+      try {
+        this.ctx.close();
+      } catch (_) {}
+      this.ctx = null;
+    }
+    this.initialized = false;
+  }
+
   stopAmbientDrone() {
     if (this.droneOscs && this.droneOscs.length) {
       this.droneOscs.forEach(osc => {
