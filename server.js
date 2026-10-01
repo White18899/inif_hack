@@ -830,13 +830,9 @@ app.get('/api/verify-utr', async (req, res) => {
     const utr = (req.query.utr || '').toString().trim();
     if (!utr) return res.json({ exists: false });
 
-    if (isDummyUtr(utr)) {
-      return res.json({ exists: false, isDummy: true, error: 'Fake or dummy UTR' });
-    }
-
     const db = await loadDb();
     const existing = db.teams.find((t) => t.payment && t.payment.utr && t.payment.utr.trim().toLowerCase() === utr.toLowerCase());
-    res.json({ exists: Boolean(existing), utr, isDummy: false });
+    res.json({ exists: Boolean(existing), utr });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

@@ -927,15 +927,11 @@ export async function onRequest(context) {
       const utr = (url.searchParams.get('utr') || '').trim();
       if (!utr) return jsonResponse({ exists: false });
 
-      if (isDummyUtr(utr)) {
-        return jsonResponse({ exists: false, isDummy: true, error: 'Fake or dummy UTR' });
-      }
-
       const db = await loadDb(env);
       const existing = db.teams.find(
         (t) => t.payment?.utr && t.payment.utr.trim().toLowerCase() === utr.toLowerCase()
       );
-      return jsonResponse({ exists: Boolean(existing), utr, isDummy: false });
+      return jsonResponse({ exists: Boolean(existing), utr });
     }
 
     // -------------------------------------------------------------

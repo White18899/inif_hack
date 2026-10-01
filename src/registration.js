@@ -175,36 +175,16 @@ export function initRegistrationModule() {
     });
   });
 
-  // Real-time UTR Uniqueness Check
+  // Real-time UTR Uniqueness Check (checks database if UTR exists or not)
   async function verifyUtrUniqueness(utrValue) {
     const clean = (utrValue || '').trim();
-    if (!clean || clean.length < 6) {
+    if (!clean) {
       if (utrCheckBadge) {
         utrCheckBadge.textContent = '';
         utrCheckBadge.className = 'utr-status-badge';
       }
       isUtrUnique = false;
       return;
-    }
-
-    // 1. Detect dummy / fake UTR numbers (e.g. 123456789012, 000000000000)
-    if (isDummyUtr(clean)) {
-      isUtrUnique = false;
-      if (utrCheckBadge) {
-        utrCheckBadge.textContent = '❌ Fake / Test UTR!';
-        utrCheckBadge.className = 'utr-status-badge error';
-      }
-      setInputError(regUtr, 'Obvious dummy/fake UTR rejected. Please enter your authentic 12-digit transaction reference number.');
-      return;
-    }
-
-    // 2. Reject only if no receipt file has been selected
-    const hasReceiptFile = Boolean(regScreenshot && regScreenshot.files && regScreenshot.files.length > 0);
-    if (!isReceiptVerified && !hasReceiptFile) {
-      if (utrCheckBadge) {
-        utrCheckBadge.textContent = 'ℹ️ Attach payment receipt';
-        utrCheckBadge.className = 'utr-status-badge';
-      }
     }
 
     try {
@@ -221,7 +201,7 @@ export function initRegistrationModule() {
         isUtrUnique = true;
         clearInputError(regUtr);
         if (utrCheckBadge) {
-          utrCheckBadge.textContent = '✓ Verified & Unique';
+          utrCheckBadge.textContent = '✓ Unique';
           utrCheckBadge.className = 'utr-status-badge success';
         }
       }
@@ -835,24 +815,12 @@ export function initRegistrationModule() {
       }
 
       if (!paymentUtr) {
-        showError('Please enter your 12-digit payment bank UTR / transaction reference number.');
+        showError('Please enter your payment bank UTR / transaction reference number.');
         document.getElementById('reg-utr')?.focus();
         return;
       }
 
       const cleanUtr = paymentUtr.trim();
-      if (isDummyUtr(cleanUtr)) {
-        showError(`❌ Fake / Dummy UTR: '${cleanUtr}' rejected. Please enter your authentic 12-digit UPI transaction reference number.`);
-        document.getElementById('reg-utr')?.focus();
-        return;
-      }
-
-      const UTR_REGEX = /^([0-9]{12}|[A-Za-z0-9]{10,22})$/;
-      if (!UTR_REGEX.test(cleanUtr)) {
-        showError('Invalid UTR format. Standard UPI Transaction ID / UTR must be 12 digits (found in your GPay / PhonePe / Paytm receipt).');
-        document.getElementById('reg-utr')?.focus();
-        return;
-      }
 
       // Build FormData payload
       const formData = new FormData();
