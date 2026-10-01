@@ -252,7 +252,7 @@ const INITIAL_DOMAINS = [
 
 const R2_DB_KEY = 'state/database.json';
 
-// Helper: JSON response with CORS headers
+// Helper: JSON response with CORS and Rate Limit headers
 function jsonResponse(data, status = 200, extraHeaders = {}) {
   return new Response(JSON.stringify(data), {
     status,
@@ -261,6 +261,7 @@ function jsonResponse(data, status = 200, extraHeaders = {}) {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'X-RateLimit-Limit': '120',
       ...extraHeaders,
     },
   });
@@ -632,6 +633,72 @@ async function saveDb(env, data) {
   }
 }
 
+// ==========================================
+// RATE LIMITING & BRUTE-FORCE PROTECTION
+// ==========================================
+class MemoryRateLimiter {
+  constructor({ windowMs, maxRequests, message }) {
+    this.windowMs = windowMs;
+    this.maxRequests = maxRequests;
+    this.message = message || 'Too many requests. Please try again later.';
+    this.hits = new Map();
+  }
+
+  isLimited(key) {
+    const now = Date.now();
+    const timestamps = this.hits.get(key) || [];
+    const valid = timestamps.filter(t => now - t < this.windowMs);
+
+    if (valid.length >= this.maxRequests) {
+      const oldest = valid[0];
+      const retryAfter = Math.max(1, Math.ceil((this.windowMs - (now - oldest)) / 1000));
+      return {
+        limited: true,
+        remaining: 0,
+        retryAfter,
+        message: this.message
+      };
+    }
+
+    valid.push(now);
+    this.hits.set(key, valid);
+    return {
+      limited: false,
+      remaining: this.maxRequests - valid.length,
+      retryAfter: 0
+    };
+  }
+
+  reset(key) {
+    this.hits.delete(key);
+  }
+}
+
+function getClientIp(request) {
+  return request.headers.get('cf-connecting-ip') ||
+         request.headers.get('x-real-ip') ||
+         request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+         '127.0.0.1';
+}
+
+const apiRateLimiter = new MemoryRateLimiter({
+  windowMs: 60 * 1000,
+  maxRequests: 120,
+  message: 'API rate limit exceeded. Please slow down.'
+});
+
+const authRateLimiter = new MemoryRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  maxRequests: 5,
+  message: 'Too many failed login attempts. Access temporarily locked. Please wait 15 minutes before trying again.'
+});
+
+const regRateLimiter = new MemoryRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  maxRequests: 5,
+  message: 'Registration rate limit reached. Please wait 15 minutes before submitting another registration.'
+});
+
 export async function onRequest(context) {
   const { request, env } = context;
   const url = new URL(request.url);
@@ -641,6 +708,22 @@ export async function onRequest(context) {
   // 1. CORS Preflight
   if (method === 'OPTIONS') {
     return handleOptions();
+  }
+
+  const clientIp = getClientIp(request);
+
+  // Global API Rate Limiting (120 req / min)
+  const globalCheck = apiRateLimiter.isLimited(`${clientIp}:api`);
+  if (globalCheck.limited) {
+    return jsonResponse({
+      success: false,
+      error: globalCheck.message,
+      retryAfter: globalCheck.retryAfter
+    }, 429, {
+      'Retry-After': String(globalCheck.retryAfter),
+      'X-RateLimit-Limit': '120',
+      'X-RateLimit-Remaining': '0'
+    });
   }
 
   const ADMIN_SECRET = env.ADMIN_SECRET || '';
@@ -745,6 +828,17 @@ export async function onRequest(context) {
     // Team Registration
     // -------------------------------------------------------------
     if (pathname === '/api/register' && method === 'POST') {
+      const regCheck = regRateLimiter.isLimited(`${clientIp}:register`);
+      if (regCheck.limited) {
+        return jsonResponse({
+          success: false,
+          error: regCheck.message,
+          retryAfter: regCheck.retryAfter
+        }, 429, {
+          'Retry-After': String(regCheck.retryAfter)
+        });
+      }
+
       let teamName, college, preferredDomain, techStack, teamSize, teamPassword;
       let leaderName, leaderEmail, leaderPhone, paymentUtr, paymentPhone, members;
       let screenshotBuffer = null;
@@ -1015,6 +1109,18 @@ export async function onRequest(context) {
     // Team Leader Login
     // -------------------------------------------------------------
     if (pathname === '/api/teams/login' && method === 'POST') {
+      const authKey = `${clientIp}:teams-login`;
+      const check = authRateLimiter.isLimited(authKey);
+      if (check.limited) {
+        return jsonResponse({
+          success: false,
+          error: check.message,
+          retryAfter: check.retryAfter
+        }, 429, {
+          'Retry-After': String(check.retryAfter)
+        });
+      }
+
       const { email, password } = await request.json();
       if (!email || !password) {
         return jsonResponse({ success: false, error: 'Leader email and team password are required.' }, 400);
@@ -1033,6 +1139,9 @@ export async function onRequest(context) {
       if (!isCorrect) {
         return jsonResponse({ success: false, error: 'Incorrect team password.' }, 401);
       }
+
+      // Reset rate limiter on successful authentication
+      authRateLimiter.reset(authKey);
 
       // Auto-upgrade legacy plaintext password if verified
       if (!team.teamPassword.startsWith('pbkdf2:')) {
@@ -1178,6 +1287,18 @@ export async function onRequest(context) {
     // Coordinator Login
     // -------------------------------------------------------------
     if (pathname === '/api/coordinator/login' && method === 'POST') {
+      const authKey = `${clientIp}:coordinator-login`;
+      const check = authRateLimiter.isLimited(authKey);
+      if (check.limited) {
+        return jsonResponse({
+          success: false,
+          error: check.message,
+          retryAfter: check.retryAfter
+        }, 429, {
+          'Retry-After': String(check.retryAfter)
+        });
+      }
+
       const { password } = (await request.json().catch(() => ({}))) || {};
       if (!COORDINATOR_PASS) {
         return jsonResponse({ success: false, error: 'Coordinator authentication is not configured.' }, 500);
@@ -1186,6 +1307,7 @@ export async function onRequest(context) {
         return jsonResponse({ success: false, error: 'Passcode is required.' }, 400);
       }
       if (password === COORDINATOR_PASS) {
+        authRateLimiter.reset(authKey);
         const token = await generateRoleToken('coordinator', COORDINATOR_PASS);
         return jsonResponse({ success: true, token, message: 'Coordinator clearance granted.' });
       }
@@ -1252,6 +1374,18 @@ export async function onRequest(context) {
     // Judges Login
     // -------------------------------------------------------------
     if (pathname === '/api/judges/login' && method === 'POST') {
+      const authKey = `${clientIp}:judges-login`;
+      const check = authRateLimiter.isLimited(authKey);
+      if (check.limited) {
+        return jsonResponse({
+          success: false,
+          error: check.message,
+          retryAfter: check.retryAfter
+        }, 429, {
+          'Retry-After': String(check.retryAfter)
+        });
+      }
+
       const { password } = (await request.json().catch(() => ({}))) || {};
       if (!JUDGES_PASS) {
         return jsonResponse({ success: false, error: 'Judge authentication is not configured.' }, 500);
@@ -1260,6 +1394,7 @@ export async function onRequest(context) {
         return jsonResponse({ success: false, error: 'Passcode is required.' }, 400);
       }
       if (password === JUDGES_PASS) {
+        authRateLimiter.reset(authKey);
         const token = await generateRoleToken('judge', JUDGES_PASS);
         return jsonResponse({ success: true, token, message: 'Judge clearance granted.' });
       }
@@ -1333,12 +1468,25 @@ export async function onRequest(context) {
     // Admin Login
     // -------------------------------------------------------------
     if (pathname === '/api/admin/login' && method === 'POST') {
+      const authKey = `${clientIp}:admin-login`;
+      const check = authRateLimiter.isLimited(authKey);
+      if (check.limited) {
+        return jsonResponse({
+          success: false,
+          error: check.message,
+          retryAfter: check.retryAfter
+        }, 429, {
+          'Retry-After': String(check.retryAfter)
+        });
+      }
+
       const { password } = (await request.json().catch(() => ({}))) || {};
       if (!ADMIN_SECRET) {
         return jsonResponse({ success: false, error: 'Admin authentication is not configured.' }, 500);
       }
       if (!password) return jsonResponse({ success: false, error: 'Passphrase is required.' }, 400);
       if (password === ADMIN_SECRET) {
+        authRateLimiter.reset(authKey);
         const token = await generateAdminToken(ADMIN_SECRET);
         return jsonResponse({ success: true, token, message: 'Organizer clearance granted.' });
       }

@@ -26,6 +26,91 @@ app.use(cors());
 app.use(express.json({ limit: '25mb' }));
 app.use(express.urlencoded({ extended: true, limit: '25mb' }));
 
+// ==========================================
+// RATE LIMITING & BRUTE-FORCE PROTECTION
+// ==========================================
+export class MemoryRateLimiter {
+  constructor({ windowMs, maxRequests, message }) {
+    this.windowMs = windowMs;
+    this.maxRequests = maxRequests;
+    this.message = message || 'Too many requests. Please try again later.';
+    this.hits = new Map();
+  }
+
+  isLimited(key) {
+    const now = Date.now();
+    const timestamps = this.hits.get(key) || [];
+    const valid = timestamps.filter(t => now - t < this.windowMs);
+
+    if (valid.length >= this.maxRequests) {
+      const oldest = valid[0];
+      const retryAfter = Math.max(1, Math.ceil((this.windowMs - (now - oldest)) / 1000));
+      return {
+        limited: true,
+        remaining: 0,
+        retryAfter,
+        message: this.message
+      };
+    }
+
+    valid.push(now);
+    this.hits.set(key, valid);
+    return {
+      limited: false,
+      remaining: this.maxRequests - valid.length,
+      retryAfter: 0
+    };
+  }
+
+  reset(key) {
+    this.hits.delete(key);
+  }
+}
+
+export function getClientIp(req) {
+  const forwarded = req.headers['x-forwarded-for'];
+  if (forwarded) {
+    return forwarded.split(',')[0].trim();
+  }
+  return req.headers['cf-connecting-ip'] || req.ip || req.socket?.remoteAddress || '127.0.0.1';
+}
+
+export const apiRateLimiter = new MemoryRateLimiter({
+  windowMs: 60 * 1000,
+  maxRequests: 120,
+  message: 'API rate limit exceeded. Please slow down.'
+});
+
+export const authRateLimiter = new MemoryRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  maxRequests: 5,
+  message: 'Too many failed login attempts. Access temporarily locked. Please wait 15 minutes before trying again.'
+});
+
+export const regRateLimiter = new MemoryRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  maxRequests: 5,
+  message: 'Registration rate limit reached. Please wait 15 minutes before submitting another registration.'
+});
+
+// General API Rate Limiting Middleware (120 req / min)
+app.use('/api', (req, res, next) => {
+  const ip = getClientIp(req);
+  const check = apiRateLimiter.isLimited(`${ip}:api`);
+  res.setHeader('X-RateLimit-Limit', '120');
+  res.setHeader('X-RateLimit-Remaining', String(check.remaining));
+
+  if (check.limited) {
+    res.setHeader('Retry-After', String(check.retryAfter));
+    return res.status(429).json({
+      success: false,
+      error: check.message,
+      retryAfter: check.retryAfter
+    });
+  }
+  next();
+});
+
 // Static files (dist if built, otherwise public/assets)
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(__dirname));
@@ -690,6 +775,17 @@ app.get('/api/verify-participant', async (req, res) => {
 // - Uploads screenshot to Cloudflare R2
 app.post('/api/register', upload.single('paymentScreenshot'), async (req, res) => {
   try {
+    const clientIp = getClientIp(req);
+    const regCheck = regRateLimiter.isLimited(`${clientIp}:register`);
+    if (regCheck.limited) {
+      res.setHeader('Retry-After', String(regCheck.retryAfter));
+      return res.status(429).json({
+        success: false,
+        error: regCheck.message,
+        retryAfter: regCheck.retryAfter
+      });
+    }
+
     const {
       teamName,
       college,
@@ -928,6 +1024,18 @@ app.post('/api/register', upload.single('paymentScreenshot'), async (req, res) =
 // CRITICAL: Strictly HIDE judges' scores from teams!
 app.post('/api/teams/login', async (req, res) => {
   try {
+    const clientIp = getClientIp(req);
+    const authKey = `${clientIp}:teams-login`;
+    const check = authRateLimiter.isLimited(authKey);
+    if (check.limited) {
+      res.setHeader('Retry-After', String(check.retryAfter));
+      return res.status(429).json({
+        success: false,
+        error: check.message,
+        retryAfter: check.retryAfter
+      });
+    }
+
     const { email, password } = req.body;
     if (!email || !password) {
       return res.status(400).json({ success: false, error: 'Leader email and team password are required.' });
@@ -942,6 +1050,9 @@ app.post('/api/teams/login', async (req, res) => {
     if (!verifyPassword(password, team.teamPassword)) {
       return res.status(401).json({ success: false, error: 'Incorrect team password.' });
     }
+
+    // Reset rate limiter on successful authentication
+    authRateLimiter.reset(authKey);
 
     // Transparently upgrade legacy plaintext password to PBKDF2 if needed
     if (!team.teamPassword.startsWith('pbkdf2:')) {
@@ -1200,6 +1311,18 @@ function requireAdminAuth(req, res, next) {
 
 // 6. Coordinator Authentication & Data
 app.post('/api/coordinator/login', (req, res) => {
+  const clientIp = getClientIp(req);
+  const authKey = `${clientIp}:coordinator-login`;
+  const check = authRateLimiter.isLimited(authKey);
+  if (check.limited) {
+    res.setHeader('Retry-After', String(check.retryAfter));
+    return res.status(429).json({
+      success: false,
+      error: check.message,
+      retryAfter: check.retryAfter
+    });
+  }
+
   const { password } = req.body || {};
   const secret = process.env.COORDINATOR_PASS;
   if (!secret) {
@@ -1209,6 +1332,7 @@ app.post('/api/coordinator/login', (req, res) => {
     return res.status(400).json({ success: false, error: 'Passcode is required.' });
   }
   if (password === secret) {
+    authRateLimiter.reset(authKey);
     const token = generateRoleToken('coordinator', secret);
     return res.json({ success: true, token, message: 'Coordinator clearance granted.' });
   }
@@ -1267,6 +1391,18 @@ app.post('/api/coordinator/mark', requireCoordinatorAuth, async (req, res) => {
 
 // 7. Judges Authentication & Data
 app.post('/api/judges/login', (req, res) => {
+  const clientIp = getClientIp(req);
+  const authKey = `${clientIp}:judges-login`;
+  const check = authRateLimiter.isLimited(authKey);
+  if (check.limited) {
+    res.setHeader('Retry-After', String(check.retryAfter));
+    return res.status(429).json({
+      success: false,
+      error: check.message,
+      retryAfter: check.retryAfter
+    });
+  }
+
   const { password } = req.body || {};
   const secret = process.env.JUDGES_PASS;
   if (!secret) {
@@ -1276,6 +1412,7 @@ app.post('/api/judges/login', (req, res) => {
     return res.status(400).json({ success: false, error: 'Passcode is required.' });
   }
   if (password === secret) {
+    authRateLimiter.reset(authKey);
     const token = generateRoleToken('judge', secret);
     return res.json({ success: true, token, message: 'Judge clearance granted.' });
   }
@@ -1342,6 +1479,18 @@ app.post('/api/judges/score', requireJudgeAuth, async (req, res) => {
 // 8. Admin Authentication & Authorization
 app.post('/api/admin/login', (req, res) => {
   try {
+    const clientIp = getClientIp(req);
+    const authKey = `${clientIp}:admin-login`;
+    const check = authRateLimiter.isLimited(authKey);
+    if (check.limited) {
+      res.setHeader('Retry-After', String(check.retryAfter));
+      return res.status(429).json({
+        success: false,
+        error: check.message,
+        retryAfter: check.retryAfter
+      });
+    }
+
     const { password } = req.body || {};
     const secret = process.env.ADMIN_SECRET;
     if (!secret) {
@@ -1350,6 +1499,7 @@ app.post('/api/admin/login', (req, res) => {
 
     if (!password) return res.status(400).json({ success: false, error: 'Passphrase is required.' });
     if (password === secret) {
+      authRateLimiter.reset(authKey);
       const token = generateAdminToken(secret);
       return res.status(200).json({ success: true, token, message: 'Organizer clearance granted.' });
     }

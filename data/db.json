@@ -970,6 +970,431 @@
       },
       "createdAt": "2026-10-01T06:31:19.834Z",
       "status": "confirmed"
+    },
+    {
+      "id": "INF-7750",
+      "teamName": "Spam Squad 1",
+      "college": "Spam College",
+      "preferredDomain": "intelligence",
+      "techStack": [],
+      "teamSize": 3,
+      "teamPassword": "pbkdf2:100000:b9e3d55a4b8e66a7608537adf7cba69d:0be48f5287213e0298c805d2b319da06c1f50de0b3da5ef9cb07e92acc71c4e9",
+      "leader": {
+        "name": "Leader 1",
+        "email": "leader_1_1790837205457@example.com",
+        "phone": "9831109298"
+      },
+      "members": [
+        {
+          "name": "M1",
+          "email": "m1_1_1790837205457@example.com",
+          "phone": "9162171582"
+        },
+        {
+          "name": "M2",
+          "email": "m2_1_1790837205457@example.com",
+          "phone": "9264691992"
+        }
+      ],
+      "roomAllocated": "TBA (Lab Block 3)",
+      "selectedProblemStatement": null,
+      "payment": {
+        "utr": "UTR17908372054571",
+        "phone": "9812345678",
+        "screenshotUrl": "https://pub-aa1b426e7ec64c31a70bdd49676fdec1.r2.dev/receipts/1790837205474-81scqe.png",
+        "submittedAt": "2026-10-01T06:46:46.087Z",
+        "amount": 1047,
+        "status": "pending"
+      },
+      "reviews": {
+        "r1": {
+          "attended": false,
+          "time": null,
+          "notes": ""
+        },
+        "r2": {
+          "attended": false,
+          "time": null,
+          "notes": ""
+        },
+        "r3": {
+          "attended": false,
+          "time": null,
+          "notes": ""
+        }
+      },
+      "food": {
+        "highTea": {
+          "collected": false,
+          "time": null
+        },
+        "dinner": {
+          "collected": false,
+          "time": null
+        },
+        "midnightFuel": {
+          "collected": false,
+          "time": null
+        },
+        "breakfast": {
+          "collected": false,
+          "time": null
+        },
+        "lunch": {
+          "collected": false,
+          "time": null
+        }
+      },
+      "scores": {
+        "innovation": 0,
+        "technical": 0,
+        "execution": 0,
+        "presentation": 0,
+        "total": 0,
+        "remarks": ""
+      },
+      "createdAt": "2026-10-01T06:46:46.087Z",
+      "status": "confirmed"
+    },
+    {
+      "id": "INF-7928",
+      "teamName": "Spam Squad 2",
+      "college": "Spam College",
+      "preferredDomain": "intelligence",
+      "techStack": [],
+      "teamSize": 3,
+      "teamPassword": "pbkdf2:100000:68fd635878555acdfd68ea3ea4cf1293:4f08db580cc77af99dfae2d49613677a53367c2d1ef884764a6e284a5627641a",
+      "leader": {
+        "name": "Leader 2",
+        "email": "leader_2_1790837206500@example.com",
+        "phone": "9895879107"
+      },
+      "members": [
+        {
+          "name": "M1",
+          "email": "m1_2_1790837206500@example.com",
+          "phone": "9187903287"
+        },
+        {
+          "name": "M2",
+          "email": "m2_2_1790837206500@example.com",
+          "phone": "9284673342"
+        }
+      ],
+      "roomAllocated": "TBA (Lab Block 3)",
+      "selectedProblemStatement": null,
+      "payment": {
+        "utr": "UTR17908372065002",
+        "phone": "9812345678",
+        "screenshotUrl": "https://pub-aa1b426e7ec64c31a70bdd49676fdec1.r2.dev/receipts/1790837206505-g3pe2w.png",
+        "submittedAt": "2026-10-01T06:46:47.217Z",
+        "amount": 1047,
+        "status": "pending"
+      },
+      "reviews": {
+        "r1": {
+          "attended": false,
+          "time": null,
+          "notes": ""
+        },
+        "r2": {
+          "attended": false,
+          "time": null,
+          "notes": ""
+        },
+        "r3": {
+          "attended": false,
+          "time": null,
+          "notes": ""
+        }
+      },
+      "food": {
+        "highTea": {
+          "collected": false,
+          "time": null
+        },
+        "dinner": {
+          "collected": false,
+          "time": null
+        },
+        "midnightFuel": {
+          "collected": false,
+          "time": null
+        },
+        "breakfast": {
+          "collected": false,
+          "time": null
+        },
+        "lunch": {
+          "collected": false,
+          "time": null
+        }
+      },
+      "scores": {
+        "innovation": 0,
+        "technical": 0,
+        "execution": 0,
+        "presentation": 0,
+        "total": 0,
+        "remarks": ""
+      },
+      "createdAt": "2026-10-01T06:46:47.217Z",
+      "status": "confirmed"
+    },
+    {
+      "id": "INF-4698",
+      "teamName": "Spam Squad 3",
+      "college": "Spam College",
+      "preferredDomain": "intelligence",
+      "techStack": [],
+      "teamSize": 3,
+      "teamPassword": "pbkdf2:100000:38899615e12996db7fb413bac78dd9c5:7b4d2d9e2042bcf62dbecf56286f4e02044b43e4f7c50d78e41cb94f02c94d37",
+      "leader": {
+        "name": "Leader 3",
+        "email": "leader_3_1790837207818@example.com",
+        "phone": "9836480583"
+      },
+      "members": [
+        {
+          "name": "M1",
+          "email": "m1_3_1790837207818@example.com",
+          "phone": "9175075831"
+        },
+        {
+          "name": "M2",
+          "email": "m2_3_1790837207818@example.com",
+          "phone": "9224325794"
+        }
+      ],
+      "roomAllocated": "TBA (Lab Block 3)",
+      "selectedProblemStatement": null,
+      "payment": {
+        "utr": "UTR17908372078183",
+        "phone": "9812345678",
+        "screenshotUrl": "https://pub-aa1b426e7ec64c31a70bdd49676fdec1.r2.dev/receipts/1790837207826-psw9sm.png",
+        "submittedAt": "2026-10-01T06:46:48.547Z",
+        "amount": 1047,
+        "status": "pending"
+      },
+      "reviews": {
+        "r1": {
+          "attended": false,
+          "time": null,
+          "notes": ""
+        },
+        "r2": {
+          "attended": false,
+          "time": null,
+          "notes": ""
+        },
+        "r3": {
+          "attended": false,
+          "time": null,
+          "notes": ""
+        }
+      },
+      "food": {
+        "highTea": {
+          "collected": false,
+          "time": null
+        },
+        "dinner": {
+          "collected": false,
+          "time": null
+        },
+        "midnightFuel": {
+          "collected": false,
+          "time": null
+        },
+        "breakfast": {
+          "collected": false,
+          "time": null
+        },
+        "lunch": {
+          "collected": false,
+          "time": null
+        }
+      },
+      "scores": {
+        "innovation": 0,
+        "technical": 0,
+        "execution": 0,
+        "presentation": 0,
+        "total": 0,
+        "remarks": ""
+      },
+      "createdAt": "2026-10-01T06:46:48.547Z",
+      "status": "confirmed"
+    },
+    {
+      "id": "INF-3818",
+      "teamName": "Spam Squad 4",
+      "college": "Spam College",
+      "preferredDomain": "intelligence",
+      "techStack": [],
+      "teamSize": 3,
+      "teamPassword": "pbkdf2:100000:164f187f5344dbb2c8ef0ae95b8ef64a:9c21ad53fc391296d17cc5e64efa461b053f95257d1f3f4b5a5d85857b838e1c",
+      "leader": {
+        "name": "Leader 4",
+        "email": "leader_4_1790837209031@example.com",
+        "phone": "9887564767"
+      },
+      "members": [
+        {
+          "name": "M1",
+          "email": "m1_4_1790837209031@example.com",
+          "phone": "9153025867"
+        },
+        {
+          "name": "M2",
+          "email": "m2_4_1790837209031@example.com",
+          "phone": "9261812759"
+        }
+      ],
+      "roomAllocated": "TBA (Lab Block 3)",
+      "selectedProblemStatement": null,
+      "payment": {
+        "utr": "UTR17908372090314",
+        "phone": "9812345678",
+        "screenshotUrl": "https://pub-aa1b426e7ec64c31a70bdd49676fdec1.r2.dev/receipts/1790837209034-r3ysf6.png",
+        "submittedAt": "2026-10-01T06:46:49.752Z",
+        "amount": 1047,
+        "status": "pending"
+      },
+      "reviews": {
+        "r1": {
+          "attended": false,
+          "time": null,
+          "notes": ""
+        },
+        "r2": {
+          "attended": false,
+          "time": null,
+          "notes": ""
+        },
+        "r3": {
+          "attended": false,
+          "time": null,
+          "notes": ""
+        }
+      },
+      "food": {
+        "highTea": {
+          "collected": false,
+          "time": null
+        },
+        "dinner": {
+          "collected": false,
+          "time": null
+        },
+        "midnightFuel": {
+          "collected": false,
+          "time": null
+        },
+        "breakfast": {
+          "collected": false,
+          "time": null
+        },
+        "lunch": {
+          "collected": false,
+          "time": null
+        }
+      },
+      "scores": {
+        "innovation": 0,
+        "technical": 0,
+        "execution": 0,
+        "presentation": 0,
+        "total": 0,
+        "remarks": ""
+      },
+      "createdAt": "2026-10-01T06:46:49.753Z",
+      "status": "confirmed"
+    },
+    {
+      "id": "INF-3255",
+      "teamName": "Spam Squad 5",
+      "college": "Spam College",
+      "preferredDomain": "intelligence",
+      "techStack": [],
+      "teamSize": 3,
+      "teamPassword": "pbkdf2:100000:ac5dd393c8c27b4ee7d33d27b9d9a706:4d52037e2f363880fb93b0baef832d036916100598129d91e145780708c0dbe8",
+      "leader": {
+        "name": "Leader 5",
+        "email": "leader_5_1790837210161@example.com",
+        "phone": "9846583394"
+      },
+      "members": [
+        {
+          "name": "M1",
+          "email": "m1_5_1790837210161@example.com",
+          "phone": "9141424821"
+        },
+        {
+          "name": "M2",
+          "email": "m2_5_1790837210161@example.com",
+          "phone": "9258609005"
+        }
+      ],
+      "roomAllocated": "TBA (Lab Block 3)",
+      "selectedProblemStatement": null,
+      "payment": {
+        "utr": "UTR17908372101615",
+        "phone": "9812345678",
+        "screenshotUrl": "https://pub-aa1b426e7ec64c31a70bdd49676fdec1.r2.dev/receipts/1790837210166-01x4bh.png",
+        "submittedAt": "2026-10-01T06:46:50.767Z",
+        "amount": 1047,
+        "status": "pending"
+      },
+      "reviews": {
+        "r1": {
+          "attended": false,
+          "time": null,
+          "notes": ""
+        },
+        "r2": {
+          "attended": false,
+          "time": null,
+          "notes": ""
+        },
+        "r3": {
+          "attended": false,
+          "time": null,
+          "notes": ""
+        }
+      },
+      "food": {
+        "highTea": {
+          "collected": false,
+          "time": null
+        },
+        "dinner": {
+          "collected": false,
+          "time": null
+        },
+        "midnightFuel": {
+          "collected": false,
+          "time": null
+        },
+        "breakfast": {
+          "collected": false,
+          "time": null
+        },
+        "lunch": {
+          "collected": false,
+          "time": null
+        }
+      },
+      "scores": {
+        "innovation": 0,
+        "technical": 0,
+        "execution": 0,
+        "presentation": 0,
+        "total": 0,
+        "remarks": ""
+      },
+      "createdAt": "2026-10-01T06:46:50.767Z",
+      "status": "confirmed"
     }
   ]
 }
