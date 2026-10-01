@@ -681,7 +681,6 @@ export async function onRequest(context) {
         });
       }
 
-      const cleanUtr = (paymentUtr || '').toString().trim();
       const db = await loadDb(env);
 
       // Check for duplicate participants (Intra-team & Cross-team)
