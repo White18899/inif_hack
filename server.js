@@ -721,6 +721,58 @@ export function isValidPhone(phone) {
   return digits.length >= 10 && digits.length <= 14;
 }
 
+export function getImageDimensions(data) {
+  if (!data) return null;
+  try {
+    const bytes = data instanceof Uint8Array ? data : new Uint8Array(data);
+    if (bytes.length < 24) return null;
+
+    // PNG: signature 0x89 0x50 0x4E 0x47
+    if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) {
+      const width = (bytes[16] << 24) | (bytes[17] << 16) | (bytes[18] << 8) | bytes[19];
+      const height = (bytes[20] << 24) | (bytes[21] << 16) | (bytes[22] << 8) | bytes[23];
+      return { width: width >>> 0, height: height >>> 0 };
+    }
+
+    // JPEG: starts with 0xFF 0xD8
+    if (bytes[0] === 0xff && bytes[1] === 0xd8) {
+      let offset = 2;
+      while (offset < bytes.length - 8) {
+        if (bytes[offset] !== 0xff) {
+          offset++;
+          continue;
+        }
+        const marker = bytes[offset + 1];
+        if ((marker >= 0xc0 && marker <= 0xc3) || (marker >= 0xc9 && marker <= 0xcb)) {
+          const height = (bytes[offset + 5] << 8) | bytes[offset + 6];
+          const width = (bytes[offset + 7] << 8) | bytes[offset + 8];
+          return { width, height };
+        }
+        const len = (bytes[offset + 2] << 8) | bytes[offset + 3];
+        offset += 2 + len;
+      }
+    }
+
+    // WebP: RIFF ... WEBP
+    if (bytes.length > 30 &&
+        bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
+        bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50) {
+      if (bytes[12] === 0x56 && bytes[13] === 0x50 && bytes[14] === 0x38 && bytes[15] === 0x20) {
+        const width = ((bytes[27] << 8) | bytes[26]) & 0x3fff;
+        const height = ((bytes[29] << 8) | bytes[28]) & 0x3fff;
+        return { width, height };
+      }
+      if (bytes[12] === 0x56 && bytes[13] === 0x50 && bytes[14] === 0x38 && bytes[15] === 0x4c) {
+        const b1 = bytes[21], b2 = bytes[22], b3 = bytes[23], b4 = bytes[24];
+        const width = 1 + (((b2 & 0x3f) << 8) | b1);
+        const height = 1 + (((b4 & 0x0f) << 10) | (b3 << 2) | ((b2 & 0xc0) >> 6));
+        return { width, height };
+      }
+    }
+  } catch (_) {}
+  return null;
+}
+
 export function checkParticipantConflicts(existingTeams, participants, currentTeamId = null) {
   const seenEmails = new Map();
   const seenPhones = new Map();
@@ -950,6 +1002,21 @@ app.post('/api/register', upload.single('paymentScreenshot'), async (req, res) =
       return res.status(400).json({
         success: false,
         error: 'Payment confirmation screenshot is required. Please upload your payment receipt (Max 20MB).',
+      });
+    }
+
+    if (req.file.size < 15 * 1024) {
+      return res.status(400).json({
+        success: false,
+        error: `Uploaded image file size (${(req.file.size / 1024).toFixed(1)} KB) is too small to be a payment receipt. Logos, icons, and small images are not accepted.`,
+      });
+    }
+
+    const imgDim = getImageDimensions(req.file.buffer);
+    if (imgDim && ((imgDim.width < 250 && imgDim.height < 300) && (imgDim.height < 250 && imgDim.width < 300))) {
+      return res.status(400).json({
+        success: false,
+        error: `Uploaded image dimensions (${imgDim.width}x${imgDim.height}px) are too small for a payment receipt screenshot. Logos, icons, and small images are not accepted.`,
       });
     }
 
