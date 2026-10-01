@@ -5,6 +5,7 @@
  */
 
 import { audioEngine } from './audio.js';
+import { createLatticeLoader } from './latticeLoader.js';
 
 export function initCinematicPreloader(options = {}) {
   const { onComplete } = options;
@@ -13,7 +14,6 @@ export function initCinematicPreloader(options = {}) {
   const video = document.getElementById('cinematic-video');
   const btnSkip = document.getElementById('btn-skip-intro');
   const btnMobileEnter = document.getElementById('btn-mobile-enter');
-  const mobileBarFill = document.getElementById('mobile-loader-bar-fill');
 
   if (!preloader) {
     if (typeof onComplete === 'function') onComplete();
@@ -83,9 +83,8 @@ export function initCinematicPreloader(options = {}) {
     });
   }
 
-  // --- MOBILE NORMAL LOADER BRANCH ---
+  // --- MOBILE MINIMAL LATTICE LOADER BRANCH (React Bits) ---
   if (isMobile) {
-    // Ensure video is paused on mobile to conserve bandwidth and CPU
     if (video) {
       try {
         video.pause();
@@ -95,18 +94,51 @@ export function initCinematicPreloader(options = {}) {
 
     preloader.style.display = 'flex';
 
-    // Animate mobile progress bar smoothly over 1.7 seconds
-    if (mobileBarFill) {
-      // Force reflow
-      void mobileBarFill.offsetWidth;
-      mobileBarFill.style.transition = 'width 1.7s cubic-bezier(0.2, 0.8, 0.2, 1)';
-      mobileBarFill.style.width = '100%';
+    const targetEl = document.getElementById('mobile-lattice-target');
+    let loaderInstance = null;
+
+    if (targetEl) {
+      loaderInstance = createLatticeLoader(targetEl, {
+        label: 'Thinking',
+        doneLabel: 'Done in',
+        errorLabel: 'Failed after',
+        pattern: 'orbit',
+        grid: 3,
+        shape: 'round',
+        color: '#ffffff',
+        doneColor: '#22c55e',
+        errorColor: '#ef4444',
+        cellSize: 6,
+        gap: 2,
+        fontSize: 14,
+        step: 90,
+        idleOpacity: 0.15,
+        glow: false,
+        glowColor: '',
+        showTimer: true
+      });
     }
 
-    // Auto-dismiss after 1.8s, triggering 3D convergence
+    // Complete working state at 1.4s -> status 'done' (shows checkmark + Done in 1.4s)
+    setTimeout(() => {
+      if (loaderInstance && !isDismissed) {
+        loaderInstance.setStatus('done');
+      }
+    }, 1400);
+
+    // Auto-dismiss smoothly after 1.85s to reveal 3D cosmos cleanly
     safetyTimeout = setTimeout(() => {
+      if (loaderInstance) loaderInstance.destroy();
       dismiss(false);
     }, 1850);
+
+    const mobileLoader = document.getElementById('mobile-normal-loader');
+    if (mobileLoader) {
+      mobileLoader.addEventListener('click', () => {
+        if (loaderInstance) loaderInstance.destroy();
+        dismiss(true);
+      }, { once: true });
+    }
 
     return { dismiss };
   }
