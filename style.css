@@ -257,6 +257,18 @@ body.timeline-unlocked {
   gap: 12px;
 }
 
+.header-actions-col {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .hud-btn {
   display: inline-flex;
   align-items: center;
@@ -1392,13 +1404,57 @@ body.timeline-unlocked .showcase-layout {
     margin-left: 6px !important;
   }
 
+  .header-actions-col {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 4px !important;
+    width: auto !important;
+  }
+
+  .header-actions-row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 6px !important;
+  }
+
   .hud-nav,
-  .hud-btn-register,
   .portals-dropdown-container,
   #btn-audio-toggle,
   #btn-audio,
   .hud-btn-audio {
     display: none !important;
+  }
+
+  /* Direct Register CTA on mobile positioned directly under Leader & Hamburger */
+  .hud-btn-register {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: 27px !important;
+    min-height: 27px !important;
+    max-height: 27px !important;
+    padding: 0 8px !important;
+    font-family: var(--font-mono) !important;
+    font-size: 0.60rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.08em !important;
+    border-radius: 6px !important;
+    background: linear-gradient(135deg, #ffd000, #ff8800) !important;
+    color: #000000 !important;
+    box-shadow: 0 0 12px rgba(255, 208, 0, 0.4) !important;
+    border: none !important;
+    cursor: pointer !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    white-space: nowrap !important;
+    text-transform: uppercase !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+  }
+
+  .hud-btn-register:active {
+    transform: scale(0.97) !important;
   }
 
   /* Ultra-compact and sleek Leader button and Hamburger on mobile: EXACT SAME HEIGHT & RADIUS (30px) */
