@@ -563,40 +563,6 @@ class InfinityScrollShowcase {
       });
     }
 
-    // Day 1 / Day 2 24-Hour Itinerary Switcher Tabs
-    const tabDay1 = document.getElementById('tab-sched-day1');
-    const tabDay2 = document.getElementById('tab-sched-day2');
-    const panelDay1 = document.getElementById('panel-sched-day1');
-    const panelDay2 = document.getElementById('panel-sched-day2');
-
-    if (tabDay1 && tabDay2 && panelDay1 && panelDay2) {
-      const switchDay = (day) => {
-        try { audioEngine.playClick(); } catch (e) { }
-        if (day === 'day1') {
-          tabDay1.classList.add('active');
-          tabDay1.setAttribute('aria-selected', 'true');
-          tabDay2.classList.remove('active');
-          tabDay2.setAttribute('aria-selected', 'false');
-
-          panelDay1.style.display = 'block';
-          panelDay2.style.display = 'none';
-          gsap.fromTo(panelDay1, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' });
-        } else {
-          tabDay2.classList.add('active');
-          tabDay2.setAttribute('aria-selected', 'true');
-          tabDay1.classList.remove('active');
-          tabDay1.setAttribute('aria-selected', 'false');
-
-          panelDay2.style.display = 'block';
-          panelDay1.style.display = 'none';
-          gsap.fromTo(panelDay2, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' });
-        }
-      };
-
-      tabDay1.addEventListener('click', () => switchDay('day1'));
-      tabDay2.addEventListener('click', () => switchDay('day2'));
-    }
-
     // Launch High-Tech Quantum Plexus Background Particles
     this.initTimelineParticles();
   }
