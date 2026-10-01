@@ -4543,6 +4543,12 @@ body.timeline-unlocked #sponsors-section {
   margin-bottom: 6px;
 }
 
+.contact-hotline-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
 .contact-val {
   font-size: 0.85rem;
   color: #ffffff;
