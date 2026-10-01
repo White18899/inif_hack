@@ -1860,6 +1860,63 @@ app.put('/api/admin/domains', requireAdminAuth, async (req, res) => {
   }
 });
 
+// 12B. Payment QR Codes API (Public GET, Protected PUT/Reset)
+app.get('/api/payment-qrs', async (req, res) => {
+  try {
+    const db = await loadDb();
+    const paymentQrs = db.paymentQrs || {
+      member3: '/3mem.png',
+      member4: '/4mem.png'
+    };
+    res.json({ success: true, paymentQrs });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/admin/payment-qrs', requireAdminAuth, async (req, res) => {
+  try {
+    const db = await loadDb();
+    const paymentQrs = db.paymentQrs || {
+      member3: '/3mem.png',
+      member4: '/4mem.png'
+    };
+    res.json({ success: true, paymentQrs });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/admin/payment-qrs', requireAdminAuth, async (req, res) => {
+  try {
+    const { member3, member4 } = req.body || {};
+    const { result } = await updateDb(async (db) => {
+      if (!db.paymentQrs) {
+        db.paymentQrs = { member3: '/3mem.png', member4: '/4mem.png' };
+      }
+      if (member3) db.paymentQrs.member3 = member3.trim();
+      if (member4) db.paymentQrs.member4 = member4.trim();
+      db.paymentQrs.updatedAt = new Date().toISOString();
+      return { paymentQrs: db.paymentQrs };
+    });
+    res.json({ success: true, message: 'Payment QR codes updated.', paymentQrs: result.paymentQrs });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/admin/payment-qrs/reset', requireAdminAuth, async (req, res) => {
+  try {
+    const { result } = await updateDb(async (db) => {
+      db.paymentQrs = { member3: '/3mem.png', member4: '/4mem.png', updatedAt: new Date().toISOString() };
+      return { paymentQrs: db.paymentQrs };
+    });
+    res.json({ success: true, message: 'Payment QR codes restored to default.', paymentQrs: result.paymentQrs });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // 13. Admin Multi-Sheet Excel Export (.xlsx) (Protected)
 app.get('/api/admin/export', requireAdminAuth, async (req, res) => {
   try {

@@ -972,6 +972,18 @@ export async function onRequest(context) {
     }
 
     // -------------------------------------------------------------
+    // Payment QR Codes (Public)
+    // -------------------------------------------------------------
+    if (pathname === '/api/payment-qrs' && method === 'GET') {
+      const db = await loadDb(env);
+      const paymentQrs = db.paymentQrs || {
+        member3: '/3mem.png',
+        member4: '/4mem.png',
+      };
+      return jsonResponse({ success: true, paymentQrs });
+    }
+
+    // -------------------------------------------------------------
     // -------------------------------------------------------------
     // Verify UTR Uniqueness
     // -------------------------------------------------------------
@@ -1916,6 +1928,92 @@ export async function onRequest(context) {
       });
 
       return jsonResponse({ success: true, domain: result.domain });
+    }
+
+    // -------------------------------------------------------------
+    // Admin Payment QR Codes Management (Protected)
+    // -------------------------------------------------------------
+    if (pathname === '/api/admin/payment-qrs' && method === 'GET') {
+      const db = await loadDb(env);
+      const paymentQrs = db.paymentQrs || {
+        member3: '/3mem.png',
+        member4: '/4mem.png',
+      };
+      return jsonResponse({ success: true, paymentQrs });
+    }
+
+    if (pathname === '/api/admin/payment-qrs' && method === 'POST') {
+      const body = await request.json().catch(() => ({}));
+      const { member3, member4 } = body;
+
+      const processQrValue = async (val, prefix) => {
+        if (!val || typeof val !== 'string') return null;
+        const clean = val.trim();
+        if (clean.startsWith('data:image/')) {
+          if (env && env.BUCKET) {
+            try {
+              const match = clean.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
+              if (match) {
+                const mime = match[1];
+                const base64Data = match[2];
+                const binaryStr = atob(base64Data);
+                const bytes = new Uint8Array(binaryStr.length);
+                for (let i = 0; i < binaryStr.length; i++) {
+                  bytes[i] = binaryStr.charCodeAt(i);
+                }
+                const ext = mime.includes('jpeg') || mime.includes('jpg') ? '.jpg' : mime.includes('webp') ? '.webp' : '.png';
+                const key = `qrs/${prefix}-${Date.now()}${ext}`;
+                await env.BUCKET.put(key, bytes, {
+                  httpMetadata: { contentType: mime }
+                });
+                return `${PUBLIC_DOMAIN.replace(/\/$/, '')}/${key}`;
+              }
+            } catch (err) {
+              console.warn('Failed to upload QR to R2, falling back to data URL:', err);
+            }
+          }
+        }
+        return clean;
+      };
+
+      const newQr3 = member3 ? await processQrValue(member3, 'qr-3mem') : null;
+      const newQr4 = member4 ? await processQrValue(member4, 'qr-4mem') : null;
+
+      const { result } = await updateDb(env, async (db) => {
+        if (!db.paymentQrs) {
+          db.paymentQrs = {
+            member3: '/3mem.png',
+            member4: '/4mem.png',
+          };
+        }
+        if (newQr3) db.paymentQrs.member3 = newQr3;
+        if (newQr4) db.paymentQrs.member4 = newQr4;
+        db.paymentQrs.updatedAt = new Date().toISOString();
+        return { paymentQrs: db.paymentQrs };
+      });
+
+      return jsonResponse({
+        success: true,
+        message: 'Payment QR codes updated successfully.',
+        paymentQrs: result.paymentQrs,
+      });
+    }
+
+    if (pathname === '/api/admin/payment-qrs/reset' && method === 'POST') {
+      const { result } = await updateDb(env, async (db) => {
+        db.paymentQrs = {
+          member3: '/3mem.png',
+          member4: '/4mem.png',
+          updatedAt: new Date().toISOString(),
+        };
+        return { paymentQrs: db.paymentQrs };
+      });
+
+      return jsonResponse({
+        success: true,
+        message: 'Payment QR codes restored to default.',
+        paymentQrs: result.paymentQrs,
+      });
     }
 
     // -------------------------------------------------------------

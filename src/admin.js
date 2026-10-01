@@ -804,3 +804,267 @@ function authHeaders(extra = {}) {
         });
       });
     }
+
+    // =========================================================================
+    // PAYMENT QR CODES MANAGER
+    // =========================================================================
+    const modalQrMgr = document.getElementById('modal-qr-mgr');
+    const btnOpenQrMgr = document.getElementById('btn-open-qr-mgr');
+    const btnCloseQrMgr = document.getElementById('btn-close-qr-mgr');
+    const previewQr3 = document.getElementById('preview-qr-3');
+    const previewQr4 = document.getElementById('preview-qr-4');
+    const fileQr3 = document.getElementById('file-qr-3');
+    const fileQr4 = document.getElementById('file-qr-4');
+    const lblFileQr3 = document.getElementById('lbl-file-qr-3');
+    const lblFileQr4 = document.getElementById('lbl-file-qr-4');
+    const txtQr3 = document.getElementById('txt-qr-3');
+    const txtQr4 = document.getElementById('txt-qr-4');
+    const btnSaveQrs = document.getElementById('btn-save-qrs');
+    const btnResetQrs = document.getElementById('btn-reset-qrs');
+    const qrMgrStatus = document.getElementById('qr-mgr-status');
+    const qrLastUpdated = document.getElementById('qr-last-updated');
+
+    let adminPaymentQrs = {
+      member3: '/3mem.png',
+      member4: '/4mem.png'
+    };
+    let uploadedQr3Data = null;
+    let uploadedQr4Data = null;
+
+    async function loadAdminQrCodes() {
+      if (qrMgrStatus) {
+        qrMgrStatus.textContent = 'Fetching current payment QR codes...';
+        qrMgrStatus.style.color = 'var(--text-muted)';
+      }
+      try {
+        const res = await fetch('/api/admin/payment-qrs', {
+          headers: authHeaders()
+        });
+        const data = await res.json();
+        if (data.success && data.paymentQrs) {
+          adminPaymentQrs = data.paymentQrs;
+          uploadedQr3Data = null;
+          uploadedQr4Data = null;
+
+          if (previewQr3) previewQr3.src = adminPaymentQrs.member3 || '/3mem.png';
+          if (previewQr4) previewQr4.src = adminPaymentQrs.member4 || '/4mem.png';
+          if (txtQr3) txtQr3.value = adminPaymentQrs.member3 || '';
+          if (txtQr4) txtQr4.value = adminPaymentQrs.member4 || '';
+          if (lblFileQr3) lblFileQr3.textContent = 'Upload 3-Member QR Image';
+          if (lblFileQr4) lblFileQr4.textContent = 'Upload 4-Member QR Image';
+
+          if (qrLastUpdated) {
+            if (adminPaymentQrs.updatedAt) {
+              const dateStr = new Date(adminPaymentQrs.updatedAt).toLocaleString();
+              qrLastUpdated.textContent = `✦ ACTIVE CONFIGURATION // Last synchronized: ${dateStr}`;
+            } else {
+              qrLastUpdated.textContent = '✦ DEFAULT PRE-CONFIGURED PAYMENT QRS ACTIVE';
+            }
+          }
+          if (qrMgrStatus) {
+            qrMgrStatus.textContent = 'Payment QR codes loaded.';
+            qrMgrStatus.style.color = 'var(--green)';
+          }
+        }
+      } catch (err) {
+        if (qrMgrStatus) {
+          qrMgrStatus.textContent = 'Error loading QR codes: ' + err.message;
+          qrMgrStatus.style.color = 'var(--red)';
+        }
+      }
+    }
+
+    if (btnOpenQrMgr && modalQrMgr) {
+      btnOpenQrMgr.addEventListener('click', () => {
+        modalQrMgr.classList.add('is-open');
+        loadAdminQrCodes();
+      });
+    }
+
+    if (btnCloseQrMgr && modalQrMgr) {
+      btnCloseQrMgr.addEventListener('click', () => {
+        modalQrMgr.classList.remove('is-open');
+      });
+    }
+
+    window.addEventListener('click', (e) => {
+      if (modalQrMgr && e.target === modalQrMgr) {
+        modalQrMgr.classList.remove('is-open');
+      }
+    });
+
+    if (fileQr3) {
+      fileQr3.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        if (!file.type.startsWith('image/')) {
+          alert('Please select a valid image file (PNG, JPG, WebP, SVG).');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = (loadEvent) => {
+          uploadedQr3Data = loadEvent.target.result;
+          if (previewQr3) previewQr3.src = uploadedQr3Data;
+          if (lblFileQr3) lblFileQr3.textContent = `Selected: ${file.name} (${Math.round(file.size / 1024)} KB)`;
+          if (txtQr3) txtQr3.value = `[Uploaded File: ${file.name}]`;
+          if (qrMgrStatus) {
+            qrMgrStatus.textContent = '3-member QR preview updated. Click "SAVE & DEPLOY" to commit.';
+            qrMgrStatus.style.color = 'var(--gold)';
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    if (fileQr4) {
+      fileQr4.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        if (!file.type.startsWith('image/')) {
+          alert('Please select a valid image file (PNG, JPG, WebP, SVG).');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = (loadEvent) => {
+          uploadedQr4Data = loadEvent.target.result;
+          if (previewQr4) previewQr4.src = uploadedQr4Data;
+          if (lblFileQr4) lblFileQr4.textContent = `Selected: ${file.name} (${Math.round(file.size / 1024)} KB)`;
+          if (txtQr4) txtQr4.value = `[Uploaded File: ${file.name}]`;
+          if (qrMgrStatus) {
+            qrMgrStatus.textContent = '4-member QR preview updated. Click "SAVE & DEPLOY" to commit.';
+            qrMgrStatus.style.color = 'var(--cyan)';
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    if (txtQr3) {
+      txtQr3.addEventListener('input', () => {
+        const val = txtQr3.value.trim();
+        if (val && !val.startsWith('[Uploaded File:')) {
+          uploadedQr3Data = null;
+          if (previewQr3) previewQr3.src = val;
+        }
+      });
+    }
+
+    if (txtQr4) {
+      txtQr4.addEventListener('input', () => {
+        const val = txtQr4.value.trim();
+        if (val && !val.startsWith('[Uploaded File:')) {
+          uploadedQr4Data = null;
+          if (previewQr4) previewQr4.src = val;
+        }
+      });
+    }
+
+    if (btnSaveQrs) {
+      btnSaveQrs.addEventListener('click', async () => {
+        btnSaveQrs.disabled = true;
+        const originalText = btnSaveQrs.textContent;
+        btnSaveQrs.textContent = 'COMMITTING TO R2...';
+        if (qrMgrStatus) {
+          qrMgrStatus.textContent = 'Uploading and committing new QR codes to Cloudflare R2...';
+          qrMgrStatus.style.color = 'var(--cyan)';
+        }
+
+        const target3 = uploadedQr3Data || (txtQr3 && txtQr3.value.trim() && !txtQr3.value.startsWith('[Uploaded File:') ? txtQr3.value.trim() : null) || adminPaymentQrs.member3;
+        const target4 = uploadedQr4Data || (txtQr4 && txtQr4.value.trim() && !txtQr4.value.startsWith('[Uploaded File:') ? txtQr4.value.trim() : null) || adminPaymentQrs.member4;
+
+        try {
+          const res = await fetch('/api/admin/payment-qrs', {
+            method: 'POST',
+            headers: authHeaders({ 'Content-Type': 'application/json' }),
+            body: JSON.stringify({
+              member3: target3,
+              member4: target4
+            })
+          });
+          const data = await res.json();
+          if (data.success && data.paymentQrs) {
+            adminPaymentQrs = data.paymentQrs;
+            uploadedQr3Data = null;
+            uploadedQr4Data = null;
+            if (fileQr3) fileQr3.value = '';
+            if (fileQr4) fileQr4.value = '';
+            if (previewQr3) previewQr3.src = adminPaymentQrs.member3;
+            if (previewQr4) previewQr4.src = adminPaymentQrs.member4;
+            if (txtQr3) txtQr3.value = adminPaymentQrs.member3;
+            if (txtQr4) txtQr4.value = adminPaymentQrs.member4;
+            if (lblFileQr3) lblFileQr3.textContent = 'Upload 3-Member QR Image';
+            if (lblFileQr4) lblFileQr4.textContent = 'Upload 4-Member QR Image';
+
+            if (qrLastUpdated && adminPaymentQrs.updatedAt) {
+              qrLastUpdated.textContent = `✦ ACTIVE CONFIGURATION // Last synchronized: ${new Date(adminPaymentQrs.updatedAt).toLocaleString()}`;
+            }
+
+            if (qrMgrStatus) {
+              qrMgrStatus.textContent = '✓ Payment QR codes updated and deployed to Cloudflare R2 successfully!';
+              qrMgrStatus.style.color = 'var(--green)';
+            }
+          } else {
+            throw new Error(data.error || 'Failed to update payment QR codes.');
+          }
+        } catch (err) {
+          if (qrMgrStatus) {
+            qrMgrStatus.textContent = '✕ Error saving QRs: ' + err.message;
+            qrMgrStatus.style.color = 'var(--red)';
+          }
+        } finally {
+          btnSaveQrs.disabled = false;
+          btnSaveQrs.textContent = originalText;
+        }
+      });
+    }
+
+    if (btnResetQrs) {
+      btnResetQrs.addEventListener('click', async () => {
+        if (!confirm('Are you sure you want to restore both payment QR codes back to defaults (/3mem.png and /4mem.png)?')) {
+          return;
+        }
+
+        btnResetQrs.disabled = true;
+        if (qrMgrStatus) {
+          qrMgrStatus.textContent = 'Resetting to default QR codes...';
+          qrMgrStatus.style.color = 'var(--gold)';
+        }
+
+        try {
+          const res = await fetch('/api/admin/payment-qrs/reset', {
+            method: 'POST',
+            headers: authHeaders()
+          });
+          const data = await res.json();
+          if (data.success && data.paymentQrs) {
+            adminPaymentQrs = data.paymentQrs;
+            uploadedQr3Data = null;
+            uploadedQr4Data = null;
+            if (fileQr3) fileQr3.value = '';
+            if (fileQr4) fileQr4.value = '';
+            if (previewQr3) previewQr3.src = '/3mem.png';
+            if (previewQr4) previewQr4.src = '/4mem.png';
+            if (txtQr3) txtQr3.value = '/3mem.png';
+            if (txtQr4) txtQr4.value = '/4mem.png';
+            if (lblFileQr3) lblFileQr3.textContent = 'Upload 3-Member QR Image';
+            if (lblFileQr4) lblFileQr4.textContent = 'Upload 4-Member QR Image';
+
+            if (qrLastUpdated) {
+              qrLastUpdated.textContent = '✦ DEFAULT PRE-CONFIGURED PAYMENT QRS ACTIVE';
+            }
+
+            if (qrMgrStatus) {
+              qrMgrStatus.textContent = '✓ Restored default payment QR codes.';
+              qrMgrStatus.style.color = 'var(--green)';
+            }
+          }
+        } catch (err) {
+          if (qrMgrStatus) {
+            qrMgrStatus.textContent = '✕ Reset failed: ' + err.message;
+            qrMgrStatus.style.color = 'var(--red)';
+          }
+        } finally {
+          btnResetQrs.disabled = false;
+        }
+      });
+    }

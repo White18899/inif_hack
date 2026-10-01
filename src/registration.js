@@ -31,6 +31,33 @@ export function initRegistrationModule() {
   const btnSubmit = document.getElementById('btn-submit-registration');
   const regSpinner = document.getElementById('reg-spinner');
 
+  let dynamicPaymentQrs = {
+    member3: '/3mem.png',
+    member4: '/4mem.png'
+  };
+
+  async function fetchDynamicPaymentQrs() {
+    try {
+      const res = await fetch('/api/payment-qrs');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.paymentQrs) {
+          if (data.paymentQrs.member3) dynamicPaymentQrs.member3 = data.paymentQrs.member3;
+          if (data.paymentQrs.member4) dynamicPaymentQrs.member4 = data.paymentQrs.member4;
+          const activeSizeRadio = document.querySelector('input[name="teamSize"]:checked');
+          const currentSize = activeSizeRadio ? parseInt(activeSizeRadio.value, 10) : 3;
+          if (qrImg) {
+            qrImg.src = currentSize === 4 ? dynamicPaymentQrs.member4 : dynamicPaymentQrs.member3;
+          }
+        }
+      }
+    } catch (e) {
+      // Graceful fallback to default /3mem.png and /4mem.png
+    }
+  }
+
+  fetchDynamicPaymentQrs();
+
   let isReceiptVerified = false;
   let verifiedReceiptUtr = null;
   let isUtrUnique = false;
@@ -56,6 +83,7 @@ export function initRegistrationModule() {
   // 1. OPEN MODAL
   function openModal(stoneId = 'mind') {
     if (!modalRegister) return;
+    fetchDynamicPaymentQrs();
     modalRegister.classList.add('is-open');
     modalRegister.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
@@ -71,7 +99,7 @@ export function initRegistrationModule() {
     const activeSizeRadio = document.querySelector('input[name="teamSize"]:checked');
     const currentSize = activeSizeRadio ? parseInt(activeSizeRadio.value, 10) : 3;
     if (qrImg) {
-      qrImg.src = currentSize === 4 ? '/4mem.png' : '/3mem.png';
+      qrImg.src = currentSize === 4 ? dynamicPaymentQrs.member4 : dynamicPaymentQrs.member3;
     }
     const currentFee = currentSize * 349;
     if (qrAmountText) qrAmountText.textContent = `PAY ₹${currentFee.toLocaleString('en-IN')}`;
@@ -166,7 +194,7 @@ export function initRegistrationModule() {
       const fee = size * 349;
 
       if (qrImg) {
-        qrImg.src = size === 4 ? '/4mem.png' : '/3mem.png';
+        qrImg.src = size === 4 ? dynamicPaymentQrs.member4 : dynamicPaymentQrs.member3;
       }
       if (qrAmountText) qrAmountText.textContent = `PAY ₹${fee.toLocaleString('en-IN')}`;
       if (totalFeeDisplay) totalFeeDisplay.textContent = `₹${fee.toLocaleString('en-IN')}`;
