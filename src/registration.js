@@ -202,8 +202,8 @@ export function initRegistrationModule() {
         isUtrUnique = true;
         clearInputError(regUtr);
         if (utrCheckBadge) {
-          utrCheckBadge.textContent = '✓ Unique';
-          utrCheckBadge.className = 'utr-status-badge success';
+          utrCheckBadge.textContent = '';
+          utrCheckBadge.className = 'utr-status-badge';
         }
       }
     } catch (e) {
