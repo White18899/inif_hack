@@ -4583,6 +4583,20 @@ body.timeline-unlocked #sponsors-section {
   color: #ffd000;
 }
 
+.hotline-tech-tag {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #00d2ff;
+  letter-spacing: 0.05em;
+  margin-left: 5px;
+  transition: color 0.2s ease;
+}
+
+.contact-val:hover .hotline-tech-tag {
+  color: #ffd000;
+}
+
 /* Site Footer */
 .site-footer {
   position: relative;
