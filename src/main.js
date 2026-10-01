@@ -497,11 +497,22 @@ class InfinityScrollShowcase {
     const btnMobileAudio = document.getElementById('btn-mobile-audio');
     const mAudioStatus = document.getElementById('m-audio-status');
     if (btnMobileAudio) {
+      // Set initial status to ACTIVE
+      if (mAudioStatus) {
+        mAudioStatus.textContent = 'ACTIVE';
+        mAudioStatus.style.color = '#00d2ff';
+      }
       btnMobileAudio.addEventListener('click', () => {
         const isUnmuted = audioEngine.toggleMute();
         if (mAudioStatus) {
           mAudioStatus.textContent = isUnmuted ? 'ACTIVE' : 'MUTED';
           mAudioStatus.style.color = isUnmuted ? '#00d2ff' : '#a1a1aa';
+        }
+        const btnAudio = document.getElementById('btn-audio');
+        if (btnAudio) {
+          btnAudio.classList.toggle('audio-unmuted', isUnmuted);
+          btnAudio.classList.toggle('audio-muted', !isUnmuted);
+          btnAudio.classList.toggle('active', isUnmuted);
         }
       });
     }
@@ -1406,8 +1417,16 @@ class InfinityScrollShowcase {
         btnAudio.classList.toggle('audio-unmuted', isUnmuted);
         btnAudio.classList.toggle('audio-muted', !isUnmuted);
         btnAudio.classList.toggle('active', isUnmuted);
+
+        const mAudioStatus = document.getElementById('m-audio-status');
+        if (mAudioStatus) {
+          mAudioStatus.textContent = isUnmuted ? 'ACTIVE' : 'MUTED';
+          mAudioStatus.style.color = isUnmuted ? '#00d2ff' : '#a1a1aa';
+        }
       });
-      btnAudio.classList.add('audio-muted');
+      // Unmuted by default
+      btnAudio.classList.add('audio-unmuted', 'active');
+      btnAudio.classList.remove('audio-muted');
     }
 
     // Wireframe Toggle
@@ -1471,18 +1490,38 @@ class InfinityScrollShowcase {
       } else if (key === 'W') {
         this.toggleWireframe();
       } else if (key === 'M') {
-        if (btnAudio) btnAudio.click();
+        const isUnmuted = audioEngine.toggleMute();
+        const btnAudioEl = document.getElementById('btn-audio');
+        if (btnAudioEl) {
+          btnAudioEl.classList.toggle('audio-unmuted', isUnmuted);
+          btnAudioEl.classList.toggle('audio-muted', !isUnmuted);
+          btnAudioEl.classList.toggle('active', isUnmuted);
+        }
+        const mAudioStatus = document.getElementById('m-audio-status');
+        if (mAudioStatus) {
+          mAudioStatus.textContent = isUnmuted ? 'ACTIVE' : 'MUTED';
+          mAudioStatus.style.color = isUnmuted ? '#00d2ff' : '#a1a1aa';
+        }
       }
     });
 
-    // One-time gesture audio unlocker for browser security policies
+    // Comprehensive one-time gesture audio unlocker for modern browser security policies
     const unlockAudio = () => {
       audioEngine.init();
+      if (audioEngine.ctx && audioEngine.ctx.state === 'suspended') {
+        audioEngine.ctx.resume();
+      }
       window.removeEventListener('pointerdown', unlockAudio);
       window.removeEventListener('keydown', unlockAudio);
+      window.removeEventListener('touchstart', unlockAudio);
+      window.removeEventListener('wheel', unlockAudio);
+      window.removeEventListener('click', unlockAudio);
     };
-    window.addEventListener('pointerdown', unlockAudio, { once: true });
+    window.addEventListener('pointerdown', unlockAudio, { once: true, passive: true });
     window.addEventListener('keydown', unlockAudio, { once: true });
+    window.addEventListener('touchstart', unlockAudio, { once: true, passive: true });
+    window.addEventListener('wheel', unlockAudio, { once: true, passive: true });
+    window.addEventListener('click', unlockAudio, { once: true });
   }
 
   /* --------------------------------------------------------------------------
