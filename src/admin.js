@@ -1,7 +1,37 @@
 let allTeams = [];
-    let allDomains = [];
-    let searchQuery = '';
-    let editingTeam = null;
+let allDomains = [];
+let searchQuery = '';
+let editingTeam = null;
+
+function escapeHTML(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function getAdminToken() {
+  try {
+    const saved = sessionStorage.getItem('infinity_admin_auth');
+    if (!saved) return '';
+    const parsed = JSON.parse(saved);
+    return parsed.token || parsed.password || '';
+  } catch (e) {
+    return '';
+  }
+}
+
+function authHeaders(extra = {}) {
+  const token = getAdminToken();
+  const headers = { ...extra };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
+}
 
     const secLogin = document.getElementById('sec-login');
     const secDash = document.getElementById('sec-dashboard');
@@ -54,7 +84,7 @@ let allTeams = [];
           throw new Error(data.error || 'Invalid administrator passphrase.');
         }
 
-        sessionStorage.setItem('infinity_admin_auth', JSON.stringify({ password }));
+        sessionStorage.setItem('infinity_admin_auth', JSON.stringify({ password, token: data.token }));
         if (secLogin) secLogin.style.display = 'none';
         if (secDash) secDash.style.display = 'block';
         if (btnLogout) btnLogout.style.display = 'inline-block';
@@ -111,14 +141,33 @@ let allTeams = [];
     async function loadData() {
       try {
         const [teamsRes, domainsRes] = await Promise.all([
-          fetch('/api/admin/teams'),
+          fetch('/api/admin/teams', { headers: authHeaders() }),
           fetch('/api/domains')
         ]);
+
+        if (teamsRes.status === 401) {
+          sessionStorage.removeItem('infinity_admin_auth');
+          if (secDash) secDash.style.display = 'none';
+          if (secLogin) secLogin.style.display = 'block';
+          if (btnLogout) btnLogout.style.display = 'none';
+          if (loginErr) {
+            loginErr.textContent = 'Session expired or unauthorized. Please log in again.';
+            loginErr.style.display = 'block';
+          }
+          return;
+        }
+
         const teamsData = await teamsRes.json();
         const domainsData = await domainsRes.json();
 
         allTeams = teamsData.teams || [];
         allDomains = domainsData.domains || [];
+
+        const btnExcel = document.querySelector('.btn-excel');
+        if (btnExcel) {
+          const token = getAdminToken();
+          btnExcel.href = `/api/admin/export${token ? '?token=' + encodeURIComponent(token) : ''}`;
+        }
 
         renderTable();
         updateKPIs();
@@ -191,22 +240,22 @@ let allTeams = [];
         html += `
           <tr>
             <td>
-              <strong>${t.teamName}</strong>
-              <div style="font-family:'JetBrains Mono'; font-size:0.7rem; color:var(--red);">${t.id}</div>
-              <div style="font-size:0.7rem; color:var(--text-muted);">${t.college}</div>
+              <strong>${escapeHTML(t.teamName)}</strong>
+              <div style="font-family:'JetBrains Mono'; font-size:0.7rem; color:var(--red);">${escapeHTML(t.id)}</div>
+              <div style="font-size:0.7rem; color:var(--text-muted);">${escapeHTML(t.college)}</div>
             </td>
             <td>
-              <span class="portal-badge font-mono">${(t.preferredDomain || 'MIND').toUpperCase()}</span>
-              <div style="font-size:0.68rem; color:#888;">${t.teamSize || 4} Members</div>
+              <span class="portal-badge font-mono">${escapeHTML((t.preferredDomain || 'MIND').toUpperCase())}</span>
+              <div style="font-size:0.68rem; color:#888;">${escapeHTML(t.teamSize || 4)} Members</div>
             </td>
             <td>
               ${statusBadge}
               <div style="font-size:0.7rem; color:#aaa; margin-top:2px;">₹${pay.amount || (t.teamSize || 4) * 349}</div>
             </td>
             <td>
-              <div class="font-mono" style="font-size:0.72rem;">${pay.utr || 'N/A'}</div>
-              <div style="font-size:0.68rem; color:#888;">Phone: ${pay.phone || t.leader?.phone || 'N/A'}</div>
-              ${pay.screenshotUrl ? `<a href="${pay.screenshotUrl}" target="_blank" style="font-size:0.68rem; color:var(--cyan);">View Receipt ↗</a>` : ''}
+              <div class="font-mono" style="font-size:0.72rem;">${escapeHTML(pay.utr || 'N/A')}</div>
+              <div style="font-size:0.68rem; color:#888;">Phone: ${escapeHTML(pay.phone || t.leader?.phone || 'N/A')}</div>
+              ${pay.screenshotUrl ? `<a href="${encodeURI(pay.screenshotUrl)}" target="_blank" style="font-size:0.68rem; color:var(--cyan);">View Receipt ↗</a>` : ''}
             </td>
             <td>
               <span class="font-mono" style="font-weight:700;">${foodCount} / 5</span>
@@ -219,13 +268,13 @@ let allTeams = [];
             </td>
             <td>
               <div class="tbl-actions">
-                <select class="sel-quick-status ${payStatus}" data-status-id="${t.id}" title="Select payment verification status">
+                <select class="sel-quick-status ${payStatus}" data-status-id="${escapeHTML(t.id)}" title="Select payment verification status">
                   <option value="verified" ${payStatus === 'verified' ? 'selected' : ''}>✓ VERIFIED</option>
                   <option value="pending" ${payStatus === 'pending' ? 'selected' : ''}>⏳ PENDING</option>
                   <option value="rejected" ${payStatus === 'rejected' ? 'selected' : ''}>✕ REJECTED</option>
                 </select>
-                <button class="btn-tbl-edit" data-edit-id="${t.id}">EDIT</button>
-                <button class="btn-tbl-del" data-del-id="${t.id}">DEL</button>
+                <button class="btn-tbl-edit" data-edit-id="${escapeHTML(t.id)}">EDIT</button>
+                <button class="btn-tbl-del" data-del-id="${escapeHTML(t.id)}">DEL</button>
               </div>
             </td>
           </tr>
@@ -246,7 +295,7 @@ let allTeams = [];
           try {
             const res = await fetch(`/api/admin/teams/${tId}`, {
               method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
+              headers: authHeaders({ 'Content-Type': 'application/json' }),
               body: JSON.stringify({
                 payment: {
                   ...targetTeam.payment,
@@ -283,7 +332,10 @@ let allTeams = [];
           const tId = btn.getAttribute('data-del-id');
           if (confirm(`Are you sure you want to completely delete team ${tId}?`)) {
             try {
-              const res = await fetch(`/api/admin/teams/${tId}`, { method: 'DELETE' });
+              const res = await fetch(`/api/admin/teams/${tId}`, {
+                method: 'DELETE',
+                headers: authHeaders(),
+              });
               const data = await res.json();
               if (data.success) {
                 allTeams = allTeams.filter(t => t.id !== tId);
@@ -405,7 +457,7 @@ let allTeams = [];
       try {
         const res = await fetch(`/api/admin/teams/${editingTeam.id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: authHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify(updates),
         });
         const data = await res.json();
@@ -650,7 +702,7 @@ let allTeams = [];
           try {
             const res = await fetch('/api/admin/domains', {
               method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
+              headers: authHeaders({ 'Content-Type': 'application/json' }),
               body: JSON.stringify(targetDomain)
             });
             const data = await res.json();
@@ -686,7 +738,7 @@ let allTeams = [];
             try {
               const res = await fetch('/api/admin/domains', {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: authHeaders({ 'Content-Type': 'application/json' }),
                 body: JSON.stringify(targetDomain)
               });
               const data = await res.json();
@@ -716,7 +768,7 @@ let allTeams = [];
           try {
             await fetch('/api/admin/domains', {
               method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
+              headers: authHeaders({ 'Content-Type': 'application/json' }),
               body: JSON.stringify(targetDomain),
             });
             renderPsManager();

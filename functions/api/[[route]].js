@@ -279,6 +279,55 @@ function handleOptions() {
   });
 }
 
+// Helper: Generate signed HMAC admin clearance token
+async function generateAdminToken(secret) {
+  const ts = Date.now().toString();
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  const sigBuffer = await crypto.subtle.sign('HMAC', key, encoder.encode(`admin:${ts}`));
+  const sigHex = Array.from(new Uint8Array(sigBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+  return btoa(`${ts}:${sigHex}`);
+}
+
+// Helper: Verify admin authorization token or secret
+async function verifyAdminAuth(request, url, secret) {
+  const authHeader = request.headers.get('Authorization') || '';
+  const tokenFromHeader = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : authHeader.trim();
+  const tokenFromQuery = (url.searchParams.get('token') || '').trim();
+  const token = tokenFromHeader || tokenFromQuery;
+
+  if (!token) return false;
+  if (token === secret) return true; // Direct admin secret supported
+
+  try {
+    const decoded = atob(token);
+    const [ts, sigHex] = decoded.split(':');
+    if (!ts || !sigHex || sigHex.length !== 64) return false;
+
+    const age = Date.now() - parseInt(ts, 10);
+    if (isNaN(age) || age < 0 || age > 24 * 60 * 60 * 1000) return false; // 24-hour expiration
+
+    const encoder = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(secret),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['verify']
+    );
+    const sigBytes = new Uint8Array(sigHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+    return await crypto.subtle.verify('HMAC', key, sigBytes, encoder.encode(`admin:${ts}`));
+  } catch (e) {
+    return false;
+  }
+}
+
 function isValidEmail(email) {
   if (!email || typeof email !== 'string') return false;
   const clean = email.trim();
@@ -1025,10 +1074,20 @@ export async function onRequest(context) {
       const { password } = (await request.json().catch(() => ({}))) || {};
       if (!password) return jsonResponse({ success: false, error: 'Passphrase is required.' }, 400);
       if (password === ADMIN_SECRET) {
-        const token = btoa(`admin_clearance_${Date.now()}`);
+        const token = await generateAdminToken(ADMIN_SECRET);
         return jsonResponse({ success: true, token, message: 'Organizer clearance granted.' });
       }
       return jsonResponse({ success: false, error: 'Invalid admin passphrase.' }, 401);
+    }
+
+    // -------------------------------------------------------------
+    // Admin Authorization Barrier: Guard all administrative actions
+    // -------------------------------------------------------------
+    if (pathname.startsWith('/api/admin/')) {
+      const isAuthorized = await verifyAdminAuth(request, url, ADMIN_SECRET);
+      if (!isAuthorized) {
+        return jsonResponse({ success: false, error: 'Unauthorized: Valid Admin Authorization required.' }, 401);
+      }
     }
 
     // -------------------------------------------------------------

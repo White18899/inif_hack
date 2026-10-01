@@ -1,4 +1,5 @@
 import express from 'express';
+import crypto from 'crypto';
 import multer from 'multer';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -1073,7 +1074,44 @@ app.post('/api/judges/score', async (req, res) => {
   }
 });
 
-// 8. Admin Authentication
+// 8. Admin Authentication & Authorization
+function generateAdminToken(secret) {
+  const ts = Date.now().toString();
+  const signature = crypto.createHmac('sha256', secret).update(`admin:${ts}`).digest('hex');
+  return Buffer.from(`${ts}:${signature}`).toString('base64');
+}
+
+function verifyAdminToken(token, secret) {
+  if (!token) return false;
+  if (token === secret) return true; // Direct admin secret supported
+  try {
+    const decoded = Buffer.from(token, 'base64').toString('utf8');
+    const [ts, sig] = decoded.split(':');
+    if (!ts || !sig || sig.length !== 64) return false;
+
+    const age = Date.now() - parseInt(ts, 10);
+    if (isNaN(age) || age < 0 || age > 24 * 60 * 60 * 1000) return false; // 24-hour expiration
+
+    const expectedSig = crypto.createHmac('sha256', secret).update(`admin:${ts}`).digest('hex');
+    return crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expectedSig));
+  } catch (e) {
+    return false;
+  }
+}
+
+function requireAdminAuth(req, res, next) {
+  const secret = process.env.ADMIN_SECRET || 'admin123';
+  const authHeader = req.headers['authorization'] || '';
+  const tokenFromHeader = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : authHeader.trim();
+  const tokenFromQuery = (req.query.token || '').toString().trim();
+  const token = tokenFromHeader || tokenFromQuery;
+
+  if (!token || !verifyAdminToken(token, secret)) {
+    return res.status(401).json({ success: false, error: 'Unauthorized: Valid Admin Authorization required.' });
+  }
+  next();
+}
+
 app.post('/api/admin/login', (req, res) => {
   try {
     const { password } = req.body || {};
@@ -1081,7 +1119,7 @@ app.post('/api/admin/login', (req, res) => {
 
     if (!password) return res.status(400).json({ success: false, error: 'Passphrase is required.' });
     if (password === secret) {
-      const token = Buffer.from(`admin_clearance_${Date.now()}`).toString('base64');
+      const token = generateAdminToken(secret);
       return res.status(200).json({ success: true, token, message: 'Organizer clearance granted.' });
     }
     return res.status(401).json({ success: false, error: 'Invalid admin passphrase.' });
@@ -1090,8 +1128,8 @@ app.post('/api/admin/login', (req, res) => {
   }
 });
 
-// 9. Admin Get All Teams
-app.get('/api/admin/teams', async (req, res) => {
+// 9. Admin Get All Teams (Protected)
+app.get('/api/admin/teams', requireAdminAuth, async (req, res) => {
   try {
     const db = await loadDb();
     res.json({ success: true, teams: db.teams });
@@ -1100,8 +1138,8 @@ app.get('/api/admin/teams', async (req, res) => {
   }
 });
 
-// 10. Admin Edit ANYTHING about Teams (Info, Marks, Food, Payment, Everything)
-app.put('/api/admin/teams/:id', async (req, res) => {
+// 10. Admin Edit ANYTHING about Teams (Protected)
+app.put('/api/admin/teams/:id', requireAdminAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const updates = req.body;
@@ -1153,8 +1191,8 @@ app.put('/api/admin/teams/:id', async (req, res) => {
   }
 });
 
-// 11. Admin Delete Team
-app.delete('/api/admin/teams/:id', async (req, res) => {
+// 11. Admin Delete Team (Protected)
+app.delete('/api/admin/teams/:id', requireAdminAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const db = await loadDb();
@@ -1170,8 +1208,8 @@ app.delete('/api/admin/teams/:id', async (req, res) => {
   }
 });
 
-// 12. Admin Update Domains & Problem Statements
-app.put('/api/admin/domains', async (req, res) => {
+// 12. Admin Update Domains & Problem Statements (Protected)
+app.put('/api/admin/domains', requireAdminAuth, async (req, res) => {
   try {
     const updatedDomain = req.body;
     const db = await loadDb();
@@ -1190,8 +1228,8 @@ app.put('/api/admin/domains', async (req, res) => {
   }
 });
 
-// 13. Admin Multi-Sheet Excel Export (.xlsx)
-app.get('/api/admin/export', async (req, res) => {
+// 13. Admin Multi-Sheet Excel Export (.xlsx) (Protected)
+app.get('/api/admin/export', requireAdminAuth, async (req, res) => {
   try {
     const db = await loadDb();
     const teams = db.teams;
