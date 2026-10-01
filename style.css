@@ -5375,7 +5375,7 @@ body.timeline-unlocked #sponsors-section {
 }
 
 /* ==========================================================================
-   SITE VIDEO LOADER (loading.mp4) - RESPONSIVE HOLO-THEATER DECK
+   SITE PRELOADER: DESKTOP VIDEO // MOBILE NORMAL COSMIC LOADER
    ========================================================================== */
 .cinematic-preloader {
   position: fixed;
@@ -5390,9 +5390,9 @@ body.timeline-unlocked #sponsors-section {
   opacity: 1;
   transform: scale(1);
   filter: blur(0px);
-  transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.85s cubic-bezier(0.16, 1, 0.3, 1),
-              filter 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              filter 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .cinematic-preloader.fade-out {
@@ -5402,27 +5402,19 @@ body.timeline-unlocked #sponsors-section {
   pointer-events: none;
 }
 
-/* Ambient Cosmic Glow behind Video (Eliminates empty black void on mobile) */
-.cinematic-ambient-glow {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: clamp(300px, 85vw, 680px);
-  height: clamp(300px, 85vw, 680px);
-  transform: translate(-50%, -50%);
-  background: radial-gradient(circle, rgba(225, 29, 72, 0.32) 0%, rgba(147, 51, 234, 0.16) 45%, transparent 70%);
-  filter: blur(65px);
-  pointer-events: none;
-  z-index: 1;
-  animation: ambientCosmicPulse 3.5s infinite ease-in-out;
+/* --------------------------------------------------------------------------
+   DESKTOP VIDEO LOADER (Visible on screens > 768px)
+   -------------------------------------------------------------------------- */
+.desktop-video-loader {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  position: relative;
 }
 
-@keyframes ambientCosmicPulse {
-  0%, 100% { opacity: 0.65; transform: translate(-50%, -50%) scale(1); }
-  50% { opacity: 0.95; transform: translate(-50%, -50%) scale(1.12); }
-}
-
-/* Authentic Cinemascope Anamorphic Letterbox Bars (Desktop) */
 .cinematic-letterbox {
   position: absolute;
   left: 0;
@@ -5444,7 +5436,6 @@ body.timeline-unlocked #sponsors-section {
   border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Stage & Video Element */
 .cinematic-stage {
   position: relative;
   width: 100vw;
@@ -5474,7 +5465,6 @@ body.timeline-unlocked #sponsors-section {
   filter: contrast(1.08) brightness(1.02);
 }
 
-/* Subtle Vignette & Film Atmosphere */
 .cinematic-vignette-ring {
   position: absolute;
   inset: 0;
@@ -5483,7 +5473,6 @@ body.timeline-unlocked #sponsors-section {
   mix-blend-mode: multiply;
 }
 
-/* Loader HUD: Top Bar */
 .cinematic-hud-top {
   position: absolute;
   top: clamp(20px, 5vh, 60px);
@@ -5506,14 +5495,6 @@ body.timeline-unlocked #sponsors-section {
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 9999px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-}
-
-.loader-crest-icon {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  object-fit: cover;
-  box-shadow: 0 0 8px rgba(225, 29, 72, 0.6);
 }
 
 .cinematic-rec-dot {
@@ -5539,17 +5520,12 @@ body.timeline-unlocked #sponsors-section {
   text-transform: uppercase;
 }
 
-.cinematic-brand-text .txt-mobile {
-  display: none;
-}
-
 .cinematic-top-actions {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-/* Skip Loader Button */
 .btn-skip-intro {
   display: inline-flex;
   align-items: center;
@@ -5588,153 +5564,186 @@ body.timeline-unlocked #sponsors-section {
   box-shadow: 0 0 25px rgba(255, 51, 102, 0.45);
 }
 
-.btn-skip-intro:hover .skip-key-hint {
-  background: rgba(255, 51, 102, 0.25);
-  color: #ff3366;
-}
-
 .btn-skip-intro:active {
   transform: translateY(0) scale(0.98);
 }
 
-/* Desktop: Mobile Deck Hidden */
-.loader-mobile-deck {
+/* --------------------------------------------------------------------------
+   MOBILE NORMAL COSMIC LOADER (Hidden on desktop, active on <= 768px)
+   -------------------------------------------------------------------------- */
+.mobile-normal-loader {
   display: none;
 }
 
-/* ==========================================================================
-   MOBILE-OPTIMIZED CINEMATIC HOLO-THEATER (< 768px)
-   ========================================================================== */
 @media (max-width: 768px) {
-  .cinematic-preloader {
-    justify-content: space-between;
-    padding: 20px 16px 28px 16px;
-    box-sizing: border-box;
-    background: radial-gradient(circle at 50% 50%, #110d18 0%, #030206 80%);
-  }
-
-  /* Remove artificial letterbox bars on mobile portrait */
-  .cinematic-letterbox {
+  /* Hide the video loader on mobile completely */
+  .desktop-video-loader {
     display: none !important;
   }
 
-  /* Top HUD on Mobile */
-  .cinematic-hud-top {
-    position: relative;
-    top: auto;
-    left: auto;
-    right: auto;
-    width: 100%;
-    margin-bottom: auto;
-  }
-
-  .cinematic-brand-text .txt-desktop {
-    display: none;
-  }
-
-  .cinematic-brand-text .txt-mobile {
-    display: inline;
-  }
-
-  .btn-skip-intro {
-    padding: 6px 14px;
-    font-size: 0.68rem;
-  }
-
-  .btn-skip-intro .skip-key-hint {
-    display: none;
-  }
-
-  /* Center Stage on Mobile: Framed Holo-Screen */
-  .cinematic-stage {
-    width: 100%;
-    height: auto;
-    margin: auto 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .holo-screen-frame {
-    position: relative;
-    width: 100%;
-    max-width: 100%;
-    aspect-ratio: 16 / 7;
-    border-radius: 14px;
-    overflow: hidden;
-    border: 1px solid rgba(225, 29, 72, 0.4);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8),
-                0 0 35px rgba(225, 29, 72, 0.35),
-                inset 0 0 20px rgba(0, 0, 0, 0.8);
-    background: #000000;
-  }
-
-  .holo-screen-frame .cinematic-video {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transform: scale(1.04);
-  }
-
-  /* Futuristic Cyber Corner Brackets */
-  .holo-corner {
-    position: absolute;
-    width: 12px;
-    height: 12px;
-    border-color: #ff3366;
-    z-index: 12;
-    pointer-events: none;
-  }
-
-  .holo-corner.top-left {
-    top: 6px;
-    left: 6px;
-    border-top: 2px solid #ff3366;
-    border-left: 2px solid #ff3366;
-  }
-
-  .holo-corner.top-right {
-    top: 6px;
-    right: 6px;
-    border-top: 2px solid #ff3366;
-    border-right: 2px solid #ff3366;
-  }
-
-  .holo-corner.bottom-left {
-    bottom: 6px;
-    left: 6px;
-    border-bottom: 2px solid #ff3366;
-    border-left: 2px solid #ff3366;
-  }
-
-  .holo-corner.bottom-right {
-    bottom: 6px;
-    right: 6px;
-    border-bottom: 2px solid #ff3366;
-    border-right: 2px solid #ff3366;
-  }
-
-  /* Bottom Mobile Deck (Fills vertical void with purpose & interactivity) */
-  .loader-mobile-deck {
+  /* Show the clean normal cosmic loader on mobile */
+  .mobile-normal-loader {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
-    width: 100%;
-    max-width: 320px;
-    margin-top: auto;
-    z-index: 30;
+    justify-content: center;
+    width: 100vw;
+    height: 100vh;
+    min-height: 100vh;
+    padding: 32px 20px;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 10;
   }
 
-  .loader-status-indicator {
+  .mobile-loader-ambient-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 280px;
+    height: 280px;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(225, 29, 72, 0.35) 0%, rgba(147, 51, 234, 0.18) 50%, transparent 70%);
+    filter: blur(55px);
+    pointer-events: none;
+    z-index: 1;
+    animation: mobileAmbientPulse 2.8s infinite ease-in-out;
+  }
+
+  @keyframes mobileAmbientPulse {
+    0%, 100% { opacity: 0.7; transform: translate(-50%, -50%) scale(1); }
+    50% { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
+  }
+
+  .mobile-loader-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+    max-width: 320px;
+    z-index: 10;
+  }
+
+  /* Cosmic Orbital Ring Spinner */
+  .orbital-loader-container {
+    position: relative;
+    width: 96px;
+    height: 96px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+
+  .orbital-ring {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .orbital-ring.ring-outer {
+    inset: 0;
+    border: 2.5px solid transparent;
+    border-top-color: #ff3366;
+    border-right-color: #ff8c00;
+    animation: orbitalSpin 1.4s linear infinite;
+    filter: drop-shadow(0 0 10px rgba(255, 51, 102, 0.8));
+  }
+
+  .orbital-ring.ring-inner {
+    inset: 9px;
+    border: 2px solid transparent;
+    border-bottom-color: #00d2ff;
+    border-left-color: #a855f7;
+    animation: orbitalSpinRev 1.8s linear infinite;
+    filter: drop-shadow(0 0 8px rgba(0, 210, 255, 0.7));
+  }
+
+  .orbital-core-glow {
+    position: absolute;
+    inset: 14px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(225, 29, 72, 0.45) 0%, transparent 75%);
+    filter: blur(6px);
+  }
+
+  .orbital-emblem-img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 0 18px rgba(225, 29, 72, 0.65);
+    z-index: 5;
+  }
+
+  @keyframes orbitalSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes orbitalSpinRev {
+    from { transform: rotate(360deg); }
+    to { transform: rotate(-360deg); }
+  }
+
+  /* Typography */
+  .mobile-loader-text-group {
+    margin-bottom: 6px;
+  }
+
+  .mobile-loader-title {
+    font-family: var(--font-display, 'Syne', sans-serif);
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: #ffffff;
+    text-transform: uppercase;
+    margin: 0 0 6px 0;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.25);
+  }
+
+  .mobile-loader-subtitle {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.70rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    color: #ff3366;
+    text-transform: uppercase;
+  }
+
+  /* Sleek High-Tech Progress Bar */
+  .mobile-loader-bar-wrap {
+    width: 220px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 9999px;
+    overflow: hidden;
+    margin: 24px auto 14px auto;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.8);
+  }
+
+  .mobile-loader-bar-fill {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #ff3366, #ff8c00, #00d2ff);
+    box-shadow: 0 0 12px rgba(255, 51, 102, 0.9);
+    border-radius: 9999px;
+  }
+
+  /* Status Row */
+  .mobile-loader-status-row {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 5px 12px;
-    background: rgba(18, 18, 24, 0.6);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 9999px;
+    font-family: var(--font-mono, monospace);
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: rgba(255, 255, 255, 0.65);
+    text-transform: uppercase;
+    margin-bottom: 24px;
   }
 
   .loader-pulse-dot {
@@ -5751,43 +5760,36 @@ body.timeline-unlocked #sponsors-section {
     50% { opacity: 0.3; transform: scale(0.8); }
   }
 
-  .loader-status-text {
-    font-family: var(--font-mono, monospace);
-    font-size: 0.64rem;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    color: rgba(255, 255, 255, 0.7);
-    text-transform: uppercase;
-  }
-
-  /* Thumb-Friendly Mobile Enter Button */
+  /* Enter CTA Button */
   .btn-mobile-enter-showcase {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 8px;
     width: 100%;
-    padding: 13px 20px;
-    background: linear-gradient(135deg, rgba(225, 29, 72, 0.9) 0%, rgba(190, 18, 60, 0.95) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    border-radius: 12px;
+    max-width: 260px;
+    padding: 12px 20px;
+    background: rgba(225, 29, 72, 0.18);
+    border: 1px solid rgba(255, 51, 102, 0.45);
+    border-radius: 9999px;
     color: #ffffff;
-    font-family: var(--font-display, 'Syne', sans-serif);
-    font-size: 0.86rem;
-    font-weight: 800;
-    letter-spacing: 0.08em;
+    font-family: var(--font-mono, monospace);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     cursor: pointer;
-    box-shadow: 0 4px 25px rgba(225, 29, 72, 0.55),
-                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 25px rgba(225, 29, 72, 0.25);
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .btn-mobile-enter-showcase:active {
-    transform: scale(0.97);
-    box-shadow: 0 2px 14px rgba(225, 29, 72, 0.4);
+    transform: scale(0.96);
+    background: rgba(225, 29, 72, 0.35);
+    box-shadow: 0 0 15px rgba(225, 29, 72, 0.4);
   }
 }
+
 
 
 

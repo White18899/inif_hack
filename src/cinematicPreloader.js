@@ -1,11 +1,7 @@
 /**
- * Site Video Loader (loading.mp4)
- * Features:
- * - High-definition full-screen cinematic video loader
- * - Always unmuted video playback (with auto-unmute on first user touch fallback)
- * - Clean presentation: zero timeline scrubbers, zero timecodes
- * - Sleek minimal [ SKIP ] button for rapid access
- * - Cosmic audio surge on logo reveal and smooth fade-out into 3D showcase
+ * Site Preloader Engine
+ * - Desktop: Full-screen unmuted cinematic video loader (loading.mp4)
+ * - Mobile: Normal cosmic orbital singularity loader (lightweight, zero video decoding, 1.8s auto-transition)
  */
 
 import { audioEngine } from './audio.js';
@@ -17,8 +13,9 @@ export function initCinematicPreloader(options = {}) {
   const video = document.getElementById('cinematic-video');
   const btnSkip = document.getElementById('btn-skip-intro');
   const btnMobileEnter = document.getElementById('btn-mobile-enter');
+  const mobileBarFill = document.getElementById('mobile-loader-bar-fill');
 
-  if (!preloader || !video) {
+  if (!preloader) {
     if (typeof onComplete === 'function') onComplete();
     return { dismiss: () => {} };
   }
@@ -26,6 +23,8 @@ export function initCinematicPreloader(options = {}) {
   let isDismissed = false;
   let hasTriggeredClimaxAudio = false;
   let safetyTimeout = null;
+
+  const isMobile = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
   const dismiss = (triggeredByEvent = false) => {
     if (isDismissed) return;
@@ -49,13 +48,74 @@ export function initCinematicPreloader(options = {}) {
 
     setTimeout(() => {
       preloader.style.display = 'none';
+      if (video) {
+        try {
+          video.pause();
+        } catch (err) {
+          // Safe pause
+        }
+      }
+    }, 800);
+  };
+
+  // Keyboard shortcut: ESC or SPACE to skip loader
+  window.addEventListener('keydown', (e) => {
+    if (!isDismissed && preloader.style.display !== 'none') {
+      if (e.key === 'Escape' || e.code === 'Space') {
+        e.preventDefault();
+        dismiss(true);
+      }
+    }
+  });
+
+  // Skip buttons
+  if (btnSkip) {
+    btnSkip.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dismiss(true);
+    });
+  }
+
+  if (btnMobileEnter) {
+    btnMobileEnter.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dismiss(true);
+    });
+  }
+
+  // --- MOBILE NORMAL LOADER BRANCH ---
+  if (isMobile) {
+    // Ensure video is paused on mobile to conserve bandwidth and CPU
+    if (video) {
       try {
         video.pause();
-      } catch (err) {
-        // Safe pause
-      }
-    }, 850);
-  };
+        video.currentTime = 0;
+      } catch (err) {}
+    }
+
+    preloader.style.display = 'flex';
+
+    // Animate mobile progress bar smoothly over 1.7 seconds
+    if (mobileBarFill) {
+      // Force reflow
+      void mobileBarFill.offsetWidth;
+      mobileBarFill.style.transition = 'width 1.7s cubic-bezier(0.2, 0.8, 0.2, 1)';
+      mobileBarFill.style.width = '100%';
+    }
+
+    // Auto-dismiss after 1.8s, triggering 3D convergence
+    safetyTimeout = setTimeout(() => {
+      dismiss(false);
+    }, 1850);
+
+    return { dismiss };
+  }
+
+  // --- DESKTOP CINEMATIC VIDEO BRANCH ---
+  if (!video) {
+    dismiss(false);
+    return { dismiss };
+  }
 
   // Video climax trigger (cosmic surge when INFINITY HACKATHON title crystallizes)
   video.addEventListener('timeupdate', () => {
@@ -74,32 +134,7 @@ export function initCinematicPreloader(options = {}) {
     dismiss(false);
   });
 
-  // Skip buttons
-  if (btnSkip) {
-    btnSkip.addEventListener('click', (e) => {
-      e.stopPropagation();
-      dismiss(true);
-    });
-  }
-
-  if (btnMobileEnter) {
-    btnMobileEnter.addEventListener('click', (e) => {
-      e.stopPropagation();
-      dismiss(true);
-    });
-  }
-
-  // Keyboard shortcut: ESC or SPACE to skip loader
-  window.addEventListener('keydown', (e) => {
-    if (!isDismissed && preloader.style.display !== 'none') {
-      if (e.key === 'Escape' || e.code === 'Space') {
-        e.preventDefault();
-        dismiss(true);
-      }
-    }
-  });
-
-  // Always Unmuted Playback Configuration
+  // Desktop Unmuted Playback
   video.muted = false;
   video.volume = 1.0;
   audioEngine.isMuted = false;
@@ -108,8 +143,7 @@ export function initCinematicPreloader(options = {}) {
     const playPromise = video.play();
     if (playPromise !== undefined) {
       playPromise.catch((error) => {
-        console.warn('Unmuted autoplay prevented by browser policy; queuing audio on interaction:', error);
-        // Browser requires user gesture before playing unmuted audio
+        console.warn('Desktop unmuted autoplay blocked by policy; setting up interaction listener:', error);
         video.muted = true;
         video.play().catch(() => {});
 
@@ -135,10 +169,10 @@ export function initCinematicPreloader(options = {}) {
   preloader.style.display = 'flex';
   attemptPlayback();
 
-  // Safety watchdog: If network or video decode halts for >4s, seamlessly transition to site
+  // Desktop Safety Watchdog
   safetyTimeout = setTimeout(() => {
     if (!isDismissed && video.currentTime === 0) {
-      console.warn('Site loader safety timeout reached; proceeding to 3D showcase.');
+      console.warn('Desktop video loader timeout reached; proceeding to showcase.');
       dismiss(false);
     }
   }, 4200);

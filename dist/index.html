@@ -51,69 +51,88 @@
     }
     window.scrollTo(0, 0);
   </script>
-  <script type="module" crossorigin src="/assets/main-HJNr_QNX.js"></script>
+  <script type="module" crossorigin src="/assets/main-ZGpqD-aj.js"></script>
   <link rel="modulepreload" crossorigin href="/assets/modulepreload-polyfill-B5Qt9EMX.js">
-  <link rel="stylesheet" crossorigin href="/assets/main-CSjqkZrc.css">
+  <link rel="stylesheet" crossorigin href="/assets/main-Bl3WP9Fb.css">
 </head>
 
 <body class="theme-obsidian">
-  <!-- Site Video Loader (loading.mp4) with Mobile Holo-Theater Deck -->
+  <!-- Site Preloader: Desktop Video // Mobile Normal Cosmic Loader -->
   <div id="cinematic-preloader" class="cinematic-preloader" role="dialog" aria-modal="true" aria-label="Loading Infinity Hackathon">
-    <!-- Ambient Cosmic Color Aura (Eliminates empty black void on mobile) -->
-    <div class="cinematic-ambient-glow"></div>
+    
+    <!-- DESKTOP CINEMATIC VIDEO (Hidden on Mobile) -->
+    <div class="desktop-video-loader">
+      <div class="cinematic-letterbox cinematic-letterbox-top"></div>
 
-    <div class="cinematic-letterbox cinematic-letterbox-top"></div>
+      <!-- Desktop Loader Top HUD -->
+      <div class="cinematic-hud-top">
+        <div class="cinematic-brand-indicator">
+          <span class="cinematic-rec-dot"></span>
+          <span class="cinematic-brand-text">INFINITY HACKATHON // LOADING</span>
+        </div>
 
-    <!-- Loader Top HUD -->
-    <div class="cinematic-hud-top">
-      <div class="cinematic-brand-indicator">
-        <img src="/logo.jpeg" alt="Infinity Crest" class="loader-crest-icon">
-        <span class="cinematic-rec-dot"></span>
-        <span class="cinematic-brand-text"><span class="txt-desktop">INFINITY HACKATHON // LOADING</span><span class="txt-mobile">INFINITY 2026</span></span>
+        <div class="cinematic-top-actions">
+          <button id="btn-skip-intro" class="btn-skip-intro" type="button" aria-label="Skip to Showcase">
+            <span class="skip-text">SKIP</span>
+            <span class="skip-key-hint">ESC</span>
+            <svg class="skip-arrow" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M5.5 4v16l10-8-10-8zm11 0v16h2V4h-2z"/>
+            </svg>
+          </button>
+        </div>
       </div>
 
-      <div class="cinematic-top-actions">
-        <!-- Direct Skip Button -->
-        <button id="btn-skip-intro" class="btn-skip-intro" type="button" aria-label="Skip to Showcase">
-          <span class="skip-text">SKIP</span>
-          <span class="skip-key-hint">ESC</span>
-          <svg class="skip-arrow" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M5.5 4v16l10-8-10-8zm11 0v16h2V4h-2z"/>
+      <!-- Center Video Stage -->
+      <div class="cinematic-stage">
+        <div class="cinematic-video-wrapper">
+          <video id="cinematic-video" class="cinematic-video" playsinline preload="auto">
+            <source src="/loading.mp4" type="video/mp4">
+          </video>
+          <div class="cinematic-vignette-ring"></div>
+        </div>
+      </div>
+
+      <div class="cinematic-letterbox cinematic-letterbox-bottom"></div>
+    </div>
+
+    <!-- MOBILE NORMAL COSMIC LOADER (Active on Mobile, Hidden on Desktop) -->
+    <div class="mobile-normal-loader" id="mobile-normal-loader">
+      <div class="mobile-loader-ambient-glow"></div>
+
+      <div class="mobile-loader-content">
+        <!-- Cosmic Orbital Ring Spinner with Infinity Emblem -->
+        <div class="orbital-loader-container">
+          <div class="orbital-ring ring-outer"></div>
+          <div class="orbital-ring ring-inner"></div>
+          <div class="orbital-core-glow"></div>
+          <img src="/logo.jpeg" alt="Infinity Hackathon Emblem" class="orbital-emblem-img">
+        </div>
+
+        <!-- Typography -->
+        <div class="mobile-loader-text-group">
+          <h2 class="mobile-loader-title">INFINITY HACKATHON</h2>
+          <span class="mobile-loader-subtitle">// FORGE THE UNIVERSE</span>
+        </div>
+
+        <!-- Sleek High-Tech Progress Bar -->
+        <div class="mobile-loader-bar-wrap">
+          <div id="mobile-loader-bar-fill" class="mobile-loader-bar-fill"></div>
+        </div>
+
+        <div class="mobile-loader-status-row">
+          <span class="loader-pulse-dot"></span>
+          <span class="mobile-loader-status-text">INITIALIZING 3D COSMOS...</span>
+        </div>
+
+        <button id="btn-mobile-enter" class="btn-mobile-enter-showcase" type="button" aria-label="Enter Hackathon Showcase">
+          <span>✦ ENTER SHOWCASE NOW</span>
+          <svg class="enter-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="9 18 15 12 9 6"></polyline>
           </svg>
         </button>
       </div>
     </div>
 
-    <!-- Center Stage: Holo-Screen Frame -->
-    <div class="cinematic-stage">
-      <div class="cinematic-video-wrapper holo-screen-frame">
-        <div class="holo-corner top-left"></div>
-        <div class="holo-corner top-right"></div>
-        <div class="holo-corner bottom-left"></div>
-        <div class="holo-corner bottom-right"></div>
-
-        <video id="cinematic-video" class="cinematic-video" playsinline preload="auto" autoplay>
-          <source src="/loading.mp4" type="video/mp4">
-        </video>
-        <div class="cinematic-vignette-ring"></div>
-      </div>
-    </div>
-
-    <!-- Mobile Bottom Deck: Status & Thumb-Friendly Action Button -->
-    <div class="loader-mobile-deck">
-      <div class="loader-status-indicator">
-        <span class="loader-pulse-dot"></span>
-        <span class="loader-status-text">INITIALIZING 3D COSMOS...</span>
-      </div>
-      <button id="btn-mobile-enter" class="btn-mobile-enter-showcase" type="button" aria-label="Enter Hackathon Showcase">
-        <span>✦ ENTER SHOWCASE NOW</span>
-        <svg class="enter-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <polyline points="9 18 15 12 9 6"></polyline>
-        </svg>
-      </button>
-    </div>
-
-    <div class="cinematic-letterbox cinematic-letterbox-bottom"></div>
   </div>
 
   <!-- 3D Canvas Viewport (Untouched, Pristine Three.js WebGL Engine) -->
