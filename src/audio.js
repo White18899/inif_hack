@@ -219,6 +219,29 @@ class CosmicAudioEngine {
     osc.start(now);
     osc.stop(now + 0.04);
   }
+
+  playChime(freq = 440, duration = 0.4) {
+    if (!this.ctx || this.isMuted) return;
+    try {
+      if (this.ctx.state === 'suspended') this.ctx.resume();
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now);
+
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.18, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+
+      osc.start(now);
+      osc.stop(now + duration + 0.05);
+    } catch (_) {}
+  }
 }
 
 export const audioEngine = new CosmicAudioEngine();

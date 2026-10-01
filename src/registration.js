@@ -45,6 +45,14 @@ export function initRegistrationModule() {
     return dummies.includes(clean);
   }
 
+  function safePlayChime(freq, duration = 0.4) {
+    try {
+      if (audioEngine && typeof audioEngine.playChime === 'function') {
+        audioEngine.playChime(freq, duration);
+      }
+    } catch (_) {}
+  }
+
   // 1. OPEN MODAL
   function openModal(stoneId = 'mind') {
     if (!modalRegister) return;
@@ -69,7 +77,7 @@ export function initRegistrationModule() {
     if (qrAmountText) qrAmountText.textContent = `PAY ₹${currentFee.toLocaleString('en-IN')}`;
     if (totalFeeDisplay) totalFeeDisplay.textContent = `₹${currentFee.toLocaleString('en-IN')}`;
 
-    audioEngine.playChime(580);
+    safePlayChime(580);
   }
 
   // 2. CLOSE MODAL
@@ -282,10 +290,10 @@ export function initRegistrationModule() {
             resolve(blob || file);
           }, 'image/jpeg', 0.92);
         };
-        img.onerror = () => reject(new Error('IMAGE_LOAD_ERROR'));
+        img.onerror = () => resolve(file);
         img.src = url;
       } catch (e) {
-        reject(e);
+        resolve(file);
       }
     });
   }
@@ -383,15 +391,15 @@ export function initRegistrationModule() {
 
         // 1. Payment Providers & Apps (Score: 2 each)
         const paymentAppKeywords = [
-          'google pay', 'gpay', 'phonepe', 'paytm', 'bhim', 'cred', 'navi',
-          'amazon pay', 'amazonpay', 'whatsapp pay', 'mobikwik', 'freecharge',
-          'airtel payments', 'jupiter', 'fi money', 'fampay', 'slice', 'super.money',
-          'payzapp', 'bhim upi', 'omni card'
+          'google pay', 'gpay', 'g pay', 'g-pay', 'phonepe', 'phone pe', 'paytm', 'pay tm',
+          'bhim', 'cred', 'navi', 'amazon pay', 'amazonpay', 'whatsapp pay', 'mobikwik',
+          'freecharge', 'airtel payments', 'jupiter', 'fi money', 'fampay', 'slice',
+          'super.money', 'payzapp', 'bhim upi', 'omni card'
         ];
 
         // 2. Financial / Banking Institutions & Rail (Score: 1 each)
         const bankKeywords = [
-          'state bank', 'sbi', 'hdfc', 'icici', 'axis bank', 'kotak', 'canara',
+          'state bank', 'sbi', 'hdfc', 'icici', 'axis bank', 'axis', 'kotak', 'canara',
           'bank of baroda', 'punjab national', 'pnb', 'union bank', 'idfc', 'indusind',
           'yes bank', 'npci', 'upi', 'imps', 'neft', 'rtgs', 'netbanking', 'central bank',
           'bank of india', 'indian bank', 'uco bank', 'bank of maharashtra'
@@ -411,7 +419,7 @@ export function initRegistrationModule() {
           'upi ref', 'upi transaction id', 'upi transaction', 'google transaction id',
           'phonepe transaction id', 'paytm order id', 'wallet txn id', 'ref no',
           'reference no', 'transaction id', 'txn id', 'rrn', 'utr', 'order id', 'utr no',
-          'ref number', 'reference id'
+          'ref number', 'reference id', 'transfer details'
         ];
 
         // 5. Currency Markers (Score: 1 each)
@@ -472,8 +480,8 @@ export function initRegistrationModule() {
           detectedUtr = twelveDigits.find(n => !isDummyUtr(n)) || null;
         }
 
-        // Extract payer phone from receipt only if explicitly printed on receipt
-        const phoneMatch = rawText.match(/(?:\+91[\s-]?)?([6-9][0-9]{9})\b/);
+        // Extract payer phone ONLY if explicitly labeled with phone/mobile header (never from transaction IDs)
+        const phoneMatch = rawText.match(/(?:phone|mobile|mob|contact|ph|payer\s*phone|remitter\s*mobile)[\s:.-]*(?:\+91[\s-]?)?([6-9][0-9]{9})\b/i);
         if (phoneMatch && phoneMatch[1] && regPayPhone && !regPayPhone.value) {
           regPayPhone.value = phoneMatch[1];
         }
@@ -509,16 +517,23 @@ export function initRegistrationModule() {
         let isReceiptValid = true;
         let rejectReason = '';
 
+        const hasStrongUtr = Boolean(detectedUtr && !isDummyUtr(detectedUtr));
+        const hasPaymentAction = matchedActions.length > 0;
+        const hasPaymentAppOrBank = matchedApps.length > 0 || matchedBanks.length > 0 || matchedRefs.length > 0;
+
         if (rawText.length < 15) {
           isReceiptValid = false;
           rejectReason = 'No payment text found. Camera photos, logos, and plain graphics without transaction details are not allowed';
         } else if (disqualifierMatch && paymentScore < 6) {
           isReceiptValid = false;
           rejectReason = `Image identified as a ${disqualifierMatch.category} (matched '${disqualifierMatch.keyword}')`;
-        } else if (matchedActions.length === 0 && !detectedUtr) {
+        } else if (hasStrongUtr && (hasPaymentAction || hasPaymentAppOrBank || paymentScore >= 3)) {
+          // Authentic receipt with valid 12-digit UTR and payment context!
+          isReceiptValid = true;
+        } else if (!hasStrongUtr && !hasPaymentAction) {
           isReceiptValid = false;
           rejectReason = 'Missing payment action or transaction status (e.g. Paid to, Successful, Debited). Logos and normal photos are not accepted';
-        } else if (paymentScore < 4) {
+        } else if (!hasStrongUtr && paymentScore < 4) {
           isReceiptValid = false;
           rejectReason = 'Image does not contain sufficient payment markers. Only authentic Google Pay, PhonePe, Paytm, or bank receipts are accepted';
         }
@@ -541,7 +556,7 @@ export function initRegistrationModule() {
               ocrBody.innerHTML = `<strong>Invalid Receipt:</strong> ${rejectReason}. Please upload an authentic screenshot of your payment receipt.`;
             }
           }
-          audioEngine.playChime(220);
+          safePlayChime(220);
           showError(`❌ Verification Failed: ${rejectReason}.`);
           return;
         }
@@ -570,11 +585,11 @@ export function initRegistrationModule() {
           utrCheckBadge.className = 'utr-status-badge';
         }
 
-        audioEngine.playChime(720);
+        safePlayChime(720);
         return;
 
       } catch (err) {
-        console.warn('OCR processing error / rejected:', err);
+        console.error('OCR processing error / rejected:', err);
         isReceiptVerified = false;
         verifiedReceiptUtr = null;
         isScanningReceipt = false;
@@ -596,7 +611,7 @@ export function initRegistrationModule() {
             ocrBody.innerHTML = `<strong>Verification Failed:</strong> ${msg} Please upload an authentic Google Pay, PhonePe, or Paytm receipt.`;
           }
         }
-        audioEngine.playChime(220);
+        safePlayChime(220);
         showError(`❌ ${msg}`);
       }
     });
@@ -651,7 +666,7 @@ export function initRegistrationModule() {
       const data = await res.json();
       if (data.exists) {
         setInputError(inputEl, `❌ Already registered in team '${data.teamName}' (${data.teamId})`);
-        audioEngine.playChime(220);
+        safePlayChime(220);
       }
     } catch (e) {
       // Offline or network error: silent
@@ -999,7 +1014,7 @@ export function initRegistrationModule() {
     if (regErrorMsg) {
       regErrorMsg.textContent = msg;
       regErrorMsg.style.display = 'block';
-      audioEngine.playChime(220); // alert tone
+      safePlayChime(220); // alert tone
     }
   }
 
