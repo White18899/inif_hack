@@ -840,8 +840,31 @@ function authHeaders(extra = {}) {
         const res = await fetch('/api/admin/payment-qrs', {
           headers: authHeaders()
         });
-        const data = await res.json();
-        if (data.success && data.paymentQrs) {
+        let data = null;
+        if (res.ok) {
+          try {
+            data = await res.json();
+          } catch (_) {}
+        }
+        if (!data || !data.success) {
+          // Try public fallback
+          try {
+            const fallbackRes = await fetch('/api/payment-qrs');
+            if (fallbackRes.ok) {
+              data = await fallbackRes.json();
+            }
+          } catch (_) {}
+        }
+        if (!data || !data.paymentQrs) {
+          data = {
+            success: true,
+            paymentQrs: {
+              member3: '/3mem.png',
+              member4: '/4mem.png'
+            }
+          };
+        }
+        if (data && data.paymentQrs) {
           adminPaymentQrs = data.paymentQrs;
           uploadedQr3Data = null;
           uploadedQr4Data = null;
