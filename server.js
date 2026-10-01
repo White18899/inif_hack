@@ -424,6 +424,127 @@ app.get('/api/domains', async (req, res) => {
   }
 });
 
+// Validation & Deduplication Helpers
+export function isValidEmail(email) {
+  if (!email || typeof email !== 'string') return false;
+  const clean = email.trim();
+  if (clean.length < 5 || clean.length > 100) return false;
+  const re = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
+  return re.test(clean);
+}
+
+export function normalizePhone(phone) {
+  if (!phone || typeof phone !== 'string') return '';
+  let digits = phone.replace(/\D/g, '');
+  if (digits.length === 12 && digits.startsWith('91')) {
+    digits = digits.slice(2);
+  } else if (digits.length === 11 && digits.startsWith('0')) {
+    digits = digits.slice(1);
+  }
+  return digits;
+}
+
+export function isValidPhone(phone) {
+  const digits = normalizePhone(phone);
+  // Valid phone: 10 digits (standard Indian mobile) or 10-14 digits international
+  return digits.length >= 10 && digits.length <= 14;
+}
+
+export function checkParticipantConflicts(existingTeams, participants, currentTeamId = null) {
+  const seenEmails = new Map();
+  const seenPhones = new Map();
+
+  // 1. Intra-team duplicates (within the newly submitted squad)
+  for (const p of participants) {
+    const cleanEmail = (p.email || '').trim().toLowerCase();
+    const cleanPhone = normalizePhone(p.phone);
+
+    if (cleanEmail) {
+      if (seenEmails.has(cleanEmail)) {
+        return {
+          conflict: true,
+          type: 'intra_team',
+          field: 'email',
+          value: cleanEmail,
+          message: `Duplicate email '${cleanEmail}' detected within your squad (${seenEmails.get(cleanEmail)} and ${p.role}). Each participant must have a distinct, personal email address.`,
+        };
+      }
+      seenEmails.set(cleanEmail, p.role);
+    }
+
+    if (cleanPhone) {
+      if (seenPhones.has(cleanPhone)) {
+        return {
+          conflict: true,
+          type: 'intra_team',
+          field: 'phone',
+          value: p.phone,
+          message: `Duplicate phone number '${p.phone}' detected within your squad (${seenPhones.get(cleanPhone)} and ${p.role}). Each participant must have their own unique mobile number.`,
+        };
+      }
+      seenPhones.set(cleanPhone, p.role);
+    }
+  }
+
+  // 2. Cross-team duplicates (against already registered teams in the database)
+  for (const team of existingTeams || []) {
+    if (currentTeamId && team.id === currentTeamId) continue;
+
+    const registered = [];
+    if (team.leader?.email) {
+      registered.push({
+        role: 'Team Leader',
+        name: team.leader.name,
+        email: team.leader.email.trim().toLowerCase(),
+        phone: normalizePhone(team.leader.phone),
+      });
+    }
+    if (Array.isArray(team.members)) {
+      team.members.forEach((m, idx) => {
+        registered.push({
+          role: `Member 0${idx + 2}`,
+          name: m.name,
+          email: (m.email || '').trim().toLowerCase(),
+          phone: normalizePhone(m.phone),
+        });
+      });
+    }
+
+    for (const p of participants) {
+      const cleanEmail = (p.email || '').trim().toLowerCase();
+      const cleanPhone = normalizePhone(p.phone);
+
+      const emailMatch = registered.find((r) => r.email && r.email === cleanEmail);
+      if (emailMatch) {
+        return {
+          conflict: true,
+          type: 'cross_team',
+          field: 'email',
+          value: cleanEmail,
+          teamName: team.teamName,
+          teamId: team.id,
+          message: `The email '${cleanEmail}' (${p.role}) is already registered with team '${team.teamName}' (${team.id}). A participant can only participate in one team.`,
+        };
+      }
+
+      const phoneMatch = registered.find((r) => r.phone && r.phone === cleanPhone);
+      if (phoneMatch) {
+        return {
+          conflict: true,
+          type: 'cross_team',
+          field: 'phone',
+          value: p.phone,
+          teamName: team.teamName,
+          teamId: team.id,
+          message: `The mobile number '${p.phone}' (${p.role}) is already registered with team '${team.teamName}' (${team.id}). A participant can only participate in one team.`,
+        };
+      }
+    }
+  }
+
+  return { conflict: false };
+}
+
 // 2. Real-time UTR Uniqueness Verification
 app.get('/api/verify-utr', async (req, res) => {
   try {
@@ -438,13 +559,56 @@ app.get('/api/verify-utr', async (req, res) => {
   }
 });
 
+// Real-time Participant (Email & Phone) Verification Endpoint
+app.get('/api/verify-participant', async (req, res) => {
+  try {
+    const email = (req.query.email || '').toString().trim().toLowerCase();
+    const phone = normalizePhone((req.query.phone || '').toString());
+    const excludeTeamId = (req.query.teamId || '').toString().trim();
+
+    if (!email && !phone) {
+      return res.json({ exists: false });
+    }
+
+    const db = await loadDb();
+    for (const team of db.teams || []) {
+      if (excludeTeamId && team.id === excludeTeamId) continue;
+
+      if (email) {
+        if (team.leader?.email?.trim().toLowerCase() === email) {
+          return res.json({ exists: true, field: 'email', value: email, teamName: team.teamName, teamId: team.id, role: 'Team Leader' });
+        }
+        const m = (team.members || []).find((mem) => mem.email?.trim().toLowerCase() === email);
+        if (m) {
+          return res.json({ exists: true, field: 'email', value: email, teamName: team.teamName, teamId: team.id, role: 'Team Member' });
+        }
+      }
+
+      if (phone) {
+        if (normalizePhone(team.leader?.phone) === phone) {
+          return res.json({ exists: true, field: 'phone', value: phone, teamName: team.teamName, teamId: team.id, role: 'Team Leader' });
+        }
+        const m = (team.members || []).find((mem) => normalizePhone(mem.phone) === phone);
+        if (m) {
+          return res.json({ exists: true, field: 'phone', value: phone, teamName: team.teamName, teamId: team.id, role: 'Team Member' });
+        }
+      }
+    }
+
+    res.json({ exists: false });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // 3. Team Registration Endpoint
 // Enforces:
-// - Mandatory fields
-// - Team size: 3 or 4
-// - Fee calculation: ₹349 * teamSize (3 => ₹1047, 4 => ₹1396)
+// - Mandatory fields (all leader and team details)
+// - Team size: strictly 3 or 4
+// - Strict email format validation for leader and all members
+// - Strict mobile phone format validation (10 digits)
 // - Strictly unique UTR
-// - Allows same phone number across multiple teams
+// - Strictly unique emails and phones (intra-team and cross-team)
 // - Auto stores reviews & food structures
 // - Uploads screenshot to Cloudflare R2
 app.post('/api/register', upload.single('paymentScreenshot'), async (req, res) => {
@@ -464,21 +628,23 @@ app.post('/api/register', upload.single('paymentScreenshot'), async (req, res) =
       members,
     } = req.body;
 
-    if (!teamName || !college || !preferredDomain || !teamPassword || !leaderEmail || !paymentUtr) {
-      return res.status(400).json({ success: false, error: 'Missing mandatory registration fields.' });
+    if (!teamName || !college || !preferredDomain || !teamPassword || !leaderName || !leaderEmail || !leaderPhone || !paymentUtr) {
+      return res.status(400).json({ success: false, error: 'Missing mandatory registration fields. All leader and squad details are required.' });
     }
 
-    const cleanUtr = paymentUtr.trim();
-    const db = await loadDb();
-
-    // Enforce strictly UNIQUE UTR across all teams
-    const duplicateUtr = db.teams.find(
-      (t) => t.payment && t.payment.utr && t.payment.utr.trim().toLowerCase() === cleanUtr.toLowerCase()
-    );
-    if (duplicateUtr) {
-      return res.status(409).json({
+    const cleanLeaderEmail = leaderEmail.trim().toLowerCase();
+    if (!isValidEmail(cleanLeaderEmail)) {
+      return res.status(400).json({
         success: false,
-        error: `The payment UTR '${cleanUtr}' has already been registered with another team. Every transaction UTR must be unique.`,
+        error: `Invalid Leader Email format: '${leaderEmail}'. Please enter a valid email address (e.g. name@domain.com).`,
+      });
+    }
+
+    const cleanLeaderPhone = normalizePhone(leaderPhone);
+    if (!isValidPhone(cleanLeaderPhone)) {
+      return res.status(400).json({
+        success: false,
+        error: `Invalid Leader Phone number: '${leaderPhone}'. Please provide a valid 10-digit mobile number.`,
       });
     }
 
@@ -507,6 +673,78 @@ app.post('/api/register', upload.single('paymentScreenshot'), async (req, res) =
       return res.status(400).json({ success: false, error: 'Team size must be strictly 3 or 4 members.' });
     }
 
+    const expectedMemberCount = parsedSize - 1; // 2 teammates for size 3, 3 teammates for size 4
+    if (parsedMembers.length < expectedMemberCount) {
+      return res.status(400).json({
+        success: false,
+        error: `Team size is ${parsedSize} members, but details for only ${parsedMembers.length + 1} were provided. Please fill all member details.`,
+      });
+    }
+
+    // Validate each teammate's name, email, and phone
+    const validatedMembers = [];
+    for (let i = 0; i < expectedMemberCount; i++) {
+      const m = parsedMembers[i] || {};
+      const mName = (m.name || '').trim();
+      const mEmail = (m.email || '').trim().toLowerCase();
+      const mPhone = normalizePhone(m.phone);
+
+      if (!mName) {
+        return res.status(400).json({ success: false, error: `Member 0${i + 2} name is required.` });
+      }
+      if (!isValidEmail(mEmail)) {
+        return res.status(400).json({
+          success: false,
+          error: `Invalid email format for Member 0${i + 2} (${mName}): '${m.email}'. Please provide a valid email.`,
+        });
+      }
+      if (!isValidPhone(mPhone)) {
+        return res.status(400).json({
+          success: false,
+          error: `Invalid mobile number for Member 0${i + 2} (${mName}): '${m.phone}'. Please provide a valid 10-digit number.`,
+        });
+      }
+
+      validatedMembers.push({
+        name: mName,
+        email: mEmail,
+        phone: mPhone,
+      });
+    }
+
+    const cleanUtr = paymentUtr.trim();
+    const db = await loadDb();
+
+    // Check for duplicate participants (Intra-team & Cross-team)
+    const allParticipants = [
+      { role: 'Team Leader', name: leaderName.trim(), email: cleanLeaderEmail, phone: cleanLeaderPhone },
+      ...validatedMembers.map((m, i) => ({
+        role: `Member 0${i + 2}`,
+        name: m.name,
+        email: m.email,
+        phone: m.phone,
+      })),
+    ];
+
+    const conflict = checkParticipantConflicts(db.teams, allParticipants);
+    if (conflict.conflict) {
+      return res.status(409).json({
+        success: false,
+        error: conflict.message,
+      });
+    }
+
+    // Enforce strictly UNIQUE UTR across all teams
+    const duplicateUtr = db.teams.find(
+      (t) => t.payment && t.payment.utr && t.payment.utr.trim().toLowerCase() === cleanUtr.toLowerCase()
+    );
+    if (duplicateUtr) {
+      return res.status(409).json({
+        success: false,
+        error: `The payment UTR '${cleanUtr}' has already been registered with another team. Every transaction UTR must be unique.`,
+      });
+    }
+
     // Calculate dynamic fee at ₹349 per member
     const calculatedAmount = 349 * parsedSize; // 3 => ₹1,047; 4 => ₹1,396
 
@@ -530,15 +768,15 @@ app.post('/api/register', upload.single('paymentScreenshot'), async (req, res) =
       teamPassword: teamPassword.trim(),
       leader: {
         name: leaderName ? leaderName.trim() : '',
-        email: leaderEmail.trim().toLowerCase(),
-        phone: leaderPhone ? leaderPhone.trim() : '',
+        email: cleanLeaderEmail,
+        phone: cleanLeaderPhone,
       },
-      members: parsedMembers,
+      members: validatedMembers,
       roomAllocated: 'TBA (Lab Block 3)',
       selectedProblemStatement: null,
       payment: {
         utr: cleanUtr,
-        phone: paymentPhone ? paymentPhone.trim() : (leaderPhone ? leaderPhone.trim() : ''),
+        phone: paymentPhone ? paymentPhone.trim() : cleanLeaderPhone,
         screenshotUrl,
         submittedAt: new Date().toISOString(),
         amount: calculatedAmount,

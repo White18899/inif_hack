@@ -562,12 +562,230 @@ class InfinityScrollShowcase {
         this.unlockTimeline(true);
       });
     }
+
+    // Launch High-Tech Quantum Plexus Background Particles
+    this.initTimelineParticles();
+  }
+
+  /* --------------------------------------------------------------------------
+     6C. INTERACTIVE QUANTUM PLEXUS PARTICLES FOR TIMELINE SECTION
+     -------------------------------------------------------------------------- */
+  initTimelineParticles() {
+    const canvas = document.getElementById('timeline-bg-canvas');
+    const section = document.getElementById('timeline-section');
+    if (!canvas || !section) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let width = 0;
+    let height = 0;
+    let dpr = 1;
+    let animationFrameId = null;
+    let isVisible = false;
+
+    // Mouse coordinates relative to section
+    const mouse = { x: -1000, y: -1000, isHovering: false };
+
+    // Stone Accent Colors for particles
+    const particleColors = [
+      '#d97706', // Mind Stone Amber
+      '#0284c7', // Space Stone Cyan
+      '#e11d48', // Reality Stone Crimson
+      '#059669', // Time Stone Emerald
+      '#475569', // Technical Slate
+      '#1e293b'  // Deep Slate
+    ];
+
+    const particleCount = window.innerWidth < 768 ? 22 : 44;
+    const particles = [];
+
+    const resize = () => {
+      const rect = section.getBoundingClientRect();
+      width = rect.width;
+      height = rect.height;
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      particles.forEach(p => {
+        if (p.x > width) p.x = Math.random() * width;
+        if (p.y > height) p.y = Math.random() * height;
+      });
+    };
+
+    // Initialize Particles
+    for (let i = 0; i < particleCount; i++) {
+      const isAccent = Math.random() < 0.45;
+      const color = isAccent ? particleColors[i % 4] : particleColors[4 + (i % 2)];
+      particles.push({
+        x: Math.random() * (width || window.innerWidth),
+        y: Math.random() * (height || 600),
+        vx: (Math.random() - 0.5) * 0.42,
+        vy: (Math.random() - 0.5) * 0.42,
+        radius: isAccent ? 2.2 + Math.random() * 1.2 : 1.3 + Math.random() * 0.8,
+        color: color,
+        alpha: 0.28 + Math.random() * 0.45,
+        hasCross: i % 6 === 0,
+        pulseSpeed: 0.02 + Math.random() * 0.03,
+        pulseVal: Math.random() * Math.PI
+      });
+    }
+
+    const draw = () => {
+      if (!isVisible) return;
+
+      ctx.clearRect(0, 0, width, height);
+
+      const len = particles.length;
+      const maxConnectDist = 125;
+      const maxConnectDistSq = maxConnectDist * maxConnectDist;
+
+      // 1. Connection lines
+      for (let i = 0; i < len; i++) {
+        const p1 = particles[i];
+        for (let j = i + 1; j < len; j++) {
+          const p2 = particles[j];
+          const dx = p1.x - p2.x;
+          const dy = p1.y - p2.y;
+          const distSq = dx * dx + dy * dy;
+
+          if (distSq < maxConnectDistSq) {
+            const dist = Math.sqrt(distSq);
+            const lineAlpha = (1 - dist / maxConnectDist) * 0.15;
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.strokeStyle = `rgba(15, 23, 42, ${lineAlpha})`;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+        }
+
+        // Connection and gentle magnetic repulsion from mouse cursor
+        if (mouse.isHovering) {
+          const mdx = p1.x - mouse.x;
+          const mdy = p1.y - mouse.y;
+          const mDistSq = mdx * mdx + mdy * mdy;
+          const mouseConnectDist = 145;
+
+          if (mDistSq < mouseConnectDist * mouseConnectDist) {
+            const mDist = Math.sqrt(mDistSq);
+            const mAlpha = (1 - mDist / mouseConnectDist) * 0.32;
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(mouse.x, mouse.y);
+            ctx.strokeStyle = `rgba(2, 132, 199, ${mAlpha})`;
+            ctx.lineWidth = 1.2;
+            ctx.stroke();
+
+            // Soft push
+            const force = (1 - mDist / mouseConnectDist) * 0.55;
+            p1.x += (mdx / mDist) * force;
+            p1.y += (mdy / mDist) * force;
+          }
+        }
+      }
+
+      // 2. Draw particle nodes
+      for (let i = 0; i < len; i++) {
+        const p = particles[i];
+
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.x < 0) { p.x = 0; p.vx *= -1; }
+        else if (p.x > width) { p.x = width; p.vx *= -1; }
+        if (p.y < 0) { p.y = 0; p.vy *= -1; }
+        else if (p.y > height) { p.y = height; p.vy *= -1; }
+
+        p.pulseVal += p.pulseSpeed;
+        const currentAlpha = p.alpha * (0.85 + Math.sin(p.pulseVal) * 0.25);
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = currentAlpha;
+        ctx.fill();
+
+        if (p.hasCross) {
+          const crossSize = 4;
+          ctx.beginPath();
+          ctx.moveTo(p.x - crossSize, p.y);
+          ctx.lineTo(p.x + crossSize, p.y);
+          ctx.moveTo(p.x, p.y - crossSize);
+          ctx.lineTo(p.x, p.y + crossSize);
+          ctx.strokeStyle = p.color;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+
+        ctx.globalAlpha = 1.0;
+      }
+
+      animationFrameId = requestAnimationFrame(draw);
+    };
+
+    // Track mouse
+    section.addEventListener('mousemove', (e) => {
+      const rect = section.getBoundingClientRect();
+      mouse.x = e.clientX - rect.left;
+      mouse.y = e.clientY - rect.top;
+      mouse.isHovering = true;
+    }, { passive: true });
+
+    section.addEventListener('mouseleave', () => {
+      mouse.isHovering = false;
+      mouse.x = -1000;
+      mouse.y = -1000;
+    });
+
+    // Observer to pause when offscreen
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          isVisible = true;
+          resize();
+          cancelAnimationFrame(animationFrameId);
+          animationFrameId = requestAnimationFrame(draw);
+        } else {
+          isVisible = false;
+          cancelAnimationFrame(animationFrameId);
+        }
+      });
+    }, { threshold: 0.01 });
+
+    observer.observe(section);
+
+    // Watch for size and visibility changes (e.g. when section becomes visible)
+    if (window.ResizeObserver) {
+      const resizeObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          if (entry.contentRect.width > 0 && entry.contentRect.height > 0) {
+            resize();
+            if (isVisible && !animationFrameId) {
+              animationFrameId = requestAnimationFrame(draw);
+            }
+          }
+        }
+      });
+      resizeObserver.observe(section);
+    }
+
+    window.addEventListener('resize', () => {
+      resize();
+    }, { passive: true });
+
+    resize();
   }
 
   unlockTimeline(scroll = true, targetId = 'sponsors-section') {
     if (!document.body.classList.contains('timeline-unlocked')) {
       document.body.classList.add('timeline-unlocked');
       audioEngine.playChime(660);
+      window.dispatchEvent(new Event('resize'));
     }
     if (scroll) {
       setTimeout(() => {
