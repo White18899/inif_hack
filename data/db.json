@@ -299,8 +299,8 @@
       },
       "food": {
         "highTea": {
-          "collected": true,
-          "time": "2026-10-10T16:30:00.000Z"
+          "collected": false,
+          "time": null
         },
         "dinner": {
           "collected": true,
@@ -617,6 +617,358 @@
         "updatedAt": "2026-09-29T17:31:08.072Z"
       },
       "createdAt": "2026-09-29T20:15:00.000Z",
+      "status": "confirmed"
+    },
+    {
+      "id": "INF-6829",
+      "teamName": "tarun",
+      "college": "oiuytre",
+      "preferredDomain": "mind",
+      "techStack": [],
+      "teamSize": 3,
+      "teamPassword": "1234567890",
+      "leader": {
+        "name": "Ganugula Tarun venkata swamy",
+        "email": "tarunganugula31@gmail.com",
+        "phone": "9985252395"
+      },
+      "members": [
+        {
+          "name": "t",
+          "email": "tarunganugula209@gmail.com",
+          "phone": "09985252395"
+        },
+        {
+          "name": "ttt",
+          "email": "tarunganugula209@gmail.com",
+          "phone": "09985252395"
+        }
+      ],
+      "roomAllocated": "TBA (Lab Block 3)",
+      "selectedProblemStatement": null,
+      "payment": {
+        "utr": "424102044729",
+        "phone": "9985252395",
+        "screenshotUrl": "https://pub-aa1b426e7ec64c31a70bdd49676fdec1.r2.dev/receipts/1790825333200-o3ua6y.jpeg",
+        "submittedAt": "2026-10-01T03:28:53.829Z",
+        "amount": 1047,
+        "status": "verified"
+      },
+      "reviews": {
+        "r1": {
+          "attended": false,
+          "time": null,
+          "notes": ""
+        },
+        "r2": {
+          "attended": false,
+          "time": null,
+          "notes": ""
+        },
+        "r3": {
+          "attended": false,
+          "time": null,
+          "notes": ""
+        }
+      },
+      "food": {
+        "highTea": {
+          "collected": false,
+          "time": null
+        },
+        "dinner": {
+          "collected": false,
+          "time": null
+        },
+        "midnightFuel": {
+          "collected": false,
+          "time": null
+        },
+        "breakfast": {
+          "collected": false,
+          "time": null
+        },
+        "lunch": {
+          "collected": false,
+          "time": null
+        }
+      },
+      "scores": {
+        "innovation": 0,
+        "technical": 0,
+        "execution": 0,
+        "presentation": 0,
+        "total": 0,
+        "remarks": ""
+      },
+      "createdAt": "2026-10-01T03:28:53.829Z",
+      "status": "confirmed"
+    },
+    {
+      "id": "INF-2373",
+      "teamName": "tarun",
+      "college": "oiuytre",
+      "preferredDomain": "mind",
+      "techStack": [],
+      "teamSize": 3,
+      "teamPassword": "0987654321",
+      "leader": {
+        "name": "Ganugula Tarun venkata swamy",
+        "email": "tarunganugula31@gmail.com",
+        "phone": "9985252395"
+      },
+      "members": [
+        {
+          "name": "t",
+          "email": "tarunganugula209@gmail.com",
+          "phone": "09985252395"
+        },
+        {
+          "name": "ttt",
+          "email": "tarunganugula209@gmail.com",
+          "phone": "09985252395"
+        }
+      ],
+      "roomAllocated": "TBA (Lab Block 3)",
+      "selectedProblemStatement": null,
+      "payment": {
+        "utr": "424102044720",
+        "phone": "9985252395",
+        "screenshotUrl": "https://pub-aa1b426e7ec64c31a70bdd49676fdec1.r2.dev/receipts/1790826443999-zg3ghd.jpeg",
+        "submittedAt": "2026-10-01T03:47:24.359Z",
+        "amount": 1047,
+        "status": "pending"
+      },
+      "reviews": {
+        "r1": {
+          "attended": false,
+          "time": null,
+          "notes": ""
+        },
+        "r2": {
+          "attended": false,
+          "time": null,
+          "notes": ""
+        },
+        "r3": {
+          "attended": false,
+          "time": null,
+          "notes": ""
+        }
+      },
+      "food": {
+        "highTea": {
+          "collected": false,
+          "time": null
+        },
+        "dinner": {
+          "collected": false,
+          "time": null
+        },
+        "midnightFuel": {
+          "collected": false,
+          "time": null
+        },
+        "breakfast": {
+          "collected": false,
+          "time": null
+        },
+        "lunch": {
+          "collected": false,
+          "time": null
+        }
+      },
+      "scores": {
+        "innovation": 0,
+        "technical": 0,
+        "execution": 0,
+        "presentation": 0,
+        "total": 0,
+        "remarks": ""
+      },
+      "createdAt": "2026-10-01T03:47:24.359Z",
+      "status": "confirmed"
+    },
+    {
+      "id": "INF-6907",
+      "teamName": "Crypto Guardians",
+      "college": "Cyber Tech Institute",
+      "preferredDomain": "intelligence",
+      "techStack": [],
+      "teamSize": 3,
+      "teamPassword": "pbkdf2:100000:1003b640b3dc698f86aee7366829a534:0ac07cf06bdfed52656694ac34f4d3b4ce624ef5c0a997c3385d9db4ad60770c",
+      "leader": {
+        "name": "Alice Security",
+        "email": "test_1790836219541@example.com",
+        "phone": "9849381375"
+      },
+      "members": [
+        {
+          "name": "Bob Cyber",
+          "email": "bob_1790836219613@example.com",
+          "phone": "9132915542"
+        },
+        {
+          "name": "Carol Shield",
+          "email": "carol_1790836219613@example.com",
+          "phone": "9265018057"
+        }
+      ],
+      "roomAllocated": "TBA (Lab Block 3)",
+      "selectedProblemStatement": {
+        "id": "ps-intel-01",
+        "code": "PS-INTEL-01",
+        "title": "Quantum-Resistant Telemetry Fabric [RELEASED]",
+        "category": "AI & Decision Systems",
+        "selectedAt": "2026-10-01T06:30:22.341Z"
+      },
+      "payment": {
+        "utr": "UTR1790836219541",
+        "phone": "9849381375",
+        "screenshotUrl": "https://pub-aa1b426e7ec64c31a70bdd49676fdec1.r2.dev/receipts/1790836219724-owx4y4.png",
+        "submittedAt": "2026-10-01T06:30:20.841Z",
+        "amount": 1047,
+        "status": "pending"
+      },
+      "reviews": {
+        "r1": {
+          "attended": false,
+          "time": null,
+          "notes": ""
+        },
+        "r2": {
+          "attended": false,
+          "time": null,
+          "notes": ""
+        },
+        "r3": {
+          "attended": false,
+          "time": null,
+          "notes": ""
+        }
+      },
+      "food": {
+        "highTea": {
+          "collected": false,
+          "time": null
+        },
+        "dinner": {
+          "collected": false,
+          "time": null
+        },
+        "midnightFuel": {
+          "collected": false,
+          "time": null
+        },
+        "breakfast": {
+          "collected": false,
+          "time": null
+        },
+        "lunch": {
+          "collected": false,
+          "time": null
+        }
+      },
+      "scores": {
+        "innovation": 0,
+        "technical": 0,
+        "execution": 0,
+        "presentation": 0,
+        "total": 0,
+        "remarks": ""
+      },
+      "createdAt": "2026-10-01T06:30:20.841Z",
+      "status": "confirmed"
+    },
+    {
+      "id": "INF-1150",
+      "teamName": "Crypto Guardians",
+      "college": "Cyber Tech Institute",
+      "preferredDomain": "intelligence",
+      "techStack": [],
+      "teamSize": 3,
+      "teamPassword": "pbkdf2:100000:c58f289243eea28fb71bf5b1b5404cbf:6d2ec6541fe9d791b8febed7db8a7056ae0b609d0ddbc35f5254d4eefda02641",
+      "leader": {
+        "name": "Alice Security",
+        "email": "test_1790836279076@example.com",
+        "phone": "9895850854"
+      },
+      "members": [
+        {
+          "name": "Bob Cyber",
+          "email": "bob_1790836279138@example.com",
+          "phone": "9186033516"
+        },
+        {
+          "name": "Carol Shield",
+          "email": "carol_1790836279138@example.com",
+          "phone": "9253933857"
+        }
+      ],
+      "roomAllocated": "TBA (Lab Block 3)",
+      "selectedProblemStatement": {
+        "id": "ps-intel-01",
+        "code": "PS-INTEL-01",
+        "title": "Quantum-Resistant Telemetry Fabric [RELEASED]",
+        "category": "AI & Decision Systems",
+        "selectedAt": "2026-10-01T06:31:21.221Z"
+      },
+      "payment": {
+        "utr": "UTR1790836279076",
+        "phone": "9895850854",
+        "screenshotUrl": "https://pub-aa1b426e7ec64c31a70bdd49676fdec1.r2.dev/receipts/1790836279212-y3iuvg.png",
+        "submittedAt": "2026-10-01T06:31:19.834Z",
+        "amount": 1047,
+        "status": "pending"
+      },
+      "reviews": {
+        "r1": {
+          "attended": false,
+          "time": null,
+          "notes": ""
+        },
+        "r2": {
+          "attended": false,
+          "time": null,
+          "notes": ""
+        },
+        "r3": {
+          "attended": false,
+          "time": null,
+          "notes": ""
+        }
+      },
+      "food": {
+        "highTea": {
+          "collected": false,
+          "time": null
+        },
+        "dinner": {
+          "collected": false,
+          "time": null
+        },
+        "midnightFuel": {
+          "collected": false,
+          "time": null
+        },
+        "breakfast": {
+          "collected": false,
+          "time": null
+        },
+        "lunch": {
+          "collected": false,
+          "time": null
+        }
+      },
+      "scores": {
+        "innovation": 0,
+        "technical": 0,
+        "execution": 0,
+        "presentation": 0,
+        "total": 0,
+        "remarks": ""
+      },
+      "createdAt": "2026-10-01T06:31:19.834Z",
       "status": "confirmed"
     }
   ]

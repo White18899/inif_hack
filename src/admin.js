@@ -28,7 +28,7 @@ function getAdminToken() {
     const saved = sessionStorage.getItem('infinity_admin_auth');
     if (!saved) return '';
     const parsed = JSON.parse(saved);
-    return parsed.token || parsed.password || '';
+    return parsed.token || (typeof parsed === 'string' ? parsed : '');
   } catch (e) {
     return '';
   }
@@ -94,7 +94,8 @@ function authHeaders(extra = {}) {
           throw new Error(data.error || 'Invalid administrator passphrase.');
         }
 
-        sessionStorage.setItem('infinity_admin_auth', JSON.stringify({ password, token: data.token }));
+        // Store ONLY the signed token, never the plaintext password
+        sessionStorage.setItem('infinity_admin_auth', JSON.stringify({ token: data.token }));
         if (secLogin) secLogin.style.display = 'none';
         if (secDash) secDash.style.display = 'block';
         if (btnLogout) btnLogout.style.display = 'inline-block';
@@ -144,7 +145,14 @@ function authHeaders(extra = {}) {
     if (savedAdmin) {
       try {
         const creds = JSON.parse(savedAdmin);
-        if (creds.password) doAdminLogin(creds.password, true);
+        if (creds.token) {
+          if (secLogin) secLogin.style.display = 'none';
+          if (secDash) secDash.style.display = 'block';
+          if (btnLogout) btnLogout.style.display = 'inline-block';
+          loadData();
+        } else if (creds.password) {
+          doAdminLogin(creds.password, true);
+        }
       } catch (e) { }
     }
 
@@ -391,7 +399,11 @@ function authHeaders(extra = {}) {
       };
       document.getElementById('edt-domain').value = domainMap[rawDomain] || 'intelligence';
       document.getElementById('edt-size').value = editingTeam.teamSize || 4;
-      document.getElementById('edt-password').value = editingTeam.teamPassword || '';
+      const pwdInput = document.getElementById('edt-password');
+      if (pwdInput) {
+        pwdInput.value = '';
+        pwdInput.placeholder = editingTeam.hasPassword ? '•••••••• (Leave blank to keep current)' : 'Enter new password';
+      }
 
       document.getElementById('edt-leader-name').value = editingTeam.leader?.name || '';
       document.getElementById('edt-leader-email').value = editingTeam.leader?.email || '';
@@ -433,7 +445,6 @@ function authHeaders(extra = {}) {
         roomAllocated: document.getElementById('edt-room').value.trim(),
         preferredDomain: document.getElementById('edt-domain').value,
         teamSize: parseInt(document.getElementById('edt-size').value, 10) || 4,
-        teamPassword: document.getElementById('edt-password').value,
         leader: {
           name: document.getElementById('edt-leader-name').value.trim(),
           email: document.getElementById('edt-leader-email').value.trim(),
@@ -463,6 +474,11 @@ function authHeaders(extra = {}) {
           remarks: document.getElementById('edt-score-remarks').value.trim(),
         }
       };
+
+      const newPwd = document.getElementById('edt-password')?.value?.trim();
+      if (newPwd) {
+        updates.teamPassword = newPwd;
+      }
 
       try {
         const res = await fetch(`/api/admin/teams/${editingTeam.id}`, {

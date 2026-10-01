@@ -24,7 +24,7 @@ let allTeams = [];
         const raw = sessionStorage.getItem('infinity_judge_auth');
         if (!raw) return '';
         const parsed = JSON.parse(raw);
-        return parsed.token || parsed.password || '';
+        return parsed.token || (typeof parsed === 'string' ? parsed : '');
       } catch (e) {
         return '';
       }
@@ -82,7 +82,8 @@ let allTeams = [];
           throw new Error(data.error || 'Invalid judges passphrase.');
         }
 
-        sessionStorage.setItem('infinity_judge_auth', JSON.stringify({ token: data.token, password }));
+        // Store ONLY the signed bearer token, never the plaintext password
+        sessionStorage.setItem('infinity_judge_auth', JSON.stringify({ token: data.token }));
         secLogin.style.display = 'none';
         secDash.style.display = 'block';
         btnLogout.style.display = 'inline-block';
@@ -118,7 +119,14 @@ let allTeams = [];
     if (savedJudge) {
       try {
         const creds = JSON.parse(savedJudge);
-        if (creds.password) doJudgeLogin(creds.password, true);
+        if (creds.token) {
+          secLogin.style.display = 'none';
+          secDash.style.display = 'block';
+          btnLogout.style.display = 'inline-block';
+          loadTeams();
+        } else if (creds.password) {
+          doJudgeLogin(creds.password, true);
+        }
       } catch (e) { }
     }
 

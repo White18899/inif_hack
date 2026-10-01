@@ -1,6 +1,6 @@
 let currentTeam = null;
     let currentDomain = null;
-    let authCredentials = { email: '', password: '' };
+    let currentToken = '';
 
     function escapeHTML(str) {
       if (str === null || str === undefined) return '';
@@ -19,6 +19,47 @@ let currentTeam = null;
     const btnLogout = document.getElementById('btn-logout');
     const btnRefresh = document.getElementById('btn-refresh');
 
+    function getSavedToken() {
+      try {
+        // Purge legacy storage to ensure no plaintext passwords linger in localStorage
+        localStorage.removeItem('infinity_leader_auth');
+        const raw = sessionStorage.getItem('infinity_leader_auth');
+        if (!raw) return '';
+        const parsed = JSON.parse(raw);
+        return parsed.token || (typeof parsed === 'string' ? parsed : '');
+      } catch (e) {
+        return '';
+      }
+    }
+
+    async function restoreLeaderSession() {
+      const token = getSavedToken();
+      if (!token) {
+        secLogin.style.display = 'block';
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/teams/me', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          sessionStorage.removeItem('infinity_leader_auth');
+          secLogin.style.display = 'block';
+          return;
+        }
+
+        currentToken = token;
+        currentTeam = data.team;
+        currentDomain = data.domainInfo;
+        renderDashboard();
+      } catch (err) {
+        console.error('Session restore failed:', err);
+        secLogin.style.display = 'block';
+      }
+    }
+
     async function doLeaderLogin(email, password, isSilent = false) {
       if (!isSilent) loginErr.style.display = 'none';
 
@@ -34,14 +75,14 @@ let currentTeam = null;
           throw new Error(data.error || 'Authentication failed.');
         }
 
+        currentToken = data.token;
         currentTeam = data.team;
         currentDomain = data.domainInfo;
-        authCredentials = { email, password };
 
         try {
-          const authStr = JSON.stringify({ email, password });
-          sessionStorage.setItem('infinity_leader_auth', authStr);
-          localStorage.setItem('infinity_leader_auth', authStr);
+          // Never persist plaintext password in storage; store only cryptographically signed session token
+          sessionStorage.setItem('infinity_leader_auth', JSON.stringify({ token: data.token }));
+          localStorage.removeItem('infinity_leader_auth');
         } catch (e) { }
 
         renderDashboard();
@@ -63,16 +104,21 @@ let currentTeam = null;
     btnRefresh.addEventListener('click', async () => {
       btnRefresh.classList.add('spinning');
       try {
-        let creds = authCredentials;
-        if (!creds.email || !creds.password) {
-          try {
-            const raw = sessionStorage.getItem('infinity_leader_auth') || localStorage.getItem('infinity_leader_auth');
-            if (raw) creds = JSON.parse(raw);
-          } catch (e) { }
-        }
-
-        if (creds.email && creds.password) {
-          await doLeaderLogin(creds.email, creds.password, true);
+        const token = currentToken || getSavedToken();
+        if (token) {
+          const res = await fetch('/api/teams/me', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const data = await res.json();
+          if (data.success) {
+            currentToken = token;
+            currentTeam = data.team;
+            currentDomain = data.domainInfo;
+            renderDashboard();
+          } else {
+            sessionStorage.removeItem('infinity_leader_auth');
+            window.location.reload();
+          }
         } else {
           window.location.reload();
         }
@@ -99,27 +145,14 @@ let currentTeam = null;
       } catch (e) { }
       currentTeam = null;
       currentDomain = null;
-      authCredentials = { email: '', password: '' };
+      currentToken = '';
       secDash.style.display = 'none';
       secLogin.style.display = 'block';
       btnLogout.style.display = 'none';
     });
 
     // Auto-restore leader session if browser is refreshed (F5 / reload)
-    try {
-      const savedLeader = sessionStorage.getItem('infinity_leader_auth') || localStorage.getItem('infinity_leader_auth');
-      if (savedLeader) {
-        const creds = JSON.parse(savedLeader);
-        if (creds.email && creds.password) {
-          secLogin.style.display = 'none';
-          doLeaderLogin(creds.email, creds.password, true).then(ok => {
-            if (!ok) secLogin.style.display = 'block';
-          });
-        }
-      }
-    } catch (e) {
-      secLogin.style.display = 'block';
-    }
+    restoreLeaderSession();
 
     function renderDashboard() {
       secLogin.style.display = 'none';
@@ -252,12 +285,14 @@ let currentTeam = null;
           btn.textContent = 'Locking selection...';
 
           try {
+            const token = currentToken || getSavedToken();
             const res = await fetch('/api/teams/update-selection', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: {
+                'Content-Type': 'application/json',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+              },
               body: JSON.stringify({
-                email: authCredentials.email,
-                password: authCredentials.password,
                 problemStatementId: psId,
               }),
             });
@@ -265,9 +300,13 @@ let currentTeam = null;
             if (data.success) {
               currentTeam = data.team;
               renderProblemStatements();
+            } else {
+              alert('Selection update failed: ' + (data.error || 'Unknown error'));
+              renderProblemStatements();
             }
           } catch (e) {
             alert('Error selecting problem statement: ' + e.message);
+            renderProblemStatements();
           }
         });
       });

@@ -440,6 +440,56 @@ export function sanitizeUrl(url) {
   return '/placeholder-receipt.png';
 }
 
+// PBKDF2 Password Hashing (100,000 iterations, 16-byte random salt, SHA-256)
+export function hashPassword(password) {
+  if (!password || typeof password !== 'string') return '';
+  const salt = crypto.randomBytes(16).toString('hex');
+  const iterations = 100000;
+  const hash = crypto.pbkdf2Sync(password, salt, iterations, 32, 'sha256').toString('hex');
+  return `pbkdf2:${iterations}:${salt}:${hash}`;
+}
+
+export function verifyPassword(password, storedHash) {
+  if (!password || !storedHash) return false;
+  if (!storedHash.startsWith('pbkdf2:')) {
+    return password === storedHash;
+  }
+  try {
+    const [algo, iterStr, salt, expectedHash] = storedHash.split(':');
+    const iterations = parseInt(iterStr, 10);
+    if (!salt || !expectedHash || isNaN(iterations)) return false;
+
+    const actualHash = crypto.pbkdf2Sync(password, salt, iterations, 32, 'sha256').toString('hex');
+    return crypto.timingSafeEqual(Buffer.from(actualHash, 'hex'), Buffer.from(expectedHash, 'hex'));
+  } catch (e) {
+    return false;
+  }
+}
+
+// Cryptographic Team Bearer Token Generator & Verifier
+export function generateTeamToken(teamId, secret) {
+  const ts = Date.now().toString();
+  const signature = crypto.createHmac('sha256', secret).update(`team:${teamId}:${ts}`).digest('hex');
+  return Buffer.from(`team:${teamId}:${ts}:${signature}`).toString('base64');
+}
+
+export function verifyTeamToken(token, expectedTeamId, secret) {
+  if (!token) return false;
+  try {
+    const decoded = Buffer.from(token, 'base64').toString('utf8');
+    const [role, tId, ts, sig] = decoded.split(':');
+    if (role !== 'team' || tId !== expectedTeamId || !ts || !sig || sig.length !== 64) return false;
+
+    const age = Date.now() - parseInt(ts, 10);
+    if (isNaN(age) || age < 0 || age > 24 * 60 * 60 * 1000) return false; // 24-hour expiration
+
+    const expectedSig = crypto.createHmac('sha256', secret).update(`team:${tId}:${ts}`).digest('hex');
+    return crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expectedSig));
+  } catch (e) {
+    return false;
+  }
+}
+
 export function isValidEmail(email) {
   if (!email || typeof email !== 'string') return false;
   const clean = email.trim();
@@ -806,7 +856,7 @@ app.post('/api/register', upload.single('paymentScreenshot'), async (req, res) =
       preferredDomain: stripHtmlTags(preferredDomain).toLowerCase(),
       techStack: parsedTechStack.map(s => stripHtmlTags(s)),
       teamSize: parsedSize,
-      teamPassword: teamPassword.trim(),
+      teamPassword: hashPassword(teamPassword.trim()),
       leader: {
         name: leaderName ? stripHtmlTags(leaderName) : '',
         email: cleanLeaderEmail,
@@ -889,19 +939,73 @@ app.post('/api/teams/login', async (req, res) => {
     if (!team) {
       return res.status(404).json({ success: false, error: 'No team registered with this leader email.' });
     }
-    if (team.teamPassword !== password) {
+    if (!verifyPassword(password, team.teamPassword)) {
       return res.status(401).json({ success: false, error: 'Incorrect team password.' });
     }
+
+    // Transparently upgrade legacy plaintext password to PBKDF2 if needed
+    if (!team.teamPassword.startsWith('pbkdf2:')) {
+      team.teamPassword = hashPassword(password);
+      await saveDb(db);
+    }
+
+    const secret = process.env.ADMIN_SECRET || 'admin123';
+    const token = generateTeamToken(team.id, secret);
 
     // Map stone or domain
     const assignedDomain = db.domains.find(
       (d) => d.id === team.preferredDomain || d.stoneId === team.preferredDomain
     ) || db.domains[0];
 
-    // Create safe payload: STRIP SCORES AND JUDGE REMARKS
+    // Create safe payload: STRIP SCORES AND PASSWORD HASH
     const safeTeam = JSON.parse(JSON.stringify(team));
     delete safeTeam.scores; // STRICTLY HIDDEN FROM TEAMS
-    delete safeTeam.teamPassword;
+    delete safeTeam.teamPassword; // NEVER EXPOSE TO CLIENT
+
+    res.json({ success: true, token, team: safeTeam, domainInfo: assignedDomain });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 4.1 Get Current Team Session Profile
+app.get('/api/teams/me', async (req, res) => {
+  try {
+    const authHeader = req.headers['authorization'] || '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : authHeader.trim();
+    if (!token) {
+      return res.status(401).json({ success: false, error: 'Authorization token required.' });
+    }
+
+    let teamId = null;
+    try {
+      const decoded = Buffer.from(token, 'base64').toString('utf8');
+      const [role, tId] = decoded.split(':');
+      if (role === 'team' && tId) teamId = tId;
+    } catch (e) {}
+
+    if (!teamId) {
+      return res.status(401).json({ success: false, error: 'Invalid token format.' });
+    }
+
+    const secret = process.env.ADMIN_SECRET || 'admin123';
+    if (!verifyTeamToken(token, teamId, secret)) {
+      return res.status(401).json({ success: false, error: 'Invalid or expired team token.' });
+    }
+
+    const db = await loadDb();
+    const team = db.teams.find((t) => t.id === teamId);
+    if (!team) {
+      return res.status(404).json({ success: false, error: 'Team not found.' });
+    }
+
+    const assignedDomain = db.domains.find(
+      (d) => d.id === team.preferredDomain || d.stoneId === team.preferredDomain
+    ) || db.domains[0];
+
+    const safeTeam = JSON.parse(JSON.stringify(team));
+    delete safeTeam.scores; // STRICTLY HIDDEN FROM TEAMS
+    delete safeTeam.teamPassword; // NEVER EXPOSE TO CLIENT
 
     res.json({ success: true, team: safeTeam, domainInfo: assignedDomain });
   } catch (err) {
@@ -912,16 +1016,42 @@ app.post('/api/teams/login', async (req, res) => {
 // 5. Team Leader Select Problem Statement or Change Domain
 app.post('/api/teams/update-selection', async (req, res) => {
   try {
-    const { email, password, newDomainId, problemStatementId } = req.body;
-    if (!email || !password) {
+    const { email, password, token, newDomainId, problemStatementId } = req.body;
+    const authHeader = req.headers['authorization'] || '';
+    const bearerToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : authHeader.trim();
+    const tokenToUse = bearerToken || token;
+
+    if (!email && !tokenToUse) {
       return res.status(400).json({ success: false, error: 'Authentication credentials required.' });
     }
 
     const db = await loadDb();
-    const cleanEmail = email.trim().toLowerCase();
-    const team = db.teams.find((t) => t.leader && t.leader.email && t.leader.email.trim().toLowerCase() === cleanEmail);
+    const secret = process.env.ADMIN_SECRET || 'admin123';
+    let team = null;
 
-    if (!team || team.teamPassword !== password) {
+    if (email) {
+      const cleanEmail = email.trim().toLowerCase();
+      team = db.teams.find((t) => t.leader && t.leader.email && t.leader.email.trim().toLowerCase() === cleanEmail);
+    }
+
+    if (!team && tokenToUse) {
+      try {
+        const decoded = Buffer.from(tokenToUse, 'base64').toString('utf8');
+        const [role, tId] = decoded.split(':');
+        if (role === 'team' && tId) {
+          team = db.teams.find((t) => t.id === tId);
+        }
+      } catch (e) {}
+    }
+
+    if (!team) {
+      return res.status(404).json({ success: false, error: 'Team not found.' });
+    }
+
+    const isAuth = (tokenToUse && verifyTeamToken(tokenToUse, team.id, secret)) ||
+                   (password && verifyPassword(password, team.teamPassword));
+
+    if (!isAuth) {
       return res.status(401).json({ success: false, error: 'Authentication failed.' });
     }
 
@@ -1200,7 +1330,13 @@ app.post('/api/admin/login', (req, res) => {
 app.get('/api/admin/teams', requireAdminAuth, async (req, res) => {
   try {
     const db = await loadDb();
-    res.json({ success: true, teams: db.teams });
+    const safeTeams = db.teams.map((t) => {
+      const copy = { ...t };
+      delete copy.teamPassword; // NEVER leak password or hash to admin browser
+      copy.hasPassword = Boolean(t.teamPassword);
+      return copy;
+    });
+    res.json({ success: true, teams: safeTeams });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -1226,6 +1362,11 @@ app.put('/api/admin/teams/:id', requireAdminAuth, async (req, res) => {
       utr: updates.payment.utr ? stripHtmlTags(updates.payment.utr) : existing.payment?.utr,
     } : existing.payment;
 
+    let updatedTeamPassword = existing.teamPassword;
+    if (updates.teamPassword && typeof updates.teamPassword === 'string' && updates.teamPassword.trim()) {
+      updatedTeamPassword = hashPassword(updates.teamPassword.trim());
+    }
+
     db.teams[idx] = {
       ...existing,
       teamName: updates.teamName !== undefined ? stripHtmlTags(updates.teamName) : existing.teamName,
@@ -1233,7 +1374,7 @@ app.put('/api/admin/teams/:id', requireAdminAuth, async (req, res) => {
       preferredDomain: updates.preferredDomain !== undefined ? stripHtmlTags(updates.preferredDomain) : existing.preferredDomain,
       teamSize: updates.teamSize !== undefined ? updates.teamSize : existing.teamSize,
       techStack: updates.techStack !== undefined ? (Array.isArray(updates.techStack) ? updates.techStack.map(s => stripHtmlTags(s)) : stripHtmlTags(updates.techStack)) : existing.techStack,
-      teamPassword: updates.teamPassword !== undefined ? updates.teamPassword : existing.teamPassword,
+      teamPassword: updatedTeamPassword,
       roomAllocated: updates.roomAllocated !== undefined ? stripHtmlTags(updates.roomAllocated) : existing.roomAllocated,
       selectedProblemStatement: updates.selectedProblemStatement !== undefined ? updates.selectedProblemStatement : existing.selectedProblemStatement,
       leader: {
@@ -1259,7 +1400,10 @@ app.put('/api/admin/teams/:id', requireAdminAuth, async (req, res) => {
     };
 
     await saveDb(db);
-    res.json({ success: true, team: db.teams[idx] });
+    const returnTeam = { ...db.teams[idx] };
+    delete returnTeam.teamPassword;
+    returnTeam.hasPassword = Boolean(db.teams[idx].teamPassword);
+    res.json({ success: true, team: returnTeam });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

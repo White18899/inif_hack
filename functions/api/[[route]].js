@@ -364,6 +364,119 @@ function sanitizeUrl(url) {
   return '/placeholder-receipt.png';
 }
 
+// PBKDF2 Password Hashing (100,000 iterations, 16-byte random salt, SHA-256)
+async function hashPassword(password) {
+  if (!password || typeof password !== 'string') return '';
+  const saltBytes = new Uint8Array(16);
+  crypto.getRandomValues(saltBytes);
+  const saltHex = Array.from(saltBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+  const iterations = 100000;
+
+  const encoder = new TextEncoder();
+  const baseKey = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(password),
+    { name: 'PBKDF2' },
+    false,
+    ['deriveBits']
+  );
+
+  const derivedBits = await crypto.subtle.deriveBits(
+    {
+      name: 'PBKDF2',
+      salt: saltBytes,
+      iterations,
+      hash: 'SHA-256'
+    },
+    baseKey,
+    256 // 32 bytes
+  );
+
+  const hashHex = Array.from(new Uint8Array(derivedBits)).map(b => b.toString(16).padStart(2, '0')).join('');
+  return `pbkdf2:${iterations}:${saltHex}:${hashHex}`;
+}
+
+async function verifyPassword(password, storedHash) {
+  if (!password || !storedHash) return false;
+  if (!storedHash.startsWith('pbkdf2:')) {
+    return password === storedHash;
+  }
+  try {
+    const [algo, iterStr, saltHex, expectedHash] = storedHash.split(':');
+    const iterations = parseInt(iterStr, 10);
+    if (!saltHex || !expectedHash || isNaN(iterations) || saltHex.length !== 32 || expectedHash.length !== 64) {
+      return false;
+    }
+
+    const saltBytes = new Uint8Array(saltHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+    const encoder = new TextEncoder();
+    const baseKey = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(password),
+      { name: 'PBKDF2' },
+      false,
+      ['deriveBits']
+    );
+
+    const derivedBits = await crypto.subtle.deriveBits(
+      {
+        name: 'PBKDF2',
+        salt: saltBytes,
+        iterations,
+        hash: 'SHA-256'
+      },
+      baseKey,
+      256
+    );
+
+    const actualHash = Array.from(new Uint8Array(derivedBits)).map(b => b.toString(16).padStart(2, '0')).join('');
+    return actualHash === expectedHash;
+  } catch (e) {
+    return false;
+  }
+}
+
+// Cryptographic Team Bearer Token Generator & Verifier
+async function generateTeamToken(teamId, secret) {
+  const ts = Date.now().toString();
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  const sigBuffer = await crypto.subtle.sign('HMAC', key, encoder.encode(`team:${teamId}:${ts}`));
+  const sigHex = Array.from(new Uint8Array(sigBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+  return btoa(`team:${teamId}:${ts}:${sigHex}`);
+}
+
+async function verifyTeamToken(token, expectedTeamId, secret) {
+  if (!token) return false;
+  try {
+    const decoded = atob(token);
+    const [role, tId, ts, sigHex] = decoded.split(':');
+    if (role !== 'team' || tId !== expectedTeamId || !ts || !sigHex || sigHex.length !== 64) return false;
+
+    const age = Date.now() - parseInt(ts, 10);
+    if (isNaN(age) || age < 0 || age > 24 * 60 * 60 * 1000) return false; // 24-hour expiration
+
+    const encoder = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(secret),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['verify']
+    );
+    const sigBytes = new Uint8Array(sigHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+    return await crypto.subtle.verify('HMAC', key, sigBytes, encoder.encode(`team:${tId}:${ts}`));
+  } catch (e) {
+    return false;
+  }
+}
+
 function isValidEmail(email) {
   if (!email || typeof email !== 'string') return false;
   const clean = email.trim();
@@ -837,7 +950,7 @@ export async function onRequest(context) {
         preferredDomain: stripHtmlTags(preferredDomain).toLowerCase(),
         techStack: parsedTechStack.map(s => stripHtmlTags(s)),
         teamSize: parsedSize,
-        teamPassword: teamPassword.trim(),
+        teamPassword: await hashPassword(teamPassword.trim()),
         leader: {
           name: leaderName ? stripHtmlTags(leaderName) : '',
           email: cleanLeaderEmail,
@@ -916,15 +1029,67 @@ export async function onRequest(context) {
       if (!team) {
         return jsonResponse({ success: false, error: 'No team registered with this leader email.' }, 404);
       }
-      if (team.teamPassword !== password) {
+      const isCorrect = await verifyPassword(password, team.teamPassword);
+      if (!isCorrect) {
         return jsonResponse({ success: false, error: 'Incorrect team password.' }, 401);
+      }
+
+      // Auto-upgrade legacy plaintext password if verified
+      if (!team.teamPassword.startsWith('pbkdf2:')) {
+        team.teamPassword = await hashPassword(password);
+        await saveDb(env, db);
+      }
+
+      const token = await generateTeamToken(team.id, ADMIN_SECRET);
+
+      const assignedDomain = db.domains.find(
+        (d) => d.id === team.preferredDomain || d.stoneId === team.preferredDomain
+      ) || db.domains[0];
+
+      // Hide scores and password hash from team response
+      const safeTeam = JSON.parse(JSON.stringify(team));
+      delete safeTeam.scores;
+      delete safeTeam.teamPassword;
+
+      return jsonResponse({ success: true, token, team: safeTeam, domainInfo: assignedDomain });
+    }
+
+    // -------------------------------------------------------------
+    // Team Leader Session Profile (Session Restore)
+    // -------------------------------------------------------------
+    if (pathname === '/api/teams/me' && method === 'GET') {
+      const authHeader = request.headers.get('Authorization') || '';
+      const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : authHeader.trim();
+      if (!token) {
+        return jsonResponse({ success: false, error: 'Authorization token required.' }, 401);
+      }
+
+      let teamId = null;
+      try {
+        const decoded = atob(token);
+        const [role, tId] = decoded.split(':');
+        if (role === 'team' && tId) teamId = tId;
+      } catch (e) {}
+
+      if (!teamId) {
+        return jsonResponse({ success: false, error: 'Invalid token format.' }, 401);
+      }
+
+      const isValid = await verifyTeamToken(token, teamId, ADMIN_SECRET);
+      if (!isValid) {
+        return jsonResponse({ success: false, error: 'Invalid or expired team token.' }, 401);
+      }
+
+      const db = await loadDb(env);
+      const team = db.teams.find((t) => t.id === teamId);
+      if (!team) {
+        return jsonResponse({ success: false, error: 'Team not found.' }, 404);
       }
 
       const assignedDomain = db.domains.find(
         (d) => d.id === team.preferredDomain || d.stoneId === team.preferredDomain
       ) || db.domains[0];
 
-      // Hide scores and password from team
       const safeTeam = JSON.parse(JSON.stringify(team));
       delete safeTeam.scores;
       delete safeTeam.teamPassword;
@@ -936,18 +1101,43 @@ export async function onRequest(context) {
     // Team Leader Update Selection
     // -------------------------------------------------------------
     if (pathname === '/api/teams/update-selection' && method === 'POST') {
-      const { email, password, newDomainId, problemStatementId } = await request.json();
-      if (!email || !password) {
+      const { email, password, token, newDomainId, problemStatementId } = await request.json();
+      const authHeader = request.headers.get('Authorization') || '';
+      const bearerToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : authHeader.trim();
+      const tokenToUse = bearerToken || token;
+
+      if (!email && !tokenToUse) {
         return jsonResponse({ success: false, error: 'Authentication credentials required.' }, 400);
       }
 
       const db = await loadDb(env);
-      const cleanEmail = email.trim().toLowerCase();
-      const team = db.teams.find(
-        (t) => t.leader?.email && t.leader.email.trim().toLowerCase() === cleanEmail
-      );
+      let team = null;
 
-      if (!team || team.teamPassword !== password) {
+      if (email) {
+        const cleanEmail = email.trim().toLowerCase();
+        team = db.teams.find(
+          (t) => t.leader?.email && t.leader.email.trim().toLowerCase() === cleanEmail
+        );
+      }
+
+      if (!team && tokenToUse) {
+        try {
+          const decoded = atob(tokenToUse);
+          const [role, tId] = decoded.split(':');
+          if (role === 'team' && tId) {
+            team = db.teams.find((t) => t.id === tId);
+          }
+        } catch (e) {}
+      }
+
+      if (!team) {
+        return jsonResponse({ success: false, error: 'Team not found.' }, 404);
+      }
+
+      const isTokenValid = tokenToUse ? await verifyTeamToken(tokenToUse, team.id, ADMIN_SECRET) : false;
+      const isPassValid = password ? await verifyPassword(password, team.teamPassword) : false;
+
+      if (!isTokenValid && !isPassValid) {
         return jsonResponse({ success: false, error: 'Authentication failed.' }, 401);
       }
 
@@ -1155,7 +1345,13 @@ export async function onRequest(context) {
     // -------------------------------------------------------------
     if (pathname === '/api/admin/teams' && method === 'GET') {
       const db = await loadDb(env);
-      return jsonResponse({ success: true, teams: db.teams });
+      const safeTeams = db.teams.map((t) => {
+        const copy = { ...t };
+        delete copy.teamPassword; // NEVER leak password or hash to admin browser
+        copy.hasPassword = Boolean(t.teamPassword);
+        return copy;
+      });
+      return jsonResponse({ success: true, teams: safeTeams });
     }
 
     // -------------------------------------------------------------
@@ -1179,6 +1375,11 @@ export async function onRequest(context) {
         utr: updates.payment.utr ? stripHtmlTags(updates.payment.utr) : existing.payment?.utr,
       } : existing.payment;
 
+      let updatedTeamPassword = existing.teamPassword;
+      if (updates.teamPassword && typeof updates.teamPassword === 'string' && updates.teamPassword.trim()) {
+        updatedTeamPassword = await hashPassword(updates.teamPassword.trim());
+      }
+
       db.teams[idx] = {
         ...existing,
         teamName: updates.teamName !== undefined ? stripHtmlTags(updates.teamName) : existing.teamName,
@@ -1186,7 +1387,7 @@ export async function onRequest(context) {
         preferredDomain: updates.preferredDomain !== undefined ? stripHtmlTags(updates.preferredDomain) : existing.preferredDomain,
         teamSize: updates.teamSize !== undefined ? updates.teamSize : existing.teamSize,
         techStack: updates.techStack !== undefined ? (Array.isArray(updates.techStack) ? updates.techStack.map(s => stripHtmlTags(s)) : stripHtmlTags(updates.techStack)) : existing.techStack,
-        teamPassword: updates.teamPassword !== undefined ? updates.teamPassword : existing.teamPassword,
+        teamPassword: updatedTeamPassword,
         roomAllocated: updates.roomAllocated !== undefined ? stripHtmlTags(updates.roomAllocated) : existing.roomAllocated,
         selectedProblemStatement: updates.selectedProblemStatement !== undefined ? updates.selectedProblemStatement : existing.selectedProblemStatement,
         leader: {
@@ -1212,7 +1413,10 @@ export async function onRequest(context) {
       };
 
       await saveDb(env, db);
-      return jsonResponse({ success: true, team: db.teams[idx] });
+      const returnTeam = { ...db.teams[idx] };
+      delete returnTeam.teamPassword;
+      returnTeam.hasPassword = Boolean(db.teams[idx].teamPassword);
+      return jsonResponse({ success: true, team: returnTeam });
     }
 
     // -------------------------------------------------------------
