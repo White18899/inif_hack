@@ -181,6 +181,7 @@ let currentTeam = null;
       updateStatusBadge('status-r1', currentTeam.reviews?.r1?.attended);
       updateStatusBadge('status-r2', currentTeam.reviews?.r2?.attended);
       updateStatusBadge('status-r3', currentTeam.reviews?.r3?.attended);
+      updateStatusBadge('status-r4', currentTeam.reviews?.r4?.attended || currentTeam.isTop6);
 
       // Food Statuses
       updateStatusBadge('food-highTea', currentTeam.food?.highTea?.collected);
