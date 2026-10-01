@@ -52,8 +52,8 @@ class InfinityScrollShowcase {
     // Initial Presentation of Specimen 1 (Mind Stone // Intelligence)
     this.displayStone(0, false);
 
-    // Auto-play convergence animation on all devices (mobile and desktop)
-    this.triggerConvergence();
+    // Auto-play convergence visual animation on initial page load (silent)
+    this.triggerConvergence(false);
   }
 
   isMobile() {
@@ -1126,7 +1126,7 @@ class InfinityScrollShowcase {
   /* --------------------------------------------------------------------------
      9. HEXAGONAL CONVERGENCE EFFECT
      -------------------------------------------------------------------------- */
-  triggerConvergence() {
+  triggerConvergence(playSound = true) {
     if (this.isConvergenceActive) return;
     this.isConvergenceActive = true;
 
@@ -1134,7 +1134,9 @@ class InfinityScrollShowcase {
     const btnConv = document.getElementById('btn-convergence');
     if (btnConv) btnConv.classList.add('active');
 
-    audioEngine.playConvergenceChord();
+    if (playSound) {
+      audioEngine.playConvergenceChord();
+    }
 
     // Pull camera out smoothly to showcase all 6 stones in orbit
     if (this.camera.view && this.camera.view.enabled) {
@@ -1439,7 +1441,7 @@ class InfinityScrollShowcase {
       if (this.isConvergenceActive) {
         this.endConvergence();
       } else {
-        this.triggerConvergence();
+        this.triggerConvergence(true);
       }
     });
 
@@ -1479,7 +1481,7 @@ class InfinityScrollShowcase {
         if (this.isConvergenceActive) {
           this.endConvergence();
         } else {
-          this.triggerConvergence();
+          this.triggerConvergence(true);
         }
       } else if (e.code === 'Escape') {
         if (this.isConvergenceActive) {
