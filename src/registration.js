@@ -462,17 +462,16 @@ export function initRegistrationModule() {
           isReceiptVerified = true;
           verifiedReceiptUtr = detectedUtr;
           regScreenshot.classList.remove('is-invalid');
-          if (regUtr) {
-            regUtr.value = detectedUtr;
-            clearInputError(regUtr);
-            verifyUtrUniqueness(detectedUtr);
+          // Auto-fill of UTR removed: user manually enters the UTR number
+          if (regUtr && regUtr.value) {
+            verifyUtrUniqueness(regUtr.value);
           }
           if (ocrBanner) {
             ocrBanner.className = 'ocr-detection-banner success';
             if (ocrIcon) ocrIcon.textContent = '✅';
-            if (ocrTitle) ocrTitle.textContent = 'Receipt & 12-Digit UTR VERIFIED';
+            if (ocrTitle) ocrTitle.textContent = 'Receipt Verified';
             if (ocrBody) {
-              ocrBody.innerHTML = `Genuine UPI receipt verified! Detected 12-digit UTR: <strong style="color:#00ff88; font-size:0.85rem;">${detectedUtr}</strong>. Please confirm it matches your payment app.`;
+              ocrBody.innerHTML = `Genuine UPI receipt verified. Please enter your <strong>12-digit bank UTR number</strong> below.`;
             }
           }
           audioEngine.playChime(720);
