@@ -1182,6 +1182,13 @@ app.post('/api/register', upload.single('paymentScreenshot'), async (req, res) =
         throw err;
       }
 
+      // Ensure unique team ID inside atomic transaction
+      let assignedId = newTeam.id;
+      while (db.teams.some((t) => t.id === assignedId)) {
+        assignedId = `INF-${Math.floor(1000 + Math.random() * 9000)}`;
+      }
+      newTeam.id = assignedId;
+
       db.teams.push(newTeam);
       return { newTeam, calculatedAmount };
     });
@@ -1571,6 +1578,11 @@ app.post('/api/coordinator/mark', requireCoordinatorAuth, async (req, res) => {
 
       if (type === 'food' || type === 'meal') {
         if (!team.food) team.food = {};
+        if (value === true && team.food[key]?.collected) {
+          const err = new Error(`Double Redemption Blocked: ${key.toUpperCase()} was ALREADY collected for ${team.teamName} (${team.id}) at ${new Date(team.food[key].time).toLocaleTimeString()}.`);
+          err.statusCode = 409;
+          throw err;
+        }
         team.food[key] = {
           collected: Boolean(value),
           time: value ? new Date().toISOString() : null,

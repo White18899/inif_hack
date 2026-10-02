@@ -115,17 +115,31 @@ class InfinityScrollShowcase {
     // Initial camera position - focused on left-center stone stage
     this.updateCameraForViewport();
 
+    const isMobile = window.innerWidth <= 768 || /Android|iPhone|iPad|iPod|Opera Mini|IEMobile/i.test(navigator.userAgent);
+    const maxPixelRatio = isMobile ? Math.min(window.devicePixelRatio, 1.25) : Math.min(window.devicePixelRatio, 2);
+
     this.renderer = new THREE.WebGLRenderer({
-      powerPreference: 'high-performance',
-      antialias: true,
+      powerPreference: isMobile ? 'default' : 'high-performance',
+      antialias: !isMobile,
       alpha: true
     });
     this.renderer.setClearColor(0x000000, 0);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.setPixelRatio(maxPixelRatio);
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.0;
-    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.enabled = !isMobile;
+
+    this.renderer.domElement.addEventListener('webglcontextlost', (event) => {
+      event.preventDefault();
+      console.warn('⚠️ WebGL context lost. Pausing render loop to recover...');
+      if (this.animationFrameId) cancelAnimationFrame(this.animationFrameId);
+    }, false);
+
+    this.renderer.domElement.addEventListener('webglcontextrestored', () => {
+      console.log('✅ WebGL context restored. Resuming render loop.');
+      this.animate();
+    }, false);
 
     this.container.appendChild(this.renderer.domElement);
 
