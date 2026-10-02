@@ -251,6 +251,16 @@ const INITIAL_DOMAINS = [
 ];
 
 const R2_DB_KEY = 'state/database.json';
+const R2_DB_BACKUP_KEY = 'state/database.backup.json';
+
+function sanitizeCsvFormula(val) {
+  if (typeof val !== 'string') return val;
+  const trimmed = val.trim();
+  if (/^[=\+\-@\t\r]/.test(trimmed)) {
+    return `'${trimmed}`;
+  }
+  return val;
+}
 
 // ==========================================
 // CORS SECURITY POLICY
@@ -729,17 +739,40 @@ async function loadDbWithMeta(env) {
       const obj = await env.BUCKET.get(R2_DB_KEY);
       if (obj) {
         const text = await obj.text();
-        const parsed = JSON.parse(text);
-        if (parsed && Array.isArray(parsed.domains) && Array.isArray(parsed.teams)) {
-          return {
-            db: parsed,
-            etag: obj.etag,
-            version: parsed._version || 0,
-          };
+        if (text && text.trim().length > 10) {
+          const parsed = JSON.parse(text);
+          if (parsed && Array.isArray(parsed.domains) && Array.isArray(parsed.teams)) {
+            return {
+              db: parsed,
+              etag: obj.etag,
+              version: parsed._version || 0,
+            };
+          }
         }
       }
     } catch (err) {
-      console.error('Error fetching database from R2:', err);
+      console.error('Error fetching/parsing primary database from R2:', err);
+    }
+
+    // Disaster Recovery: Automatic failover to shadow backup in R2 if primary is corrupted or missing
+    try {
+      const backupObj = await env.BUCKET.get(R2_DB_BACKUP_KEY);
+      if (backupObj) {
+        const backupText = await backupObj.text();
+        if (backupText && backupText.trim().length > 10) {
+          const backupParsed = JSON.parse(backupText);
+          if (backupParsed && Array.isArray(backupParsed.domains) && Array.isArray(backupParsed.teams)) {
+            console.warn('⚠️ RESTORED DATABASE FROM SHADOW BACKUP R2_DB_BACKUP_KEY!');
+            return {
+              db: backupParsed,
+              etag: backupObj.etag,
+              version: backupParsed._version || 0,
+            };
+          }
+        }
+      }
+    } catch (backupErr) {
+      console.error('Error fetching backup database from R2:', backupErr);
     }
   }
   return {
@@ -758,6 +791,16 @@ async function loadDb(env) {
 // Helper: Save database to R2 with Conditional ETag Check (Optimistic Concurrency Control)
 async function saveDbConditional(env, data, expectedEtag) {
   if (env && env.BUCKET) {
+    if (!data || !Array.isArray(data.teams) || !Array.isArray(data.domains)) {
+      console.error('FATAL: Attempted to save invalid database schema. Write aborted.');
+      return false;
+    }
+    const payloadStr = JSON.stringify(data, null, 2);
+    if (!payloadStr || payloadStr.length < 50) {
+      console.error('FATAL: Attempted to save truncated database. Write aborted.');
+      return false;
+    }
+
     const putOptions = {
       httpMetadata: {
         contentType: 'application/json',
@@ -773,10 +816,12 @@ async function saveDbConditional(env, data, expectedEtag) {
     }
 
     try {
-      const putResult = await env.BUCKET.put(R2_DB_KEY, JSON.stringify(data, null, 2), putOptions);
+      const putResult = await env.BUCKET.put(R2_DB_KEY, payloadStr, putOptions);
       if (expectedEtag && putResult === null) {
         return false; // Precondition failed: ETag was changed by concurrent writer
       }
+      // Asynchronously refresh the shadow backup (non-blocking disaster recovery)
+      env.BUCKET.put(R2_DB_BACKUP_KEY, payloadStr).catch(() => {});
       return true;
     } catch (err) {
       if (err.name === 'PreconditionFailed' || err.message?.includes('Precondition') || err.message?.includes('412')) {
@@ -792,11 +837,13 @@ async function saveDbConditional(env, data, expectedEtag) {
 // Helper: Save database to R2 (Unconditional Fallback)
 async function saveDb(env, data) {
   if (env && env.BUCKET) {
-    await env.BUCKET.put(R2_DB_KEY, JSON.stringify(data, null, 2), {
+    const payloadStr = JSON.stringify(data, null, 2);
+    await env.BUCKET.put(R2_DB_KEY, payloadStr, {
       httpMetadata: {
         contentType: 'application/json',
       },
     });
+    env.BUCKET.put(R2_DB_BACKUP_KEY, payloadStr).catch(() => {});
   }
 }
 
@@ -805,7 +852,7 @@ async function saveDb(env, data) {
  * If a concurrent write occurs between reading and writing, it catches the conflict,
  * backs off with jitter, re-reads the latest database state, and retries the mutation.
  */
-export async function updateDb(env, mutatorFn, maxRetries = 10) {
+export async function updateDb(env, mutatorFn, maxRetries = 25) {
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     const { db, etag, version } = await loadDbWithMeta(env);
 
@@ -822,9 +869,9 @@ export async function updateDb(env, mutatorFn, maxRetries = 10) {
     }
 
     // Concurrent race condition detected: another edge worker updated R2!
-    // Truncated exponential backoff with full random jitter to desynchronize retrying workers
-    const maxBackoff = Math.min(400, 20 * Math.pow(1.5, attempt));
-    const jitter = Math.floor(Math.random() * maxBackoff) + 10;
+    // Adaptive exponential backoff with full random jitter to desynchronize retrying workers
+    const maxBackoff = Math.min(600, 25 * Math.pow(1.3, attempt));
+    const jitter = Math.floor(Math.random() * maxBackoff) + 15;
     await new Promise((resolve) => setTimeout(resolve, jitter));
   }
 
@@ -832,6 +879,7 @@ export async function updateDb(env, mutatorFn, maxRetries = 10) {
   err.statusCode = 409;
   throw err;
 }
+
 
 // ==========================================
 // RATE LIMITING & BRUTE-FORCE PROTECTION
@@ -1106,7 +1154,9 @@ export async function onRequest(context) {
           screenshotBuffer = await file.arrayBuffer();
           screenshotMime = file.type || 'image/png';
           if (file.name && file.name.includes('.')) {
-            screenshotExt = file.name.substring(file.name.lastIndexOf('.'));
+            const rawExt = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+            const allowedExts = ['.png', '.jpg', '.jpeg', '.webp'];
+            screenshotExt = allowedExts.includes(rawExt) ? rawExt : '.png';
           }
         }
       } else {
@@ -1147,7 +1197,13 @@ export async function onRequest(context) {
       }
 
       const imgDim = getImageDimensions(screenshotBuffer);
-      if (imgDim && ((imgDim.width < 250 && imgDim.height < 300) && (imgDim.height < 250 && imgDim.width < 300))) {
+      if (!imgDim) {
+        return jsonResponse({
+          success: false,
+          error: 'Invalid receipt file format. Only authentic PNG, JPEG, or WebP screenshot files are accepted.',
+        }, 400);
+      }
+      if ((imgDim.width < 250 && imgDim.height < 300) && (imgDim.height < 250 && imgDim.width < 300)) {
         return jsonResponse({
           success: false,
           error: `Uploaded image dimensions (${imgDim.width}x${imgDim.height}px) are too small for a payment receipt screenshot. Logos, icons, and small images are not accepted.`,
@@ -1617,6 +1673,12 @@ export async function onRequest(context) {
 
         if (type === 'meal' || type === 'food') {
           if (!team.food) team.food = {};
+          // Prevent double redemption across different gates/coordinators
+          if (value === true && team.food[key]?.collected) {
+            const err = new Error(`Double Redemption Blocked: ${key.toUpperCase()} was ALREADY collected for ${team.teamName} (${team.id}) at ${new Date(team.food[key].time).toLocaleTimeString()}.`);
+            err.statusCode = 409;
+            throw err;
+          }
           team.food[key] = {
             collected: Boolean(value),
             time: value ? new Date().toISOString() : null,
@@ -1733,6 +1795,13 @@ export async function onRequest(context) {
           remarks: remarks || '',
           updatedAt: new Date().toISOString(),
         };
+
+        // High-velocity partitioned score snapshot in R2 (Zero-lock isolated write)
+        if (env && env.BUCKET) {
+          env.BUCKET.put(`scores/${teamId}.json`, JSON.stringify(team.scores, null, 2), {
+            httpMetadata: { contentType: 'application/json' }
+          }).catch(() => {});
+        }
 
         return { teamId, scores: team.scores };
       });
@@ -2046,26 +2115,26 @@ export async function onRequest(context) {
 
       const paymentRows = teams.map((t, idx) => ({
         'S.No': idx + 1,
-        'Team ID': t.id,
-        'Team Name': t.teamName,
-        'College': t.college,
-        'Domain': (t.preferredDomain || '').toUpperCase(),
+        'Team ID': sanitizeCsvFormula(t.id),
+        'Team Name': sanitizeCsvFormula(t.teamName),
+        'College': sanitizeCsvFormula(t.college),
+        'Domain': sanitizeCsvFormula((t.preferredDomain || '').toUpperCase()),
         'Team Size': t.teamSize || (t.members ? t.members.length + 1 : 4),
         'Fee Amount (₹)': t.payment?.amount || (349 * (t.teamSize || 4)),
-        'Payment Status': (t.payment?.status || 'pending').toUpperCase(),
-        'UTR / Transaction No': t.payment?.utr || 'N/A',
-        'Payer Phone': t.payment?.phone || 'N/A',
-        'Leader Email': t.leader?.email || '',
-        'Leader Phone': t.leader?.phone || '',
-        'Proof Screenshot URL': t.payment?.screenshotUrl || 'N/A',
+        'Payment Status': sanitizeCsvFormula((t.payment?.status || 'pending').toUpperCase()),
+        'UTR / Transaction No': sanitizeCsvFormula(t.payment?.utr || 'N/A'),
+        'Payer Phone': sanitizeCsvFormula(t.payment?.phone || 'N/A'),
+        'Leader Email': sanitizeCsvFormula(t.leader?.email || ''),
+        'Leader Phone': sanitizeCsvFormula(t.leader?.phone || ''),
+        'Proof Screenshot URL': sanitizeCsvFormula(t.payment?.screenshotUrl || 'N/A'),
         'Registration Time': new Date(t.createdAt).toLocaleString(),
       }));
 
       const foodReviewRows = teams.map((t, idx) => ({
         'S.No': idx + 1,
-        'Team ID': t.id,
-        'Team Name': t.teamName,
-        'College': t.college,
+        'Team ID': sanitizeCsvFormula(t.id),
+        'Team Name': sanitizeCsvFormula(t.teamName),
+        'College': sanitizeCsvFormula(t.college),
         'High Tea': t.food?.highTea?.collected ? 'RECEIVED' : 'PENDING',
         'Dinner': t.food?.dinner?.collected ? 'RECEIVED' : 'PENDING',
         'Midnight Fuel': t.food?.midnightFuel?.collected ? 'RECEIVED' : 'PENDING',
@@ -2074,39 +2143,39 @@ export async function onRequest(context) {
         'Review 1 (Ideation)': t.reviews?.r1?.attended ? 'ATTENDED' : 'PENDING',
         'Review 2 (Midpoint)': t.reviews?.r2?.attended ? 'ATTENDED' : 'PENDING',
         'Review 3 (Final)': t.reviews?.r3?.attended ? 'ATTENDED' : 'PENDING',
-        'Room / Lab Block': t.roomAllocated || 'TBA',
+        'Room / Lab Block': sanitizeCsvFormula(t.roomAllocated || 'TBA'),
       }));
 
       const judgeRows = teams.map((t, idx) => ({
         'S.No': idx + 1,
-        'Team ID': t.id,
-        'Team Name': t.teamName,
-        'Domain': (t.preferredDomain || '').toUpperCase(),
-        'Selected Problem Statement': t.selectedProblemStatement ? `${t.selectedProblemStatement.code}: ${t.selectedProblemStatement.title}` : 'Not Selected',
+        'Team ID': sanitizeCsvFormula(t.id),
+        'Team Name': sanitizeCsvFormula(t.teamName),
+        'Domain': sanitizeCsvFormula((t.preferredDomain || '').toUpperCase()),
+        'Selected Problem Statement': sanitizeCsvFormula(t.selectedProblemStatement ? `${t.selectedProblemStatement.code}: ${t.selectedProblemStatement.title}` : 'Not Selected'),
         'Innovation (25)': t.scores?.innovation || 0,
         'Technical Depth (25)': t.scores?.technical || 0,
         'Execution / Demo (25)': t.scores?.execution || 0,
         'UI/UX & Pitch (25)': t.scores?.presentation || 0,
         'Total Score (100)': t.scores?.total || 0,
-        'Judge Remarks': t.scores?.remarks || 'None',
+        'Judge Remarks': sanitizeCsvFormula(t.scores?.remarks || 'None'),
       }));
 
       const teamRows = teams.map((t, idx) => {
         const row = {
           'S.No': idx + 1,
-          'Team ID': t.id,
-          'Team Name': t.teamName,
-          'College': t.college,
-          'Domain': (t.preferredDomain || '').toUpperCase(),
-          'Tech Stack': Array.isArray(t.techStack) ? t.techStack.join(', ') : (t.techStack || ''),
-          'Leader Name': t.leader?.name || '',
-          'Leader Email': t.leader?.email || '',
-          'Leader Phone': t.leader?.phone || '',
+          'Team ID': sanitizeCsvFormula(t.id),
+          'Team Name': sanitizeCsvFormula(t.teamName),
+          'College': sanitizeCsvFormula(t.college),
+          'Domain': sanitizeCsvFormula((t.preferredDomain || '').toUpperCase()),
+          'Tech Stack': sanitizeCsvFormula(Array.isArray(t.techStack) ? t.techStack.join(', ') : (t.techStack || '')),
+          'Leader Name': sanitizeCsvFormula(t.leader?.name || ''),
+          'Leader Email': sanitizeCsvFormula(t.leader?.email || ''),
+          'Leader Phone': sanitizeCsvFormula(t.leader?.phone || ''),
         };
         (t.members || []).forEach((m, mIdx) => {
-          row[`Member ${mIdx + 2} Name`] = m.name || '';
-          row[`Member ${mIdx + 2} Email`] = m.email || '';
-          row[`Member ${mIdx + 2} Phone`] = m.phone || '';
+          row[`Member ${mIdx + 2} Name`] = sanitizeCsvFormula(m.name || '');
+          row[`Member ${mIdx + 2} Email`] = sanitizeCsvFormula(m.email || '');
+          row[`Member ${mIdx + 2} Phone`] = sanitizeCsvFormula(m.phone || '');
         });
         return row;
       });
@@ -2121,7 +2190,7 @@ export async function onRequest(context) {
       const tSheet = XLSX.utils.json_to_sheet(teamRows);
       XLSX.utils.book_append_sheet(workbook, tSheet, 'Full Team Rosters');
 
-      const excelArray = XLSX.write(workbook, { type: 'array', bookType: 'xlsx' });
+      const excelArray = XLSX.write(workbook, { type: 'array', bookType: 'xlsx', compression: true });
       return new Response(excelArray, {
         status: 200,
         headers: {

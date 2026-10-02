@@ -1578,6 +1578,11 @@ app.post('/api/coordinator/mark', requireCoordinatorAuth, async (req, res) => {
 
       if (type === 'food' || type === 'meal') {
         if (!team.food) team.food = {};
+        if (value === true && team.food[key]?.collected) {
+          const err = new Error(`Double Redemption Blocked: ${key.toUpperCase()} was ALREADY collected for ${team.teamName} (${team.id}) at ${new Date(team.food[key].time).toLocaleTimeString()}.`);
+          err.statusCode = 409;
+          throw err;
+        }
         team.food[key] = {
           collected: Boolean(value),
           time: value ? new Date().toISOString() : null,
