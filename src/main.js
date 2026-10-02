@@ -72,6 +72,13 @@ class InfinityScrollShowcase {
     return window.innerWidth <= 1024 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   }
 
+  isLowPowerDevice() {
+    const isTouchMobile = this.isMobile();
+    const cores = navigator.hardwareConcurrency || 4;
+    const memory = navigator.deviceMemory || 4;
+    return isTouchMobile || cores <= 4 || memory <= 4;
+  }
+
   /* --------------------------------------------------------------------------
      0. REACT BITS: MOLTEN METAL SHADER CAUSTIC BACKGROUND
      -------------------------------------------------------------------------- */
@@ -79,13 +86,16 @@ class InfinityScrollShowcase {
     const bgContainer = document.getElementById('molten-metal-bg');
     if (!bgContainer) return;
 
+    const isMobile = this.isMobile();
+    const isLowPower = this.isLowPowerDevice();
+
     this.moltenMetal = initMoltenMetal(bgContainer, {
       color1: '#5227FF',
       color2: '#FF9FFC',
       color3: '#FFFFFF',
-      speed: 0.35,
+      speed: isMobile ? 0.22 : 0.35,
       scale: 4,
-      detail: 3,
+      detail: isLowPower ? 1 : 2,
       glow: 1.6,
       coreSize: 0.1,
       swirl: 1,
@@ -93,12 +103,13 @@ class InfinityScrollShowcase {
       blackPoint: 0.05,
       brightness: 1.3,
       colorMode: 'molten',
-      grain: true,
+      grain: !isMobile,
       grainIntensity: 0.05,
-      mouseInteraction: true,
+      mouseInteraction: !isMobile,
       mouseStrength: 0.3,
       opacity: 1.0,
-      backgroundColor: '#030305'
+      backgroundColor: '#030305',
+      dpr: isMobile ? 0.85 : 1.25
     });
   }
 
@@ -119,13 +130,17 @@ class InfinityScrollShowcase {
     // Initial camera position - focused on left-center stone stage
     this.updateCameraForViewport();
 
-    const isMobile = window.innerWidth <= 768 || /Android|iPhone|iPad|iPod|Opera Mini|IEMobile/i.test(navigator.userAgent);
-    const maxPixelRatio = isMobile ? Math.min(window.devicePixelRatio, 1.25) : Math.min(window.devicePixelRatio, 2);
+    const isMobile = this.isMobile();
+    const isLowPower = this.isLowPowerDevice();
+    const maxPixelRatio = isMobile ? 1.0 : Math.min(window.devicePixelRatio, 1.75);
 
     this.renderer = new THREE.WebGLRenderer({
-      powerPreference: isMobile ? 'default' : 'high-performance',
+      powerPreference: isMobile ? 'low-power' : 'high-performance',
       antialias: !isMobile,
-      alpha: true
+      alpha: true,
+      precision: isLowPower ? 'mediump' : 'highp',
+      stencil: false,
+      depth: true
     });
     this.renderer.setClearColor(0x000000, 0);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -263,7 +278,7 @@ class InfinityScrollShowcase {
     sCtx.fillRect(0, 0, 64, 64);
     const starTexture = new THREE.CanvasTexture(starCanvas);
 
-    const starCount = 2000;
+    const starCount = this.isMobile() ? 650 : 2000;
     const starGeo = new THREE.BufferGeometry();
     const starPos = new Float32Array(starCount * 3);
     const starColor = new Float32Array(starCount * 3);
@@ -348,9 +363,14 @@ class InfinityScrollShowcase {
     renderPass.clearAlpha = 0;
     this.composer.addPass(renderPass);
 
+    const isMobile = this.isMobile();
+    const bloomResolution = isMobile
+      ? new THREE.Vector2(Math.floor(window.innerWidth * 0.5), Math.floor(window.innerHeight * 0.5))
+      : new THREE.Vector2(window.innerWidth, window.innerHeight);
+
     this.bloomPass = new UnrealBloomPass(
-      new THREE.Vector2(window.innerWidth, window.innerHeight),
-      0.55, // Rich luminous aura on specular glints
+      bloomResolution,
+      isMobile ? 0.42 : 0.55, // Rich luminous aura on specular glints
       0.45, // Soft bloom radius
       0.72  // Threshold for radiant crystal sparkle
     );
@@ -1456,10 +1476,20 @@ class InfinityScrollShowcase {
      12. EVENT LISTENERS & SHORTCUTS
      -------------------------------------------------------------------------- */
   initEventListeners() {
-    // Window Resize
+    // Window Resize with mobile address-bar hide/show debounce
+    let lastWidth = window.innerWidth;
+    let lastHeight = window.innerHeight;
+
     window.addEventListener('resize', () => {
       const width = window.innerWidth;
       const height = window.innerHeight;
+
+      // Prevent mobile address bar show/hide scroll stutter (ignore height jitter < 80px when width is unchanged)
+      if (this.isMobile() && Math.abs(width - lastWidth) < 2 && Math.abs(height - lastHeight) < 80) {
+        return;
+      }
+      lastWidth = width;
+      lastHeight = height;
 
       this.camera.aspect = width / height;
       this.camera.updateProjectionMatrix();
@@ -1475,7 +1505,7 @@ class InfinityScrollShowcase {
       if (cur && !this.isConvergenceActive) {
         cur.group.scale.set(targetScale, targetScale, targetScale);
       }
-    });
+    }, { passive: true });
 
     // Audio Button Toggle (Safely guarded if element is present)
     const btnAudio = document.getElementById('btn-audio');

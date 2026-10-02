@@ -5850,3 +5850,35 @@ body.timeline-unlocked #sponsors-section {
   }
 }
 
+/* ==========================================================================
+   MOBILE & LOW-END GPU OPTIMIZATIONS
+   Reduces rasterization overhead, eliminates fill-rate bottlenecks,
+   and optimizes touch responsiveness for mobile phones.
+   ========================================================================== */
+@media (max-width: 820px) {
+  /* Lightweight backdrop blur on mobile GPUs */
+  .info-card,
+  .hud-countdown-bar,
+  .modal-dialog,
+  .hud-header,
+  .conduct-card,
+  .faq-card {
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+  }
+
+  /* Hardware accelerated compositing without layout recalculation */
+  .info-card,
+  .stone-stage-overlay,
+  .modal-dialog {
+    transform: translateZ(0);
+    will-change: transform, opacity;
+  }
+
+  /* Smooth momentum touch scrolling with no overscroll bounce stutter */
+  body, html {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: none;
+  }
+}
+
