@@ -1182,6 +1182,13 @@ app.post('/api/register', upload.single('paymentScreenshot'), async (req, res) =
         throw err;
       }
 
+      // Ensure unique team ID inside atomic transaction
+      let assignedId = newTeam.id;
+      while (db.teams.some((t) => t.id === assignedId)) {
+        assignedId = `INF-${Math.floor(1000 + Math.random() * 9000)}`;
+      }
+      newTeam.id = assignedId;
+
       db.teams.push(newTeam);
       return { newTeam, calculatedAmount };
     });

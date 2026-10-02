@@ -353,6 +353,20 @@ async function generateAdminToken(secret) {
   return generateRoleToken('admin', secret);
 }
 
+// Helper: Constant-time string equality comparison
+export function timingSafeEqualString(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string' || !a || !b) return false;
+  const enc = new TextEncoder();
+  const aBuf = enc.encode(a);
+  const bBuf = enc.encode(b);
+  if (aBuf.byteLength !== bBuf.byteLength) return false;
+  let result = 0;
+  for (let i = 0; i < aBuf.byteLength; i++) {
+    result |= aBuf[i] ^ bBuf[i];
+  }
+  return result === 0;
+}
+
 // Helper: Verify role authorization token or secret
 async function verifyRoleAuth(request, url, role, secret) {
   const authHeader = request.headers.get('Authorization') || '';
@@ -360,8 +374,8 @@ async function verifyRoleAuth(request, url, role, secret) {
   const tokenFromQuery = (url.searchParams.get('token') || '').trim();
   const token = tokenFromHeader || tokenFromQuery;
 
-  if (!token) return false;
-  if (token === secret) return true; // Direct role secret / passphrase fallback
+  if (!token || !secret) return false;
+  if (timingSafeEqualString(token, secret)) return true; // Direct role secret / passphrase fallback
 
   try {
     const decoded = atob(token);
@@ -768,9 +782,8 @@ async function saveDbConditional(env, data, expectedEtag) {
       if (err.name === 'PreconditionFailed' || err.message?.includes('Precondition') || err.message?.includes('412')) {
         return false;
       }
-      console.warn('R2 conditional put fallback:', err.message);
-      await env.BUCKET.put(R2_DB_KEY, JSON.stringify(data, null, 2));
-      return true;
+      console.error('R2 conditional put failed, aborting transaction for retry:', err.message);
+      return false;
     }
   }
   return true;
@@ -1315,6 +1328,13 @@ export async function onRequest(context) {
           throw err;
         }
 
+        // Ensure unique team ID inside atomic transaction
+        let assignedId = newTeam.id;
+        while (db.teams.some((t) => t.id === assignedId)) {
+          assignedId = `INF-${Math.floor(1000 + Math.random() * 9000)}`;
+        }
+        newTeam.id = assignedId;
+
         db.teams.push(newTeam);
         return { newTeam, calculatedAmount };
       });
@@ -1481,21 +1501,22 @@ export async function onRequest(context) {
         return jsonResponse({ success: false, error: 'Authentication failed.' }, 401);
       }
 
+      const targetTeamId = team.id;
       const { result } = await updateDb(env, async (db) => {
-        const team = db.teams.find((t) => t.id === id);
-        if (!team) {
+        const teamInDb = db.teams.find((t) => t.id === targetTeamId);
+        if (!teamInDb) {
           const err = new Error('Team not found');
           err.statusCode = 404;
           throw err;
         }
 
         if (newDomainId && db.domains.some((d) => d.id === newDomainId || d.stoneId === newDomainId)) {
-          team.preferredDomain = newDomainId;
-          team.selectedProblemStatement = null;
+          teamInDb.preferredDomain = newDomainId;
+          teamInDb.selectedProblemStatement = null;
         }
 
         const currentDomain = db.domains.find(
-          (d) => d.id === team.preferredDomain || d.stoneId === team.preferredDomain
+          (d) => d.id === teamInDb.preferredDomain || d.stoneId === teamInDb.preferredDomain
         );
 
         if (problemStatementId && currentDomain) {
@@ -1503,7 +1524,7 @@ export async function onRequest(context) {
             (p) => p.id === problemStatementId || p.code === problemStatementId
           );
           if (ps) {
-            team.selectedProblemStatement = {
+            teamInDb.selectedProblemStatement = {
               id: ps.id,
               code: ps.code,
               title: ps.title,
@@ -1513,7 +1534,7 @@ export async function onRequest(context) {
           }
         }
 
-        const safeTeam = JSON.parse(JSON.stringify(team));
+        const safeTeam = JSON.parse(JSON.stringify(teamInDb));
         delete safeTeam.scores;
         delete safeTeam.teamPassword;
         return { team: safeTeam, domainInfo: currentDomain };
@@ -1545,7 +1566,7 @@ export async function onRequest(context) {
       if (!password) {
         return jsonResponse({ success: false, error: 'Passcode is required.' }, 400);
       }
-      if (password === COORDINATOR_PASS) {
+      if (timingSafeEqualString(password, COORDINATOR_PASS)) {
         authRateLimiter.reset(authKey);
         const token = await generateRoleToken('coordinator', COORDINATOR_PASS);
         return jsonResponse({ success: true, token, message: 'Coordinator clearance granted.' });
@@ -1638,7 +1659,7 @@ export async function onRequest(context) {
       if (!password) {
         return jsonResponse({ success: false, error: 'Passcode is required.' }, 400);
       }
-      if (password === JUDGES_PASS) {
+      if (timingSafeEqualString(password, JUDGES_PASS)) {
         authRateLimiter.reset(authKey);
         const token = await generateRoleToken('judge', JUDGES_PASS);
         return jsonResponse({ success: true, token, message: 'Judge clearance granted.' });
@@ -1740,7 +1761,7 @@ export async function onRequest(context) {
         return jsonResponse({ success: false, error: 'Admin authentication is not configured.' }, 500);
       }
       if (!password) return jsonResponse({ success: false, error: 'Passphrase is required.' }, 400);
-      if (password === ADMIN_SECRET) {
+      if (timingSafeEqualString(password, ADMIN_SECRET)) {
         authRateLimiter.reset(authKey);
         const token = await generateAdminToken(ADMIN_SECRET);
         return jsonResponse({ success: true, token, message: 'Organizer clearance granted.' });
