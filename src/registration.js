@@ -175,6 +175,19 @@ export function initRegistrationModule() {
     }
   });
 
+  // Close on Escape key press (WAI-ARIA compliance)
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' || e.key === 'Esc') {
+      if (modalRegister && modalRegister.classList.contains('is-open')) {
+        closeModal();
+      }
+      if (modalSuccess && modalSuccess.classList.contains('is-open')) {
+        modalSuccess.classList.remove('is-open');
+        modalSuccess.setAttribute('aria-hidden', 'true');
+      }
+    }
+  });
+
   // Domain Radio change listener
   domainCards.forEach(card => {
     card.addEventListener('click', () => {
@@ -396,23 +409,30 @@ export function initRegistrationModule() {
         if (!Tesseract) throw new Error('OCR not available');
 
         // Create local worker with zero CORS / cross-origin issues
-        const worker = await Tesseract.createWorker('eng', 1, {
-          workerPath: '/tesseract/worker.min.js',
-          corePath: '/tesseract/tesseract-core.wasm.js',
-          langPath: '/tesseract',
-          gzip: true,
-          logger: m => {
-            if (m.status === 'recognizing text' && m.progress) {
-              const pct = Math.round(m.progress * 100);
-              if (ocrBody) ocrBody.innerHTML = `<span class="ocr-scanning">Scanning receipt contents: ${pct}%...</span>`;
+        let worker = null;
+        let result = null;
+        try {
+          worker = await Tesseract.createWorker('eng', 1, {
+            workerPath: '/tesseract/worker.min.js',
+            corePath: '/tesseract/tesseract-core.wasm.js',
+            langPath: '/tesseract',
+            gzip: true,
+            logger: m => {
+              if (m.status === 'recognizing text' && m.progress) {
+                const pct = Math.round(m.progress * 100);
+                if (ocrBody) ocrBody.innerHTML = `<span class="ocr-scanning">Scanning receipt contents: ${pct}%...</span>`;
+              }
             }
-          }
-        });
+          });
 
-        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('OCR Timeout')), 45000));
-        const recognizePromise = worker.recognize(processedBlob);
-        const result = await Promise.race([recognizePromise, timeoutPromise]);
-        await worker.terminate().catch(() => {});
+          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('OCR Timeout')), 45000));
+          const recognizePromise = worker.recognize(processedBlob);
+          result = await Promise.race([recognizePromise, timeoutPromise]);
+        } finally {
+          if (worker) {
+            await worker.terminate().catch(() => {});
+          }
+        }
 
         const rawText = (result?.data?.text || '').trim();
         const lower = rawText.toLowerCase();

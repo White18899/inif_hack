@@ -28,6 +28,9 @@ class InfinityScrollShowcase {
 
     this.clock = new THREE.Clock();
     this.infoCard = document.getElementById('info-card');
+    this.isSceneVisible = true;
+    this.isContextLost = false;
+    this.animationFrameId = null;
 
     this.initMoltenMetalBg();
     this.initThree();
@@ -40,8 +43,9 @@ class InfinityScrollShowcase {
     this.initTimeline();
     this.initScrollAndGestures();
     this.initEventListeners();
+    this.initVisibilityAndPerformanceGovernance();
     initRegistrationModule();
-    this.animate();
+    this.startAnimation();
 
     // Reset window scroll to top
     if ('scrollRestoration' in history) {
@@ -133,12 +137,14 @@ class InfinityScrollShowcase {
     this.renderer.domElement.addEventListener('webglcontextlost', (event) => {
       event.preventDefault();
       console.warn('⚠️ WebGL context lost. Pausing render loop to recover...');
-      if (this.animationFrameId) cancelAnimationFrame(this.animationFrameId);
+      this.isContextLost = true;
+      this.stopAnimation();
     }, false);
 
     this.renderer.domElement.addEventListener('webglcontextrestored', () => {
       console.log('✅ WebGL context restored. Resuming render loop.');
-      this.animate();
+      this.isContextLost = false;
+      this.startAnimation();
     }, false);
 
     this.container.appendChild(this.renderer.domElement);
@@ -1603,11 +1609,53 @@ class InfinityScrollShowcase {
     });
   }
 
+  initVisibilityAndPerformanceGovernance() {
+    const showcaseSection = document.getElementById('showcase-section');
+    if (showcaseSection && 'IntersectionObserver' in window) {
+      this.sceneObserver = new IntersectionObserver(([entry]) => {
+        this.isSceneVisible = entry.isIntersecting;
+        if (this.isSceneVisible) {
+          this.startAnimation();
+        } else {
+          this.stopAnimation();
+        }
+      }, { threshold: 0.02 });
+      this.sceneObserver.observe(showcaseSection);
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        this.stopAnimation();
+      } else if (this.isSceneVisible) {
+        this.startAnimation();
+      }
+    });
+  }
+
+  startAnimation() {
+    if (this.isContextLost || !this.isSceneVisible || document.hidden) return;
+    if (this.animationFrameId !== null) return;
+    this.clock.start();
+    this.animate();
+  }
+
+  stopAnimation() {
+    if (this.animationFrameId !== null) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
+    }
+  }
+
   /* --------------------------------------------------------------------------
      13. RENDER & ANIMATION LOOP
      -------------------------------------------------------------------------- */
   animate() {
-    requestAnimationFrame(() => this.animate());
+    if (this.isContextLost || !this.isSceneVisible || document.hidden) {
+      this.animationFrameId = null;
+      return;
+    }
+
+    this.animationFrameId = requestAnimationFrame(() => this.animate());
 
     const delta = this.clock.getDelta();
     const elapsedTime = this.clock.getElapsedTime();
