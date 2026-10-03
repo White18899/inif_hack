@@ -32,20 +32,35 @@ class InfinityScrollShowcase {
     this.isContextLost = false;
     this.animationFrameId = null;
 
-    this.initMoltenMetalBg();
-    this.initThree();
-    this.initCosmicEnvironment();
-    this.initStones();
-    this.initPostProcessing();
-    this.initControls();
+    this.isWebGLAvailable = this.hasWebGLSupport();
+
+    if (this.isWebGLAvailable) {
+      try {
+        this.initMoltenMetalBg();
+        this.initThree();
+        this.initCosmicEnvironment();
+        this.initStones();
+        this.initPostProcessing();
+        this.initControls();
+        this.initVisibilityAndPerformanceGovernance();
+        this.startAnimation();
+      } catch (err) {
+        console.warn('⚠️ WebGL initialization encountered an issue. Activating 2D cosmic fallback:', err);
+        this.isWebGLAvailable = false;
+        document.body.classList.add('webgl-fallback-active');
+      }
+    } else {
+      console.warn('ℹ️ WebGL is not supported on this browser/hardware. 2D cosmic fallback engaged.');
+      document.body.classList.add('webgl-fallback-active');
+    }
+
     this.initUI();
     this.initCountdownTimer();
     this.initTimeline();
     this.initScrollAndGestures();
     this.initEventListeners();
-    this.initVisibilityAndPerformanceGovernance();
     initRegistrationModule();
-    this.startAnimation();
+    this.initServiceWorker();
 
     // Reset window scroll to top
     if ('scrollRestoration' in history) {
@@ -66,6 +81,15 @@ class InfinityScrollShowcase {
         this.triggerConvergence(false);
       }
     });
+  }
+
+  hasWebGLSupport() {
+    try {
+      const canvas = document.createElement('canvas');
+      return Boolean(window.WebGLRenderingContext && (canvas.getContext('webgl2') || canvas.getContext('webgl')));
+    } catch (_) {
+      return false;
+    }
   }
 
   isMobile() {
@@ -1663,7 +1687,7 @@ class InfinityScrollShowcase {
   }
 
   startAnimation() {
-    if (this.isContextLost || !this.isSceneVisible || document.hidden) return;
+    if (!this.isWebGLAvailable || !this.renderer || this.isContextLost || !this.isSceneVisible || document.hidden) return;
     if (this.animationFrameId !== null) return;
     this.clock.start();
     this.animate();
@@ -1680,6 +1704,11 @@ class InfinityScrollShowcase {
      13. RENDER & ANIMATION LOOP
      -------------------------------------------------------------------------- */
   animate() {
+    if (!this.isWebGLAvailable || !this.renderer || !this.composer) {
+      this.animationFrameId = null;
+      return;
+    }
+
     if (this.isContextLost || !this.isSceneVisible || document.hidden) {
       this.animationFrameId = null;
       return;
@@ -1697,7 +1726,7 @@ class InfinityScrollShowcase {
 
     // Update active stone animations
     this.stones.forEach((stone, i) => {
-      if (stone.group.visible) {
+      if (stone && stone.group && stone.group.visible) {
         stone.update(elapsedTime, delta);
 
         // Lively vertical levitation on the hero stage
@@ -1707,8 +1736,20 @@ class InfinityScrollShowcase {
       }
     });
 
-    this.controls.update();
-    this.composer.render();
+    if (this.controls) this.controls.update();
+    if (this.composer) this.composer.render();
+  }
+
+  initServiceWorker() {
+    if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').then(() => {
+          console.log('✅ Infinity PWA Service Worker active. Offline venue resilience enabled.');
+        }).catch((err) => {
+          console.debug('Service worker registration note:', err);
+        });
+      });
+    }
   }
 }
 

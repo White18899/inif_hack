@@ -5882,3 +5882,25 @@ body.timeline-unlocked #sponsors-section {
   }
 }
 
+/* ==========================================================================
+   GRACEFUL 2D COSMIC FALLBACK (NON-WEBGL / RESTRICTED BROWSERS)
+   Activates if hardware acceleration is blocked or WebGL is unavailable.
+   ========================================================================== */
+body.webgl-fallback-active #molten-metal-bg,
+body.webgl-fallback-active #webgl-container {
+  background: radial-gradient(circle at 50% 40%, rgba(82, 39, 255, 0.22) 0%, rgba(255, 42, 109, 0.12) 40%, #030305 85%) !important;
+  animation: cosmicAuraPulse 12s ease-in-out infinite alternate;
+}
+
+body.webgl-fallback-active .stone-stage-overlay {
+  display: flex !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+@keyframes cosmicAuraPulse {
+  0% { filter: hue-rotate(0deg) brightness(0.95); }
+  50% { filter: hue-rotate(30deg) brightness(1.1); }
+  100% { filter: hue-rotate(-20deg) brightness(1.0); }
+}
+
